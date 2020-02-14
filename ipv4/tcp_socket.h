@@ -22,31 +22,31 @@
 
 namespace PortableAPI
 {
-	class LOCAL_API tcp_socket : public connected_socket
-	{
-		public:
-			typedef ipv4_addr myaddr;
+    class LOCAL_API tcp_socket : public connected_socket
+    {
+        public:
+            typedef ipv4_addr myaddr;
 
-		private:
-			myaddr _addr;
+        private:
+            myaddr _addr;
 
-			tcp_socket(SOCKET s);
+            tcp_socket(SOCKET s);
 
-			void socket();
-		public:
-			tcp_socket();
-			tcp_socket(tcp_socket const&);
-			tcp_socket(tcp_socket &&);
-			virtual ~tcp_socket();
+            void socket();
+        public:
+            tcp_socket();
+            tcp_socket(tcp_socket const&);
+            tcp_socket(tcp_socket &&);
+            virtual ~tcp_socket();
 
-			tcp_socket& operator =(tcp_socket const&);
-			tcp_socket& operator =(tcp_socket &&);
+            tcp_socket& operator =(tcp_socket const&);
+            tcp_socket& operator =(tcp_socket &&);
 
-			myaddr const& get_addr() const;
-			tcp_socket accept();
-			void server(myaddr& addr, int waiting_connections = 5);
-			void connect(myaddr& addr);
-			virtual void close();
-	};
+            myaddr const& get_addr() const;
+            tcp_socket accept();
+            void server(myaddr& addr, int waiting_connections = 5);
+            void connect(myaddr& addr);
+            virtual void close();
+    };
 }
 #endif

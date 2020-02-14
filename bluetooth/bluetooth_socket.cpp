@@ -27,40 +27,40 @@
 "%02" SCNx8 "%02" SCNx8 "%02" SCNx8 "%02" SCNx8 "%02" SCNx8 "%02" SCNx8
 
 #if defined(__LINUX__) && !defined(__BLUEZ_4__)
-#include <iomanip>	  // for setfill and setw
+#include <iomanip>      // for setfill and setw
 #include <dbus/dbus.h> // for bluez
 
 class LOCAL_API BluezDBusSystem
 {
 private:
-	DBusConnection *_conn;
-	DBusError _err;
+    DBusConnection *_conn;
+    DBusError _err;
 
-	BluezDBusSystem() :_conn(nullptr) {}
+    BluezDBusSystem() :_conn(nullptr) {}
 
-	SINGLETON(BluezDBusSystem)
-	{
-		static BluezDBusSystem _inst;
+    SINGLETON(BluezDBusSystem)
+    {
+        static BluezDBusSystem _inst;
 
-		if (_inst._conn == nullptr)
-		{
-			dbus_error_init(&_inst._err);
-			_inst._conn = dbus_bus_get(DBUS_BUS_SYSTEM, &_inst._err);
-		}
+        if (_inst._conn == nullptr)
+        {
+            dbus_error_init(&_inst._err);
+            _inst._conn = dbus_bus_get(DBUS_BUS_SYSTEM, &_inst._err);
+        }
 
-		return _inst;
-	}
+        return _inst;
+    }
 
-	operator DBusConnection*() { return _conn; }
-	operator DBusError*() { return &_err; }
+    operator DBusConnection*() { return _conn; }
+    operator DBusError*() { return &_err; }
 
-	const char* message() const { return _err.message; }
+    const char* message() const { return _err.message; }
 
-	~BluezDBusSystem()
-	{
-		if (_conn != nullptr)
-			dbus_connection_unref(_conn);
-	}
+    ~BluezDBusSystem()
+    {
+        if (_conn != nullptr)
+            dbus_connection_unref(_conn);
+    }
 };
 #endif
 
@@ -74,941 +74,941 @@ BluetoothDevice::BluetoothDevice(BluetoothDevice &&other):addr(other.addr),name(
 
 BluetoothDevice& BluetoothDevice::operator =(BluetoothDevice const&other)
 {
-	addr = other.addr;
-	name = other.name;
-	return *this;
+    addr = other.addr;
+    name = other.name;
+    return *this;
 }
 
 BluetoothDevice& BluetoothDevice::operator =(BluetoothDevice &&other)
 {
-	addr = other.addr;
-	name = std::move(other.name);
-	return *this;
+    addr = other.addr;
+    name = std::move(other.name);
+    return *this;
 }
 
 bool BluetoothSocket::isValidUUID(std::string const& struuid)
 {
-	// Vérification de la taille et de la présence des séparateurs aux bons endroits
-	if(   struuid.length() != 36
-		|| struuid[8] != '-' || struuid[13] != '-'
-		|| struuid[18] != '-' || struuid[23] != '-' )
-	{
-		return false;
-	}
-	const char *ptr = struuid.c_str();
+    // Vérification de la taille et de la présence des séparateurs aux bons endroits
+    if(   struuid.length() != 36
+        || struuid[8] != '-' || struuid[13] != '-'
+        || struuid[18] != '-' || struuid[23] != '-' )
+    {
+        return false;
+    }
+    const char *ptr = struuid.c_str();
 
-	for( int i = 0; i < 36; ++i, ++ptr )
-	{
-		// Si i n'est pas sur un '-'
-		if (i != 8 && i != 13 && i != 18 && i != 23)
-		{
-			// si le caractère n'est pas entre 0-9 et A-Z
-			if (((*ptr < '0') || (*ptr > '9')) &&
-				((*ptr < 'A') || (*ptr > 'F')) &&
-				((*ptr < 'a') || (*ptr > 'f')))
-			{
-				return false;
-			}
-		}
-	}
-	return true;
+    for( int i = 0; i < 36; ++i, ++ptr )
+    {
+        // Si i n'est pas sur un '-'
+        if (i != 8 && i != 13 && i != 18 && i != 23)
+        {
+            // si le caractère n'est pas entre 0-9 et A-Z
+            if (((*ptr < '0') || (*ptr > '9')) &&
+                ((*ptr < 'A') || (*ptr > 'F')) &&
+                ((*ptr < 'a') || (*ptr > 'f')))
+            {
+                return false;
+            }
+        }
+    }
+    return true;
 }
 
 #if defined(__WINDOWS__)
 
 bdaddr_t BluetoothSocket::inet_addr(std::string const & addr)
 {
-	sockaddr_rc sockaddr;
-	socklen_t lg = sizeof(sockaddr_rc);
+    sockaddr_rc sockaddr;
+    socklen_t lg = sizeof(sockaddr_rc);
 
-	std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> converter;
-	std::wstring waddr = converter.from_bytes(addr);
+    std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> converter;
+    std::wstring waddr = converter.from_bytes(addr);
 
-	WSAStringToAddressW(const_cast<wchar_t*>(waddr.c_str()), static_cast<uint32_t>(BluetoothSocket::address_family::bth), NULL, (LPSOCKADDR)&sockaddr, (socklen_t*)&lg);
-	return sockaddr.btAddr;
+    WSAStringToAddressW(const_cast<wchar_t*>(waddr.c_str()), static_cast<uint32_t>(BluetoothSocket::address_family::bth), NULL, (LPSOCKADDR)&sockaddr, (socklen_t*)&lg);
+    return sockaddr.btAddr;
 }
 
 std::string BluetoothSocket::inet_ntoa(bdaddr_t & in)
 {
-	wchar_t wstr[128];
-	wchar_t *wtmp = wstr;
-	unsigned long x = 127;
+    wchar_t wstr[128];
+    wchar_t *wtmp = wstr;
+    unsigned long x = 127;
 
-	sockaddr_rc addr;
-	addr.btAddr = in;
-	addr.addressFamily = static_cast<uint32_t>(BluetoothSocket::address_family::bth);
+    sockaddr_rc addr;
+    addr.btAddr = in;
+    addr.addressFamily = static_cast<uint32_t>(BluetoothSocket::address_family::bth);
 
-	WSAAddressToStringW((LPSOCKADDR)&addr, sizeof(addr), NULL, wstr, &x);
-	// Windows renvoie l'adresse d'une facon chelou :
-	// (XX:XX:XX:XX:XX:XX):XX:XX:XX
-	// alors on crée une sous-chaine
-	
-	std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> converter;
+    WSAAddressToStringW((LPSOCKADDR)&addr, sizeof(addr), NULL, wstr, &x);
+    // Windows renvoie l'adresse d'une facon chelou :
+    // (XX:XX:XX:XX:XX:XX):XX:XX:XX
+    // alors on crée une sous-chaine
+    
+    std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> converter;
 
-	return converter.to_bytes(wtmp+1, wtmp+18);
+    return converter.to_bytes(wtmp+1, wtmp+18);
 }
 
 uuid_t BluetoothSocket::str2uuid(std::string const& struuid)
 {
-	uuid_t uuid = { 0 };
-	// si c'est une uuid
-	if (isValidUUID(struuid))
-	{
-		//uint32_t uuid32[16];
-		//uint8_t  uuid8[16];
-		uint8_t *uuid8 = reinterpret_cast<uint8_t*>(&uuid);
-		
-		sscanf_s(struuid.c_str(), __UUID_PRINTF_FORMAT__,
-			&uuid8[3], &uuid8[2], &uuid8[1], &uuid8[0],
-			&uuid8[5], &uuid8[4],
-			&uuid8[7], &uuid8[6],
-			&uuid8[8], &uuid8[9],
-			&uuid8[10], &uuid8[11], &uuid8[12], &uuid8[13], &uuid8[14], &uuid8[15]);
+    uuid_t uuid = { 0 };
+    // si c'est une uuid
+    if (isValidUUID(struuid))
+    {
+        //uint32_t uuid32[16];
+        //uint8_t  uuid8[16];
+        uint8_t *uuid8 = reinterpret_cast<uint8_t*>(&uuid);
+        
+        sscanf_s(struuid.c_str(), __UUID_PRINTF_FORMAT__,
+            &uuid8[3], &uuid8[2], &uuid8[1], &uuid8[0],
+            &uuid8[5], &uuid8[4],
+            &uuid8[7], &uuid8[6],
+            &uuid8[8], &uuid8[9],
+            &uuid8[10], &uuid8[11], &uuid8[12], &uuid8[13], &uuid8[14], &uuid8[15]);
 
-		//sscanf_s(struuid.c_str(), "%02X%02X%02X%02X-%02X%02X-%02X%02X-%02X%02X-%02X%02X%02X%02X%02X%02X",
-		//	&uuid32[3], &uuid32[2], &uuid32[1], &uuid32[0],
-		//	&uuid32[5], &uuid32[4], 
-		//	&uuid32[7], &uuid32[6],
-		//	&uuid32[8], &uuid32[9],
-		//	&uuid32[10], &uuid32[11], &uuid32[12], &uuid32[13], &uuid32[14], &uuid32[15]);
+        //sscanf_s(struuid.c_str(), "%02X%02X%02X%02X-%02X%02X-%02X%02X-%02X%02X-%02X%02X%02X%02X%02X%02X",
+        //    &uuid32[3], &uuid32[2], &uuid32[1], &uuid32[0],
+        //    &uuid32[5], &uuid32[4], 
+        //    &uuid32[7], &uuid32[6],
+        //    &uuid32[8], &uuid32[9],
+        //    &uuid32[10], &uuid32[11], &uuid32[12], &uuid32[13], &uuid32[14], &uuid32[15]);
 
-		// transtypage int32 -> int8
-		//for (int i = 0; i < 16; ++i)
-		//s	uuid8[i] = static_cast<unsigned char>(uuid32[i]);
-		// création en type uuid_t
-		//memcpy(&uuid, uuid8, sizeof(uuid_t));
-	}
-	return uuid;
+        // transtypage int32 -> int8
+        //for (int i = 0; i < 16; ++i)
+        //s    uuid8[i] = static_cast<unsigned char>(uuid32[i]);
+        // création en type uuid_t
+        //memcpy(&uuid, uuid8, sizeof(uuid_t));
+    }
+    return uuid;
 }
 
 std::string BluetoothSocket::uuid2str( uuid_t const& uuid )
 {
-	char str[37] = {0};
-	const uint8_t *datas = reinterpret_cast<const uint8_t*>(&uuid);
-	snprintf(str, 37, __UUID_PRINTF_FORMAT__,
-		datas[3], datas[2], datas[1], datas[0],
-		datas[5], datas[4],
-		datas[7], datas[6],
-		datas[8], datas[9],
-		datas[10], datas[11], datas[12], datas[13], datas[14], datas[15]);
-	return std::string(str);
+    char str[37] = {0};
+    const uint8_t *datas = reinterpret_cast<const uint8_t*>(&uuid);
+    snprintf(str, 37, __UUID_PRINTF_FORMAT__,
+        datas[3], datas[2], datas[1], datas[0],
+        datas[5], datas[4],
+        datas[7], datas[6],
+        datas[8], datas[9],
+        datas[10], datas[11], datas[12], datas[13], datas[14], datas[15]);
+    return std::string(str);
 }
 
 std::list<BluetoothDevice> BluetoothSocket::scan(bool flushCache)
 {
-	std::list<BluetoothDevice> devices;
-	BluetoothDevice device;
+    std::list<BluetoothDevice> devices;
+    BluetoothDevice device;
 
-	HANDLE hLookup;
-	union
-	{
-		char buffer[4096];
-		double __unused;
-	};
-	WSAQUERYSETA wsaq = { 0 };
-	wsaq.dwSize = sizeof(WSAQUERYSETA);
-	wsaq.dwNameSpace = NS_BTH;
-	wsaq.lpcsaBuffer = 0;
-	int flags = LUP_CONTAINERS;
-	if (flushCache)
-		flags |= LUP_FLUSHCACHE;
-	// Démarrage de la recherche de service
-	if (WSALookupServiceBeginA(&wsaq, flags, &hLookup))
-	{
-		switch (WSAGetLastError())
-		{
-			case WSANOTINITIALISED: throw wsa_not_initialised("A successful WSAStartup call must occur before using this function.");
-			case WSAEINVAL: throw error_in_value("One or more parameters were missing or invalid for this provider.");
-			// Pas de problème avec la recherche mais il n'y a pas de périphériques visibles.
-			case WSASERVICE_NOT_FOUND: return devices;
-			default: throw socket_exception("scan exception.");
-		}
-	}
+    HANDLE hLookup;
+    union
+    {
+        char buffer[4096];
+        double __unused;
+    };
+    WSAQUERYSETA wsaq = { 0 };
+    wsaq.dwSize = sizeof(WSAQUERYSETA);
+    wsaq.dwNameSpace = NS_BTH;
+    wsaq.lpcsaBuffer = 0;
+    int flags = LUP_CONTAINERS;
+    if (flushCache)
+        flags |= LUP_FLUSHCACHE;
+    // Démarrage de la recherche de service
+    if (WSALookupServiceBeginA(&wsaq, flags, &hLookup))
+    {
+        switch (WSAGetLastError())
+        {
+            case WSANOTINITIALISED: throw wsa_not_initialised("A successful WSAStartup call must occur before using this function.");
+            case WSAEINVAL: throw error_in_value("One or more parameters were missing or invalid for this provider.");
+            // Pas de problème avec la recherche mais il n'y a pas de périphériques visibles.
+            case WSASERVICE_NOT_FOUND: return devices;
+            default: throw socket_exception("scan exception.");
+        }
+    }
 
-	LPWSAQUERYSETA pwsaResults = (LPWSAQUERYSETA)buffer;
-	DWORD dwSize = sizeof(buffer);
-	memset(pwsaResults, 0, sizeof(WSAQUERYSETA));
-	pwsaResults->dwSize = sizeof(WSAQUERYSETA);
-	pwsaResults->dwNameSpace = NS_BTH;
-	pwsaResults->lpBlob = NULL;
-	// Récupération de l'appareil
-	while(!WSALookupServiceNextA(hLookup, LUP_RETURN_NAME | LUP_RETURN_ADDR, &dwSize, pwsaResults))
-	{
-		if (pwsaResults->dwNumberOfCsAddrs != 1)
-			break;
-		// Affectation de l'adresse
-		device.addr = ((sockaddr_rc *)pwsaResults->lpcsaBuffer->RemoteAddr.lpSockaddr)->btAddr;
-		// Affectation du nom de l'appareil
-		if (pwsaResults->lpszServiceInstanceName != nullptr && *(pwsaResults->lpszServiceInstanceName))
-			device.name = pwsaResults->lpszServiceInstanceName;
-		else
-			device.name = "[inconnu]";
+    LPWSAQUERYSETA pwsaResults = (LPWSAQUERYSETA)buffer;
+    DWORD dwSize = sizeof(buffer);
+    memset(pwsaResults, 0, sizeof(WSAQUERYSETA));
+    pwsaResults->dwSize = sizeof(WSAQUERYSETA);
+    pwsaResults->dwNameSpace = NS_BTH;
+    pwsaResults->lpBlob = NULL;
+    // Récupération de l'appareil
+    while(!WSALookupServiceNextA(hLookup, LUP_RETURN_NAME | LUP_RETURN_ADDR, &dwSize, pwsaResults))
+    {
+        if (pwsaResults->dwNumberOfCsAddrs != 1)
+            break;
+        // Affectation de l'adresse
+        device.addr = ((sockaddr_rc *)pwsaResults->lpcsaBuffer->RemoteAddr.lpSockaddr)->btAddr;
+        // Affectation du nom de l'appareil
+        if (pwsaResults->lpszServiceInstanceName != nullptr && *(pwsaResults->lpszServiceInstanceName))
+            device.name = pwsaResults->lpszServiceInstanceName;
+        else
+            device.name = "[inconnu]";
 
-		devices.emplace_back(device);
-	}
+        devices.emplace_back(device);
+    }
 
-	int32_t err = WSAGetLastError();
-	switch (err)
-	{
-		case WSANOTINITIALISED: 
-			WSALookupServiceEnd(hLookup);
-			throw wsa_not_initialised("A successful WSAStartup call must occur before using this function.");
-		case WSAEINVAL: 
-			WSALookupServiceEnd(hLookup);
-			throw error_in_value("One or more required parameters were invalid or missing.");
+    int32_t err = WSAGetLastError();
+    switch (err)
+    {
+        case WSANOTINITIALISED: 
+            WSALookupServiceEnd(hLookup);
+            throw wsa_not_initialised("A successful WSAStartup call must occur before using this function.");
+        case WSAEINVAL: 
+            WSALookupServiceEnd(hLookup);
+            throw error_in_value("One or more required parameters were invalid or missing.");
 #ifdef WSAENOMORE
-		case WSAENOMORE: break;
+        case WSAENOMORE: break;
 #endif
 #ifdef WSA_E_NO_MORE
-		case WSA_E_NO_MORE: break;
+        case WSA_E_NO_MORE: break;
 #endif
-		default: 
-			WSALookupServiceEnd(hLookup);
-			throw socket_exception("scan exception: " + std::to_string(err));
-	}
+        default: 
+            WSALookupServiceEnd(hLookup);
+            throw socket_exception("scan exception: " + std::to_string(err));
+    }
 
-	// Libérer les ressources de recherche
-	WSALookupServiceEnd(hLookup);
+    // Libérer les ressources de recherche
+    WSALookupServiceEnd(hLookup);
 
-	return devices;
+    return devices;
 }
 
 // Cette fonction ne fonctionne pas, mais comme y'en a pas besoin, je
 // la ferait plus tard
 int BluetoothSocket::scanOpenPortFromUUID(uuid_t& _UUID, bdaddr_t& _Addr)
 {
-	return -1;
-	/*
-	int iResult = 0, iRet;
-	BLOB blob;
-	SOCKADDR_BTH sa;
-	CSADDR_INFO csai;
-	WSAQUERYSET wsaq1;
-	HANDLE hLookup1;
-	CHAR buf1[5000];
-	DWORD dwSize;
-	LPWSAQUERYSET pwsaResults1;
-	BTHNS_RESTRICTIONBLOB RBlob;
+    return -1;
+    /*
+    int iResult = 0, iRet;
+    BLOB blob;
+    SOCKADDR_BTH sa;
+    CSADDR_INFO csai;
+    WSAQUERYSET wsaq1;
+    HANDLE hLookup1;
+    CHAR buf1[5000];
+    DWORD dwSize;
+    LPWSAQUERYSET pwsaResults1;
+    BTHNS_RESTRICTIONBLOB RBlob;
 
 
-	// http://msdn.microsoft.com/en-us/library/ms881237.aspx
-	//This structure contains details about a query restriction
-	memset(&RBlob, 0, sizeof(RBlob));
-	RBlob.type = SDP_SERVICE_SEARCH_ATTRIBUTE_REQUEST;
-	RBlob.numRange = 1;
-	RBlob.pRange[0].minAttribute = SDP_ATTRIB_PROTOCOL_DESCRIPTOR_LIST;
-	RBlob.pRange[0].maxAttribute = SDP_ATTRIB_PROTOCOL_DESCRIPTOR_LIST;
-	RBlob.uuids[0].uuidType = SDP_ST_UUID16;
-	RBlob.uuids[0].u.uuid16 = SerialPortServiceClassID_UUID16;
-	// BrowseGroupDescriptorServiceClassID_UUID;
-	//This structure is used for an arbitrary array of bytes
-	blob.cbSize = sizeof(RBlob);
-	blob.pBlobData = (BYTE *)&RBlob;
-	//This structure defines the Bluetooth socket address
-	memset(&sa, 0, sizeof(sa));
-	sa.btAddr = _Addr;
-	sa.addressFamily = AF_BTH;
-	// Do some verification
-	printf("\n  sa.btAddr: %012X\n", sa.btAddr);
-	printf("  GET_NAP(sa.btAddr): %04X\n", GET_NAP(sa.btAddr));
-	printf("  GET_SAP(sa.btAddr): %08X\n", GET_SAP(sa.btAddr));
-	printf("  sa.addressFamily: %d\n", sa.addressFamily);
-	printf("  sa.port: %ul\n", sa.port);
-	memset(&csai, 0, sizeof(csai));
-	csai.RemoteAddr.lpSockaddr = (SOCKADDR *)&sa;
-	csai.RemoteAddr.iSockaddrLength = sizeof(sa);
-	// Do some verification
-	printf("\n  csai.RemoteAddr: %012X\n", csai.RemoteAddr.lpSockaddr);
-	printf("  csai.LocalAddr: %X\n", csai.LocalAddr.lpSockaddr);
-	printf("  csai.iSocketType: %d\n", csai.iSocketType);
-	printf("  csai.iProtocol: %d\n", csai.iProtocol);
-	memset(&wsaq1, 0, sizeof(wsaq1));
-	wsaq1.dwSize = sizeof(wsaq1);
-	// NS_BTH - The Bluetooth namespace. However this 'bastard' namespace identifier
-	// is supported on Windows Vista and later. Can also try NS_NLA
-	// Using NS_BTH failed with 10022 though with #define _WIN32_WINNT 0x0600
-	wsaq1.dwNameSpace = NS_ALL;
-	wsaq1.lpBlob = &blob;
-	wsaq1.lpcsaBuffer = &csai;
+    // http://msdn.microsoft.com/en-us/library/ms881237.aspx
+    //This structure contains details about a query restriction
+    memset(&RBlob, 0, sizeof(RBlob));
+    RBlob.type = SDP_SERVICE_SEARCH_ATTRIBUTE_REQUEST;
+    RBlob.numRange = 1;
+    RBlob.pRange[0].minAttribute = SDP_ATTRIB_PROTOCOL_DESCRIPTOR_LIST;
+    RBlob.pRange[0].maxAttribute = SDP_ATTRIB_PROTOCOL_DESCRIPTOR_LIST;
+    RBlob.uuids[0].uuidType = SDP_ST_UUID16;
+    RBlob.uuids[0].u.uuid16 = SerialPortServiceClassID_UUID16;
+    // BrowseGroupDescriptorServiceClassID_UUID;
+    //This structure is used for an arbitrary array of bytes
+    blob.cbSize = sizeof(RBlob);
+    blob.pBlobData = (BYTE *)&RBlob;
+    //This structure defines the Bluetooth socket address
+    memset(&sa, 0, sizeof(sa));
+    sa.btAddr = _Addr;
+    sa.addressFamily = AF_BTH;
+    // Do some verification
+    printf("\n  sa.btAddr: %012X\n", sa.btAddr);
+    printf("  GET_NAP(sa.btAddr): %04X\n", GET_NAP(sa.btAddr));
+    printf("  GET_SAP(sa.btAddr): %08X\n", GET_SAP(sa.btAddr));
+    printf("  sa.addressFamily: %d\n", sa.addressFamily);
+    printf("  sa.port: %ul\n", sa.port);
+    memset(&csai, 0, sizeof(csai));
+    csai.RemoteAddr.lpSockaddr = (SOCKADDR *)&sa;
+    csai.RemoteAddr.iSockaddrLength = sizeof(sa);
+    // Do some verification
+    printf("\n  csai.RemoteAddr: %012X\n", csai.RemoteAddr.lpSockaddr);
+    printf("  csai.LocalAddr: %X\n", csai.LocalAddr.lpSockaddr);
+    printf("  csai.iSocketType: %d\n", csai.iSocketType);
+    printf("  csai.iProtocol: %d\n", csai.iProtocol);
+    memset(&wsaq1, 0, sizeof(wsaq1));
+    wsaq1.dwSize = sizeof(wsaq1);
+    // NS_BTH - The Bluetooth namespace. However this 'bastard' namespace identifier
+    // is supported on Windows Vista and later. Can also try NS_NLA
+    // Using NS_BTH failed with 10022 though with #define _WIN32_WINNT 0x0600
+    wsaq1.dwNameSpace = NS_ALL;
+    wsaq1.lpBlob = &blob;
+    wsaq1.lpcsaBuffer = &csai;
 
-	printf("\n  wsaq1.lpcsaBuffer->RemoteAddr: %X" << std::endln", wsaq1.lpcsaBuffer->RemoteAddr);
+    printf("\n  wsaq1.lpcsaBuffer->RemoteAddr: %X" << std::endln", wsaq1.lpcsaBuffer->RemoteAddr);
 
-	iRet = WSALookupServiceBegin(&wsaq1, 0, &hLookup1);
+    iRet = WSALookupServiceBegin(&wsaq1, 0, &hLookup1);
 
-	if (iRet == 0) //ERROR_SUCCESS
-	{
-		printf("BtServiceSearch(): WSALookupServiceBegin() should be OK!\n");
-		çpwsaResults1 = (LPWSAQUERYSET)buf1;
-		dwSize = sizeof(buf1);
-		memset(pwsaResults1, 0, sizeof(WSAQUERYSET));
-		pwsaResults1->dwSize = sizeof(WSAQUERYSET);
-		// But this part using NS_BTH is OK! Retard lor! %@%#&^%(^@^@^$($&$%
-		pwsaResults1->dwNameSpace = NS_BTH;
-		pwsaResults1->lpBlob = NULL;
+    if (iRet == 0) //ERROR_SUCCESS
+    {
+        printf("BtServiceSearch(): WSALookupServiceBegin() should be OK!\n");
+        çpwsaResults1 = (LPWSAQUERYSET)buf1;
+        dwSize = sizeof(buf1);
+        memset(pwsaResults1, 0, sizeof(WSAQUERYSET));
+        pwsaResults1->dwSize = sizeof(WSAQUERYSET);
+        // But this part using NS_BTH is OK! Retard lor! %@%#&^%(^@^@^$($&$%
+        pwsaResults1->dwNameSpace = NS_BTH;
+        pwsaResults1->lpBlob = NULL;
 
-		iRet = WSALookupServiceNext(hLookup1, 0, &dwSize, pwsaResults1);
+        iRet = WSALookupServiceNext(hLookup1, 0, &dwSize, pwsaResults1);
 
-		if (iRet == 0) // ERROR_SUCCESS - got the stream
-		{
-			printf("BtServiceSearch(): WSALookupServiceNext() is OK!\n");
+        if (iRet == 0) // ERROR_SUCCESS - got the stream
+        {
+            printf("BtServiceSearch(): WSALookupServiceNext() is OK!\n");
 
-			printf("\n(The SDP result processing routine should be called...)" << std::endln");
-		}
-		else
-			printf("BtServiceSearch(): WSALookupServiceNext() failed with error code %ld\n", WSAGetLastError());
+            printf("\n(The SDP result processing routine should be called...)" << std::endln");
+        }
+        else
+            printf("BtServiceSearch(): WSALookupServiceNext() failed with error code %ld\n", WSAGetLastError());
 
-		if (WSALookupServiceEnd(hLookup1) == 0)
-			printf("BtServiceSearch(): WSALookupServiceEnd(hLookup1) is OK!\n");
-		else
-			printf("BtServiceSearch(): WSALookupServiceEnd(hLookup1) failed with error code %ld\n", WSAGetLastError());
-	}
-	else
-		printf("BtServiceSearch(): WSALookupServiceBegin() failed with error code %ld\n", WSAGetLastError());
+        if (WSALookupServiceEnd(hLookup1) == 0)
+            printf("BtServiceSearch(): WSALookupServiceEnd(hLookup1) is OK!\n");
+        else
+            printf("BtServiceSearch(): WSALookupServiceEnd(hLookup1) failed with error code %ld\n", WSAGetLastError());
+    }
+    else
+        printf("BtServiceSearch(): WSALookupServiceBegin() failed with error code %ld\n", WSAGetLastError());
 
-	return iResult;
-	*/
+    return iResult;
+    */
 }
 
 void BluetoothSocket::register_sdp_service(service_t & service, uuid_t uuid, uint8_t port, std::string const&srv_name, std::string const&srv_prov, std::string const&srv_desc)
 {
-	memset(&service, 0, sizeof(service_t));
-	service.dwSize = sizeof(service_t);
-	service.lpszServiceInstanceName = const_cast<char*>(srv_name.c_str());
-	service.lpszComment = const_cast<char*>(srv_desc.c_str());
+    memset(&service, 0, sizeof(service_t));
+    service.dwSize = sizeof(service_t);
+    service.lpszServiceInstanceName = const_cast<char*>(srv_name.c_str());
+    service.lpszComment = const_cast<char*>(srv_desc.c_str());
 
-	GUID nullguid = { 0 };
+    GUID nullguid = { 0 };
 
-	uuid_t* privateuuid = new uuid_t;
-	*privateuuid = uuid;
+    uuid_t* privateuuid = new uuid_t;
+    *privateuuid = uuid;
 
-	service.lpServiceClassId = privateuuid;
-	service.dwNumberOfCsAddrs = 1;
-	service.dwNameSpace = NS_BTH;
-	// création de l'adresse du serveur
-	sockaddr_rc *addr = new sockaddr_rc;
-	addr->addressFamily = static_cast<uint16_t>(BluetoothSocket::address_family::bth);
-	addr->btAddr = 0;
-	addr->port = port;
-	addr->serviceClassId = nullguid;
-	// création des information de service
-	CSADDR_INFO *csAddr = new CSADDR_INFO;
-	memset(csAddr, 0, sizeof(CSADDR_INFO));
-	csAddr->LocalAddr.iSockaddrLength = sizeof(sockaddr_rc);
-	csAddr->LocalAddr.lpSockaddr = (sockaddr*)addr;
-	csAddr->iSocketType = static_cast<uint32_t>(Socket::types::stream);
-	csAddr->iProtocol = static_cast<uint32_t>(BluetoothSocket::protocols::rfcomm);
-	service.lpcsaBuffer = csAddr;
-	// Essayer d'enregistrer le service
-	if (WSASetServiceA(&service, RNRSERVICE_REGISTER, 0))
-	{
-		delete addr;
-		delete csAddr;
-		delete privateuuid;
-		service.lpcsaBuffer = nullptr;
+    service.lpServiceClassId = privateuuid;
+    service.dwNumberOfCsAddrs = 1;
+    service.dwNameSpace = NS_BTH;
+    // création de l'adresse du serveur
+    sockaddr_rc *addr = new sockaddr_rc;
+    addr->addressFamily = static_cast<uint16_t>(BluetoothSocket::address_family::bth);
+    addr->btAddr = 0;
+    addr->port = port;
+    addr->serviceClassId = nullguid;
+    // création des information de service
+    CSADDR_INFO *csAddr = new CSADDR_INFO;
+    memset(csAddr, 0, sizeof(CSADDR_INFO));
+    csAddr->LocalAddr.iSockaddrLength = sizeof(sockaddr_rc);
+    csAddr->LocalAddr.lpSockaddr = (sockaddr*)addr;
+    csAddr->iSocketType = static_cast<uint32_t>(Socket::types::stream);
+    csAddr->iProtocol = static_cast<uint32_t>(BluetoothSocket::protocols::rfcomm);
+    service.lpcsaBuffer = csAddr;
+    // Essayer d'enregistrer le service
+    if (WSASetServiceA(&service, RNRSERVICE_REGISTER, 0))
+    {
+        delete addr;
+        delete csAddr;
+        delete privateuuid;
+        service.lpcsaBuffer = nullptr;
 
-		int32_t err = WSAGetLastError();
-		switch (err)
-		{
-			case WSANOTINITIALISED: throw wsa_not_initialised("A successful WSAStartup call must occur before using this function.");
-			case WSAEINVAL: throw error_in_value("One or more required parameters were invalid or missing.");
-			default: throw socket_exception("register_sdp_service exception: " + std::to_string(err));
-		}
-	}
+        int32_t err = WSAGetLastError();
+        switch (err)
+        {
+            case WSANOTINITIALISED: throw wsa_not_initialised("A successful WSAStartup call must occur before using this function.");
+            case WSAEINVAL: throw error_in_value("One or more required parameters were invalid or missing.");
+            default: throw socket_exception("register_sdp_service exception: " + std::to_string(err));
+        }
+    }
 }
 
 void BluetoothSocket::unregister_sdp_service(service_t &service)
 {
-	int res = WSASetServiceA(&service, RNRSERVICE_DELETE, 0);
+    int res = WSASetServiceA(&service, RNRSERVICE_DELETE, 0);
 
-	delete service.lpcsaBuffer->LocalAddr.lpSockaddr;
-	delete service.lpcsaBuffer;
-	delete service.lpServiceClassId;
-	memset(&service, 0, sizeof(service_t));
+    delete service.lpcsaBuffer->LocalAddr.lpSockaddr;
+    delete service.lpcsaBuffer;
+    delete service.lpServiceClassId;
+    memset(&service, 0, sizeof(service_t));
 
-	if (res)
-	{
-		res = WSAGetLastError();
-		switch (res)
-		{
-			case WSANOTINITIALISED: throw wsa_not_initialised("A successful WSAStartup call must occur before using this function.");
-			case WSAEINVAL: throw error_in_value("One or more required parameters were invalid or missing.");
-			default: throw socket_exception("register_sdp_service exception: " + std::to_string(res));
-		}
-	}
+    if (res)
+    {
+        res = WSAGetLastError();
+        switch (res)
+        {
+            case WSANOTINITIALISED: throw wsa_not_initialised("A successful WSAStartup call must occur before using this function.");
+            case WSAEINVAL: throw error_in_value("One or more required parameters were invalid or missing.");
+            default: throw socket_exception("register_sdp_service exception: " + std::to_string(res));
+        }
+    }
 }
 
 #elif defined(__LINUX__)
 
 bdaddr_t BluetoothSocket::inet_addr(std::string const & addr)
 {
-	bdaddr_t out;
-	str2ba(addr.c_str(), &out);
-	return out;
+    bdaddr_t out;
+    str2ba(addr.c_str(), &out);
+    return out;
 }
 
 std::string BluetoothSocket::inet_ntoa(bdaddr_t & in)
 {
-	char str[32];
-	ba2str(&in, str);
-	return std::string(str);
+    char str[32];
+    ba2str(&in, str);
+    return std::string(str);
 }
 
 uuid_t BluetoothSocket::str2uuid(std::string const&struuid)
 {
-	uuid_t uuid;
-	// si c'est une uuid
-	if (isValidUUID(struuid))
-	{
-		//uint32_t uuid32[16];
-		uint8_t  uuid8[16];
+    uuid_t uuid;
+    // si c'est une uuid
+    if (isValidUUID(struuid))
+    {
+        //uint32_t uuid32[16];
+        uint8_t  uuid8[16];
 
-		sscanf(struuid.c_str(), __UUID_PRINTF_FORMAT__,
-			&uuid8[0], &uuid8[1], &uuid8[2], &uuid8[3],
-			&uuid8[4], &uuid8[5],
-			&uuid8[6], &uuid8[7],
-			&uuid8[8], &uuid8[9],
-			&uuid8[10], &uuid8[11], &uuid8[12], &uuid8[13], &uuid8[14], &uuid8[15]);
+        sscanf(struuid.c_str(), __UUID_PRINTF_FORMAT__,
+            &uuid8[0], &uuid8[1], &uuid8[2], &uuid8[3],
+            &uuid8[4], &uuid8[5],
+            &uuid8[6], &uuid8[7],
+            &uuid8[8], &uuid8[9],
+            &uuid8[10], &uuid8[11], &uuid8[12], &uuid8[13], &uuid8[14], &uuid8[15]);
 
-		//sscanf(struuid.c_str(), "%02X%02X%02X%02X-%02X%02X-%02X%02X-%02X%02X-%02X%02X%02X%02X%02X%02X",
-		//	&uuid32[0], &uuid32[1], &uuid32[2], &uuid32[3],
-		//	&uuid32[4], &uuid32[5],
-		//	&uuid32[6], &uuid32[7],
-		//	&uuid32[8], &uuid32[9],
-		//	&uuid32[10], &uuid32[11], &uuid32[12], &uuid32[13], &uuid32[14], &uuid32[15]);
+        //sscanf(struuid.c_str(), "%02X%02X%02X%02X-%02X%02X-%02X%02X-%02X%02X-%02X%02X%02X%02X%02X%02X",
+        //    &uuid32[0], &uuid32[1], &uuid32[2], &uuid32[3],
+        //    &uuid32[4], &uuid32[5],
+        //    &uuid32[6], &uuid32[7],
+        //    &uuid32[8], &uuid32[9],
+        //    &uuid32[10], &uuid32[11], &uuid32[12], &uuid32[13], &uuid32[14], &uuid32[15]);
 
-		// transtypage int32 -> int8
-		//for (int i = 0; i < 16; ++i)
-		//	uuid8[i] = static_cast<unsigned char>(uuid32[i]);
+        // transtypage int32 -> int8
+        //for (int i = 0; i < 16; ++i)
+        //    uuid8[i] = static_cast<unsigned char>(uuid32[i]);
 
-		// conversion en type uuid_t
-		sdp_uuid128_create(&uuid, &uuid8);
-	}
-	return uuid;
+        // conversion en type uuid_t
+        sdp_uuid128_create(&uuid, &uuid8);
+    }
+    return uuid;
 }
 
 std::string BluetoothSocket::uuid2str( uuid_t const& uuid )
 {
-	char str[37] = {0};
-	if( uuid.type == SDP_UUID128 )
-	{
-		uint8_t const *datas = uuid.value.uuid128.data;
-		snprintf(str, 37, __UUID_PRINTF_FORMAT__,
-			datas[0], datas[1], datas[2], datas[3],
-			datas[4], datas[5],
-			datas[6], datas[7],
-			datas[8], datas[9],
-			datas[10], datas[11], datas[12], datas[13], datas[14], datas[15]);
-	}
-	return std::string(str);
+    char str[37] = {0};
+    if( uuid.type == SDP_UUID128 )
+    {
+        uint8_t const *datas = uuid.value.uuid128.data;
+        snprintf(str, 37, __UUID_PRINTF_FORMAT__,
+            datas[0], datas[1], datas[2], datas[3],
+            datas[4], datas[5],
+            datas[6], datas[7],
+            datas[8], datas[9],
+            datas[10], datas[11], datas[12], datas[13], datas[14], datas[15]);
+    }
+    return std::string(str);
 }
 
 int BluetoothSocket::scanOpenPortFromUUID(uuid_t& uuid, bdaddr_t& addr)
 {
-	bdaddr_t Any = { { 0 } };
-	int port = -1;
-	sdp_session_t *session = 0;
-	sdp_list_t *response_list, *search_list, *attrid_list;
-	uint32_t range = 0x0000FFFF;
+    bdaddr_t Any = { { 0 } };
+    int port = -1;
+    sdp_session_t *session = 0;
+    sdp_list_t *response_list, *search_list, *attrid_list;
+    uint32_t range = 0x0000FFFF;
 
-	// connexion au sdp de l'appareil à l'adresse bthaddr
-	session = sdp_connect(&Any, &addr, 0);
-	// si on s'est connecté
-	if (session)
-	{
-		// création des données uuid
-		search_list = sdp_list_append(0, &uuid);
-		// création des données de plage
-		attrid_list = sdp_list_append(0, &range);
-		// recherche du service
-		if (!sdp_service_search_attr_req(session, search_list, SDP_ATTR_REQ_RANGE, attrid_list, &response_list))
-		{
-			sdp_list_t *proto_list;
-			sdp_list_t *r = response_list;
-			// pour tout les services
-			for (; r; r = r->next)
-			{
-				// récupération de l'enregistrement du service
-				sdp_record_t *rec = (sdp_record_t*)r->data;
-				// récupération des protocols
-				if (sdp_get_access_protos(rec, &proto_list) == 0)
-				{
-					// récupération du canal ouvert
-					port = sdp_get_proto_port(proto_list, RFCOMM_UUID);
-					// libération des données
-					sdp_list_free(proto_list, 0);
-				}
-				// libération des données du service
-				sdp_record_free(rec);
-			}
-		}
-		// libération des données de recherches
-		sdp_list_free(response_list, 0);
-		sdp_list_free(search_list, 0);
-		sdp_list_free(attrid_list, 0);
-		// fermeture de la connexin
-		sdp_close(session);
-	}
+    // connexion au sdp de l'appareil à l'adresse bthaddr
+    session = sdp_connect(&Any, &addr, 0);
+    // si on s'est connecté
+    if (session)
+    {
+        // création des données uuid
+        search_list = sdp_list_append(0, &uuid);
+        // création des données de plage
+        attrid_list = sdp_list_append(0, &range);
+        // recherche du service
+        if (!sdp_service_search_attr_req(session, search_list, SDP_ATTR_REQ_RANGE, attrid_list, &response_list))
+        {
+            sdp_list_t *proto_list;
+            sdp_list_t *r = response_list;
+            // pour tout les services
+            for (; r; r = r->next)
+            {
+                // récupération de l'enregistrement du service
+                sdp_record_t *rec = (sdp_record_t*)r->data;
+                // récupération des protocols
+                if (sdp_get_access_protos(rec, &proto_list) == 0)
+                {
+                    // récupération du canal ouvert
+                    port = sdp_get_proto_port(proto_list, RFCOMM_UUID);
+                    // libération des données
+                    sdp_list_free(proto_list, 0);
+                }
+                // libération des données du service
+                sdp_record_free(rec);
+            }
+        }
+        // libération des données de recherches
+        sdp_list_free(response_list, 0);
+        sdp_list_free(search_list, 0);
+        sdp_list_free(attrid_list, 0);
+        // fermeture de la connexin
+        sdp_close(session);
+    }
 
-	return port;
+    return port;
 }
 
 #ifdef __BLUEZ_4__
 list<BluetoothDevice> BluetoothSocket::scan(bool flushCache)
 {
-	inquiry_info *iinfo;
-	int dev_id, sock;
-	int trouve;
-	char nom[255];
-	BluetoothDevice device;
-	list<BluetoothDevice> devices;
+    inquiry_info *iinfo;
+    int dev_id, sock;
+    int trouve;
+    char nom[255];
+    BluetoothDevice device;
+    list<BluetoothDevice> devices;
 
-	// NULL permet de récupérer le 1er dispositif Bluetooth libre
-	// Nous pourrions spécifier 0 pour le 1er dispositif, mais si il y a plusieurs
-	// dispositifs, il se pourrait qu'il ai un Identifiant différent tel que 1
-	// retourne l'ID du dispositif bluetooth libre
-	dev_id = hci_get_route(NULL);
-	if (dev_id < 0)
-	{
-		throw socket_exception("No local bluetooth device available.");
-	}
+    // NULL permet de récupérer le 1er dispositif Bluetooth libre
+    // Nous pourrions spécifier 0 pour le 1er dispositif, mais si il y a plusieurs
+    // dispositifs, il se pourrait qu'il ai un Identifiant différent tel que 1
+    // retourne l'ID du dispositif bluetooth libre
+    dev_id = hci_get_route(NULL);
+    if (dev_id < 0)
+    {
+        throw socket_exception("No local bluetooth device available.");
+    }
 
-	// Ouvrir la connexion du dispositif bluetooth
-	sock = hci_open_dev(dev_id);
-	if (sock < 0)
-	{
-		throw socket_exception("Unable to open local bluetooth device.");
-	}
+    // Ouvrir la connexion du dispositif bluetooth
+    sock = hci_open_dev(dev_id);
+    if (sock < 0)
+    {
+        throw socket_exception("Unable to open local bluetooth device.");
+    }
 
-	// allocation d'autant inquiry_info que d'appareils potentiellement trouvable, ici 255 appareils maxi
-	iinfo = new inquiry_info[255];
+    // allocation d'autant inquiry_info que d'appareils potentiellement trouvable, ici 255 appareils maxi
+    iinfo = new inquiry_info[255];
 
-	// Fonction hci_inquiry
-	// Usage : active la découverte Bluetooth et récupère le nombre d'appareils actuellement visible en Bluetooth
+    // Fonction hci_inquiry
+    // Usage : active la découverte Bluetooth et récupère le nombre d'appareils actuellement visible en Bluetooth
 
-	// int hci_inquiry(int dev_id, int len, int max_rsp, const uint8_t *lap, inquiry_info **ii, long flags);
-	// dev_id : dispositif trouvé grâce à hci_get_route, si dev_id = -1, la fonction recherchera toute seule
-	// un dispositif.
-	// len	 : 1.28 * len = nombre de secondes de la découverte, la norme prévoit 5 à 15 secondes de découverte
-	//			 1.28 * 8 = 10.24s, qui est ~ la moyenne
-	// max_rsp: nb d'appareils maxi (également la taille de ii)
-	// lap	 : nombre de fois que la découverte recommence si il y a une erreur???
-	// ii	  : structure de requête
-	// flags  : IREQ_CACHE_FLUSH = vide le buffer des anciennes découvertes, permet de remettre à jour les
-	// appareils actuellement présent.
-	// Retourne le nombre d'appareils trouvés.
-	trouve = hci_inquiry(dev_id, 8, 255, NULL, &iinfo, flushCache ? IREQ_CACHE_FLUSH : 0);
-	if (trouve > 0)
-	{
-		for (int i = 0; i < trouve; ++i)
-		{
-			// récupère le nom de l'appareil ayant l'adresse bdaddr
-			if (hci_read_remote_name(sock, &(iinfo + i)->bdaddr, 255, nom, 0) < 0)
-				strcpy(nom, "[inconnu]");
+    // int hci_inquiry(int dev_id, int len, int max_rsp, const uint8_t *lap, inquiry_info **ii, long flags);
+    // dev_id : dispositif trouvé grâce à hci_get_route, si dev_id = -1, la fonction recherchera toute seule
+    // un dispositif.
+    // len     : 1.28 * len = nombre de secondes de la découverte, la norme prévoit 5 à 15 secondes de découverte
+    //             1.28 * 8 = 10.24s, qui est ~ la moyenne
+    // max_rsp: nb d'appareils maxi (également la taille de ii)
+    // lap     : nombre de fois que la découverte recommence si il y a une erreur???
+    // ii      : structure de requête
+    // flags  : IREQ_CACHE_FLUSH = vide le buffer des anciennes découvertes, permet de remettre à jour les
+    // appareils actuellement présent.
+    // Retourne le nombre d'appareils trouvés.
+    trouve = hci_inquiry(dev_id, 8, 255, NULL, &iinfo, flushCache ? IREQ_CACHE_FLUSH : 0);
+    if (trouve > 0)
+    {
+        for (int i = 0; i < trouve; ++i)
+        {
+            // récupère le nom de l'appareil ayant l'adresse bdaddr
+            if (hci_read_remote_name(sock, &(iinfo + i)->bdaddr, 255, nom, 0) < 0)
+                strcpy(nom, "[inconnu]");
 
-			device.name = nom;
-			device.addr = (iinfo + i)->bdaddr;
+            device.name = nom;
+            device.addr = (iinfo + i)->bdaddr;
 
-			devices.push_back(device);
-		}
-	}
-	delete[] iinfo;
-	hci_close_dev(sock);
-	return devices;
+            devices.push_back(device);
+        }
+    }
+    delete[] iinfo;
+    hci_close_dev(sock);
+    return devices;
 }
 
 void BluetoothSocket::register_sdp_service(service_t & service, uuid_t uuid, uint8_t port, std::string const&srv_name, std::string const&srv_prov, std::string const&srv_desc)
 {
-	bdaddr_t addr_any = { { 0 } };
-	bdaddr_t addr_local = { { 0, 0, 0, 0xFF, 0xFF, 0xFF } };
-	bool r = false;
+    bdaddr_t addr_any = { { 0 } };
+    bdaddr_t addr_local = { { 0, 0, 0, 0xFF, 0xFF, 0xFF } };
+    bool r = false;
 
-	// démarrer une connexion avec le sdp
-	service = sdp_connect(&addr_any, &addr_local, SDP_RETRY_IF_BUSY);
-	if (service == 0)
-		throw socket_exception("Can't connect to local SDP server.");
+    // démarrer une connexion avec le sdp
+    service = sdp_connect(&addr_any, &addr_local, SDP_RETRY_IF_BUSY);
+    if (service == 0)
+        throw socket_exception("Can't connect to local SDP server.");
 
-	// les UUID du service
-	uuid_t root_uuid, l2cap_uuid, rfcomm_uuid;
-	// les listes de données nécessaire à l'enregistrement du service
-	sdp_list_t *l2cap_list = 0,
-		*rfcomm_list = 0,
-		*root_list = 0,
-		*proto_list = 0,
-		*access_proto_list = 0;
-	// le canal du service qui est ouvert
-	sdp_data_t *channel = 0;
-	// le service
-	sdp_record_t *record = sdp_record_alloc();
+    // les UUID du service
+    uuid_t root_uuid, l2cap_uuid, rfcomm_uuid;
+    // les listes de données nécessaire à l'enregistrement du service
+    sdp_list_t *l2cap_list = 0,
+        *rfcomm_list = 0,
+        *root_list = 0,
+        *proto_list = 0,
+        *access_proto_list = 0;
+    // le canal du service qui est ouvert
+    sdp_data_t *channel = 0;
+    // le service
+    sdp_record_t *record = sdp_record_alloc();
 
-	// affecter l'uuid du service
-	sdp_set_service_id(record, uuid);
+    // affecter l'uuid du service
+    sdp_set_service_id(record, uuid);
 
-	// créer l'uuid permettant de rechercher le service
-	sdp_uuid16_create(&root_uuid, PUBLIC_BROWSE_GROUP);
-	// affectation de l'uuid
-	root_list = sdp_list_append(0, &root_uuid);
-	// mettre l'enregistrement du service visible par tous
-	sdp_set_browse_groups(record, root_list);
+    // créer l'uuid permettant de rechercher le service
+    sdp_uuid16_create(&root_uuid, PUBLIC_BROWSE_GROUP);
+    // affectation de l'uuid
+    root_list = sdp_list_append(0, &root_uuid);
+    // mettre l'enregistrement du service visible par tous
+    sdp_set_browse_groups(record, root_list);
 
-	// création de l'uuid L2CAP
-	sdp_uuid16_create(&l2cap_uuid, L2CAP_UUID);
-	// créer les informations L2CAP de l'uuid
-	l2cap_list = sdp_list_append(0, &l2cap_uuid);
-	// créer les informations du protocol L2CAP pour le service
-	proto_list = sdp_list_append(0, l2cap_list);
+    // création de l'uuid L2CAP
+    sdp_uuid16_create(&l2cap_uuid, L2CAP_UUID);
+    // créer les informations L2CAP de l'uuid
+    l2cap_list = sdp_list_append(0, &l2cap_uuid);
+    // créer les informations du protocol L2CAP pour le service
+    proto_list = sdp_list_append(0, l2cap_list);
 
-	// créer l'uuid RFCOMM
-	sdp_uuid16_create(&rfcomm_uuid, RFCOMM_UUID);
-	// créer l'information du canal du service RFCOMM
-	channel = sdp_data_alloc(SDP_UINT8, &port);
-	// créer les informations de l'uuid du RFCOMM
-	rfcomm_list = sdp_list_append(0, &rfcomm_uuid);
-	// ajouter les information du canal ouvert pour le RFCOMM
-	sdp_list_append(rfcomm_list, channel);
-	// ajout des informations RFCOMM à la liste
-	sdp_list_append(proto_list, rfcomm_list);
+    // créer l'uuid RFCOMM
+    sdp_uuid16_create(&rfcomm_uuid, RFCOMM_UUID);
+    // créer l'information du canal du service RFCOMM
+    channel = sdp_data_alloc(SDP_UINT8, &port);
+    // créer les informations de l'uuid du RFCOMM
+    rfcomm_list = sdp_list_append(0, &rfcomm_uuid);
+    // ajouter les information du canal ouvert pour le RFCOMM
+    sdp_list_append(rfcomm_list, channel);
+    // ajout des informations RFCOMM à la liste
+    sdp_list_append(proto_list, rfcomm_list);
 
-	// créer les informations d'accès du service
-	access_proto_list = sdp_list_append(0, proto_list);
-	// mettre à jour les informations des protocol de l'enregistrement du service
-	sdp_set_access_protos(record, access_proto_list);
-	// concactenner toutes les informations du service
-	sdp_set_info_attr(record, srv_name.c_str(), srv_prov.c_str(), srv_desc.c_str());
+    // créer les informations d'accès du service
+    access_proto_list = sdp_list_append(0, proto_list);
+    // mettre à jour les informations des protocol de l'enregistrement du service
+    sdp_set_access_protos(record, access_proto_list);
+    // concactenner toutes les informations du service
+    sdp_set_info_attr(record, srv_name.c_str(), srv_prov.c_str(), srv_desc.c_str());
 
-	// enregistrer le service
-	if (sdp_record_register(service, record, 0))
-		r = true;
+    // enregistrer le service
+    if (sdp_record_register(service, record, 0))
+        r = true;
 
-	// libération des données
-	sdp_data_free(channel);
-	sdp_list_free(l2cap_list, 0);
-	sdp_list_free(rfcomm_list, 0);
-	sdp_list_free(root_list, 0);
-	sdp_list_free(access_proto_list, 0);
-	sdp_record_free(record);
+    // libération des données
+    sdp_data_free(channel);
+    sdp_list_free(l2cap_list, 0);
+    sdp_list_free(rfcomm_list, 0);
+    sdp_list_free(root_list, 0);
+    sdp_list_free(access_proto_list, 0);
+    sdp_record_free(record);
 
-	if (r)
-	{
-		sdp_close(service);
-		throw socket_exception("Unable to register SDP service.");
-	}
+    if (r)
+    {
+        sdp_close(service);
+        throw socket_exception("Unable to register SDP service.");
+    }
 }
 
 void BluetoothSocket::unregister_sdp_service(service_t &service)
 {
-	sdp_close(service);
+    sdp_close(service);
 }
 
 #else
 #include <iostream>
 std::list<BluetoothDevice> BluetoothSocket::scan(bool flushCache)
 {
-	(void)flushCache;
+    (void)flushCache;
 
-	BluezDBusSystem& bus = BluezDBusSystem::Inst();
-	DBusMessage *msg, *ret;
-	DBusMessageIter iter;
-	// initialise the errors
+    BluezDBusSystem& bus = BluezDBusSystem::Inst();
+    DBusMessage *msg, *ret;
+    DBusMessageIter iter;
+    // initialise the errors
 
-	if( (msg = dbus_message_new_method_call("org.bluez", "/", "org.freedesktop.DBus.ObjectManager", "GetManagedObjects")) == nullptr )
-	{
-		throw socket_exception("New method call error (" + std::string(bus.message()) + ')');
-	}
+    if( (msg = dbus_message_new_method_call("org.bluez", "/", "org.freedesktop.DBus.ObjectManager", "GetManagedObjects")) == nullptr )
+    {
+        throw socket_exception("New method call error (" + std::string(bus.message()) + ')');
+    }
 
-	if( (ret = dbus_connection_send_with_reply_and_block(bus, msg, DBUS_TIMEOUT_INFINITE, bus)) == nullptr )
-	{
-		throw socket_exception("Send (" + std::string(bus.message()) + ')');
-	}
+    if( (ret = dbus_connection_send_with_reply_and_block(bus, msg, DBUS_TIMEOUT_INFINITE, bus)) == nullptr )
+    {
+        throw socket_exception("Send (" + std::string(bus.message()) + ')');
+    }
 
-	dbus_message_iter_init(ret, &iter);
-	char *tmp, *tmp2;
-	std::string adapter_path;
-	BluetoothDevice device;
-	std::list<BluetoothDevice> devices;
-	bool found_device;
-	// a{oa{sa{sv}}}
-	// Pour chaque valeur du tableau de dictionnaire
-	for( int type; (type = dbus_message_iter_get_arg_type (&iter)) != DBUS_TYPE_INVALID; dbus_message_iter_next (&iter))
-	{
-		DBusMessageIter Dict1;
-		// On récupère la valeur du tableau (par exemple a[0], a[1], etc...)
-		dbus_message_iter_recurse(&iter, &Dict1);
-		// Pour chaque valeur du tableau
-		for( int type; (type = dbus_message_iter_get_arg_type(&Dict1)) != DBUS_TYPE_INVALID; dbus_message_iter_next(&Dict1) )
-		{
-			DBusMessageIter DictEntry1;
-			// On rentre dans le dictionnaire
-			dbus_message_iter_recurse(&Dict1, &DictEntry1);
-			// Pour chaque entrée du dictionnaire (à un object_path on associe un tableau)
-			// Par exemple o["toto"], o["/org/bluez/hci0"], etc...)
-			for( int type; (type = dbus_message_iter_get_arg_type(&DictEntry1)) != DBUS_TYPE_INVALID; dbus_message_iter_next(&DictEntry1) )
-			{
-				// On récupère la clé du dictionnaire
-				dbus_message_iter_get_basic(&DictEntry1, &tmp);
-				dbus_message_iter_next(&DictEntry1);
-				DBusMessageIter Dict2;
-				// On entre dans le tableau de dictionnaires
-				dbus_message_iter_recurse(&DictEntry1, &Dict2);
-				for( int type; (type = dbus_message_iter_get_arg_type(&Dict2)) != DBUS_TYPE_INVALID; dbus_message_iter_next(&Dict2) )
-				{
-					DBusMessageIter DictEntry2;
-					// On rentre dans le dictionnaire
-					dbus_message_iter_recurse(&Dict2, &DictEntry2);
-					// Pour chaque entrée du dictionnaire (à une string on associe un tableau)
-					for( int type; (type = dbus_message_iter_get_arg_type(&DictEntry2)) != DBUS_TYPE_INVALID; dbus_message_iter_next(&DictEntry2) )
-					{
-						// On récupère la clé du dictionnaire
-						dbus_message_iter_get_basic(&DictEntry2, &tmp2);
-						dbus_message_iter_next(&DictEntry2);
-						if( !strcmp(tmp2, "org.bluez.Adapter1") )
-						{
-							adapter_path = tmp;
-							break;
-						}
-					}
-					if( adapter_path.length() )
-						break;
-				}
-				if( adapter_path.length() )
-					break;
-			}
-			if( adapter_path.length() )
-				break;
-		}
-		if( adapter_path.length() )
-			break;
-	}
+    dbus_message_iter_init(ret, &iter);
+    char *tmp, *tmp2;
+    std::string adapter_path;
+    BluetoothDevice device;
+    std::list<BluetoothDevice> devices;
+    bool found_device;
+    // a{oa{sa{sv}}}
+    // Pour chaque valeur du tableau de dictionnaire
+    for( int type; (type = dbus_message_iter_get_arg_type (&iter)) != DBUS_TYPE_INVALID; dbus_message_iter_next (&iter))
+    {
+        DBusMessageIter Dict1;
+        // On récupère la valeur du tableau (par exemple a[0], a[1], etc...)
+        dbus_message_iter_recurse(&iter, &Dict1);
+        // Pour chaque valeur du tableau
+        for( int type; (type = dbus_message_iter_get_arg_type(&Dict1)) != DBUS_TYPE_INVALID; dbus_message_iter_next(&Dict1) )
+        {
+            DBusMessageIter DictEntry1;
+            // On rentre dans le dictionnaire
+            dbus_message_iter_recurse(&Dict1, &DictEntry1);
+            // Pour chaque entrée du dictionnaire (à un object_path on associe un tableau)
+            // Par exemple o["toto"], o["/org/bluez/hci0"], etc...)
+            for( int type; (type = dbus_message_iter_get_arg_type(&DictEntry1)) != DBUS_TYPE_INVALID; dbus_message_iter_next(&DictEntry1) )
+            {
+                // On récupère la clé du dictionnaire
+                dbus_message_iter_get_basic(&DictEntry1, &tmp);
+                dbus_message_iter_next(&DictEntry1);
+                DBusMessageIter Dict2;
+                // On entre dans le tableau de dictionnaires
+                dbus_message_iter_recurse(&DictEntry1, &Dict2);
+                for( int type; (type = dbus_message_iter_get_arg_type(&Dict2)) != DBUS_TYPE_INVALID; dbus_message_iter_next(&Dict2) )
+                {
+                    DBusMessageIter DictEntry2;
+                    // On rentre dans le dictionnaire
+                    dbus_message_iter_recurse(&Dict2, &DictEntry2);
+                    // Pour chaque entrée du dictionnaire (à une string on associe un tableau)
+                    for( int type; (type = dbus_message_iter_get_arg_type(&DictEntry2)) != DBUS_TYPE_INVALID; dbus_message_iter_next(&DictEntry2) )
+                    {
+                        // On récupère la clé du dictionnaire
+                        dbus_message_iter_get_basic(&DictEntry2, &tmp2);
+                        dbus_message_iter_next(&DictEntry2);
+                        if( !strcmp(tmp2, "org.bluez.Adapter1") )
+                        {
+                            adapter_path = tmp;
+                            break;
+                        }
+                    }
+                    if( adapter_path.length() )
+                        break;
+                }
+                if( adapter_path.length() )
+                    break;
+            }
+            if( adapter_path.length() )
+                break;
+        }
+        if( adapter_path.length() )
+            break;
+    }
 
-	if( (msg = dbus_message_new_method_call("org.bluez", adapter_path.c_str(), "org.bluez.Adapter1", "StartDiscovery")) == nullptr )
-	{
-		throw socket_exception("New method call error (" + std::string(bus.message()) + ')');
-	}
+    if( (msg = dbus_message_new_method_call("org.bluez", adapter_path.c_str(), "org.bluez.Adapter1", "StartDiscovery")) == nullptr )
+    {
+        throw socket_exception("New method call error (" + std::string(bus.message()) + ')');
+    }
 
-	if( (ret = dbus_connection_send_with_reply_and_block(bus, msg, DBUS_TIMEOUT_INFINITE, bus)) == nullptr )
-	{
-		throw socket_exception("Send (" + std::string(bus.message()) + ')');
-	}
-	
-	sleep(10);
-	
-	// Pour chaque valeur du tableau de dictionnaire
-	for( int type; (type = dbus_message_iter_get_arg_type (&iter)) != DBUS_TYPE_INVALID; dbus_message_iter_next (&iter))
-	{
-		DBusMessageIter Dict1;
-		// On récupère la valeur du tableau (par exemple a[0], a[1], etc...)
-		dbus_message_iter_recurse(&iter, &Dict1);
-		// Pour chaque valeur du tableau
-		for( int type; (type = dbus_message_iter_get_arg_type(&Dict1)) != DBUS_TYPE_INVALID; dbus_message_iter_next(&Dict1) )
-		{
-			DBusMessageIter DictEntry1;
-			// On rentre dans le dictionnaire
-			dbus_message_iter_recurse(&Dict1, &DictEntry1);
-			// Pour chaque entrée du dictionnaire (à un object_path on associe un tableau)
-			// Par exemple o["toto"], o["/org/bluez/hci0"], etc...)
-			for( int type; (type = dbus_message_iter_get_arg_type(&DictEntry1)) != DBUS_TYPE_INVALID; dbus_message_iter_next(&DictEntry1) )
-			{
-				// On récupère la clé du dictionnaire
-				dbus_message_iter_get_basic(&DictEntry1, &tmp);
-				dbus_message_iter_next(&DictEntry1);
-				DBusMessageIter Dict2;
-				// On entre dans le tableau de dictionnaires
-				dbus_message_iter_recurse(&DictEntry1, &Dict2);
-				for( int type; (type = dbus_message_iter_get_arg_type(&Dict2)) != DBUS_TYPE_INVALID; dbus_message_iter_next(&Dict2) )
-				{
-					DBusMessageIter DictEntry2;
-					// On rentre dans le dictionnaire
-					dbus_message_iter_recurse(&Dict2, &DictEntry2);
-					// Pour chaque entrée du dictionnaire (à une string on associe un tableau)
-					for( int type; (type = dbus_message_iter_get_arg_type(&DictEntry2)) != DBUS_TYPE_INVALID; dbus_message_iter_next(&DictEntry2) )
-					{
-						// On récupère la clé du dictionnaire
-						dbus_message_iter_get_basic(&DictEntry2, &tmp2);
-						dbus_message_iter_next(&DictEntry2);
-						DBusMessageIter Dict3;
-						// On entre dans le tableau de dictionnaires
-						dbus_message_iter_recurse(&DictEntry2, &Dict3);
-						if( !strcmp(tmp2, "org.bluez.Device1") )
-						{
-							device.addr = {0};
-							device.name.clear();
-							found_device = false;
-							DBusMessageIter Dict3;
-							// On entre dans le tableau de dictionnaires
-							dbus_message_iter_recurse(&DictEntry2, &Dict3);
-							for( int type; (type = dbus_message_iter_get_arg_type(&Dict3)) != DBUS_TYPE_INVALID; dbus_message_iter_next(&Dict3) )
-							{
-								DBusMessageIter DictEntry3;
-								// On rentre dans le dictionnaire
-								dbus_message_iter_recurse(&Dict3, &DictEntry3);
-								dbus_message_iter_get_basic(&DictEntry3, &tmp);
-								dbus_message_iter_next(&DictEntry3);
-								if( !strcmp(tmp, "Address") )
-								{
-									DBusMessageIter variant;
-									dbus_message_iter_recurse(&DictEntry3, &variant); 	
-									dbus_message_iter_get_basic(&variant, &tmp);
-									device.addr = BluetoothSocket::inet_addr(tmp);
-									found_device = true;
-									
-								}
-								else if( !strcmp(tmp, "Name") )
-								{
-									DBusMessageIter variant;
-									dbus_message_iter_recurse(&DictEntry3, &variant); 	
-									dbus_message_iter_get_basic(&variant, &tmp);
-									device.name = tmp;
-									found_device = true;
-								}
-							}
-							if( found_device )
-							{
-								devices.emplace_back(device);
-							}
-						}
-					}
-				}
-			}
-		}
-	}
-	
-	if( (msg = dbus_message_new_method_call("org.bluez", adapter_path.c_str(), "org.bluez.Adapter1", "StopDiscovery")) == nullptr )
-	{
-		throw socket_exception("New method call error (" + std::string(bus.message()) + ')');
-	}
+    if( (ret = dbus_connection_send_with_reply_and_block(bus, msg, DBUS_TIMEOUT_INFINITE, bus)) == nullptr )
+    {
+        throw socket_exception("Send (" + std::string(bus.message()) + ')');
+    }
+    
+    sleep(10);
+    
+    // Pour chaque valeur du tableau de dictionnaire
+    for( int type; (type = dbus_message_iter_get_arg_type (&iter)) != DBUS_TYPE_INVALID; dbus_message_iter_next (&iter))
+    {
+        DBusMessageIter Dict1;
+        // On récupère la valeur du tableau (par exemple a[0], a[1], etc...)
+        dbus_message_iter_recurse(&iter, &Dict1);
+        // Pour chaque valeur du tableau
+        for( int type; (type = dbus_message_iter_get_arg_type(&Dict1)) != DBUS_TYPE_INVALID; dbus_message_iter_next(&Dict1) )
+        {
+            DBusMessageIter DictEntry1;
+            // On rentre dans le dictionnaire
+            dbus_message_iter_recurse(&Dict1, &DictEntry1);
+            // Pour chaque entrée du dictionnaire (à un object_path on associe un tableau)
+            // Par exemple o["toto"], o["/org/bluez/hci0"], etc...)
+            for( int type; (type = dbus_message_iter_get_arg_type(&DictEntry1)) != DBUS_TYPE_INVALID; dbus_message_iter_next(&DictEntry1) )
+            {
+                // On récupère la clé du dictionnaire
+                dbus_message_iter_get_basic(&DictEntry1, &tmp);
+                dbus_message_iter_next(&DictEntry1);
+                DBusMessageIter Dict2;
+                // On entre dans le tableau de dictionnaires
+                dbus_message_iter_recurse(&DictEntry1, &Dict2);
+                for( int type; (type = dbus_message_iter_get_arg_type(&Dict2)) != DBUS_TYPE_INVALID; dbus_message_iter_next(&Dict2) )
+                {
+                    DBusMessageIter DictEntry2;
+                    // On rentre dans le dictionnaire
+                    dbus_message_iter_recurse(&Dict2, &DictEntry2);
+                    // Pour chaque entrée du dictionnaire (à une string on associe un tableau)
+                    for( int type; (type = dbus_message_iter_get_arg_type(&DictEntry2)) != DBUS_TYPE_INVALID; dbus_message_iter_next(&DictEntry2) )
+                    {
+                        // On récupère la clé du dictionnaire
+                        dbus_message_iter_get_basic(&DictEntry2, &tmp2);
+                        dbus_message_iter_next(&DictEntry2);
+                        DBusMessageIter Dict3;
+                        // On entre dans le tableau de dictionnaires
+                        dbus_message_iter_recurse(&DictEntry2, &Dict3);
+                        if( !strcmp(tmp2, "org.bluez.Device1") )
+                        {
+                            device.addr = {0};
+                            device.name.clear();
+                            found_device = false;
+                            DBusMessageIter Dict3;
+                            // On entre dans le tableau de dictionnaires
+                            dbus_message_iter_recurse(&DictEntry2, &Dict3);
+                            for( int type; (type = dbus_message_iter_get_arg_type(&Dict3)) != DBUS_TYPE_INVALID; dbus_message_iter_next(&Dict3) )
+                            {
+                                DBusMessageIter DictEntry3;
+                                // On rentre dans le dictionnaire
+                                dbus_message_iter_recurse(&Dict3, &DictEntry3);
+                                dbus_message_iter_get_basic(&DictEntry3, &tmp);
+                                dbus_message_iter_next(&DictEntry3);
+                                if( !strcmp(tmp, "Address") )
+                                {
+                                    DBusMessageIter variant;
+                                    dbus_message_iter_recurse(&DictEntry3, &variant);     
+                                    dbus_message_iter_get_basic(&variant, &tmp);
+                                    device.addr = BluetoothSocket::inet_addr(tmp);
+                                    found_device = true;
+                                    
+                                }
+                                else if( !strcmp(tmp, "Name") )
+                                {
+                                    DBusMessageIter variant;
+                                    dbus_message_iter_recurse(&DictEntry3, &variant);     
+                                    dbus_message_iter_get_basic(&variant, &tmp);
+                                    device.name = tmp;
+                                    found_device = true;
+                                }
+                            }
+                            if( found_device )
+                            {
+                                devices.emplace_back(device);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+    
+    if( (msg = dbus_message_new_method_call("org.bluez", adapter_path.c_str(), "org.bluez.Adapter1", "StopDiscovery")) == nullptr )
+    {
+        throw socket_exception("New method call error (" + std::string(bus.message()) + ')');
+    }
 
-	if( (ret = dbus_connection_send_with_reply_and_block(bus, msg, DBUS_TIMEOUT_INFINITE, bus)) == nullptr )
-	{
-		throw socket_exception("Send (" + std::string(bus.message()) + ')');
-	}
-	
-	/*
-	// org.bluez.Device1
-	// Attr: Address
-	// Attr: Name
-	if( interface == "org.bluez.Device1" )
-	{
-		DBusMessageIter Dict3;
-		// On entre dans le tableau de dictionnaires
-		dbus_message_iter_recurse(&DictEntry2, &Dict3);
-		for( int type; (type = dbus_message_iter_get_arg_type(&Dict3)) != DBUS_TYPE_INVALID; dbus_message_iter_next(&Dict3) )
-		{
-			DBusMessageIter DictEntry3;
-			// On rentre dans le dictionnaire
-			dbus_message_iter_recurse(&Dict3, &DictEntry3);
-			dbus_message_iter_get_basic(&DictEntry3, &tmp);
-			attr = tmp;
-			dbus_message_iter_next(&DictEntry3);
-		}
-	}
-	*/
-	return devices;
+    if( (ret = dbus_connection_send_with_reply_and_block(bus, msg, DBUS_TIMEOUT_INFINITE, bus)) == nullptr )
+    {
+        throw socket_exception("Send (" + std::string(bus.message()) + ')');
+    }
+    
+    /*
+    // org.bluez.Device1
+    // Attr: Address
+    // Attr: Name
+    if( interface == "org.bluez.Device1" )
+    {
+        DBusMessageIter Dict3;
+        // On entre dans le tableau de dictionnaires
+        dbus_message_iter_recurse(&DictEntry2, &Dict3);
+        for( int type; (type = dbus_message_iter_get_arg_type(&Dict3)) != DBUS_TYPE_INVALID; dbus_message_iter_next(&Dict3) )
+        {
+            DBusMessageIter DictEntry3;
+            // On rentre dans le dictionnaire
+            dbus_message_iter_recurse(&Dict3, &DictEntry3);
+            dbus_message_iter_get_basic(&DictEntry3, &tmp);
+            attr = tmp;
+            dbus_message_iter_next(&DictEntry3);
+        }
+    }
+    */
+    return devices;
 }
 
 void BluetoothSocket::register_sdp_service(service_t & service, uuid_t uuid, uint8_t port, std::string const&srv_name, std::string const& srv_prov, std::string const& srv_desc)
 {
-	BluezDBusSystem& bus = BluezDBusSystem::Inst();
-	DBusMessage *msg, *ret;
-	DBusMessageIter iter, dict, entry, variant;
-	if( (msg = dbus_message_new_method_call("org.bluez", "/org/bluez", "org.bluez.ProfileManager1", "RegisterProfile")) == nullptr )
-	{
-		throw sdp_service_exception("New method call error (" + std::string(bus.message()) + ')');
-	}
-	std::string sdp_session = "/PortableAPI/";
-	sdp_session += srv_name;
-	std::string struuid = BluetoothSocket::uuid2str(uuid);
-	const char* recordkey = "ServiceRecord";
-	const char *tmp;
+    BluezDBusSystem& bus = BluezDBusSystem::Inst();
+    DBusMessage *msg, *ret;
+    DBusMessageIter iter, dict, entry, variant;
+    if( (msg = dbus_message_new_method_call("org.bluez", "/org/bluez", "org.bluez.ProfileManager1", "RegisterProfile")) == nullptr )
+    {
+        throw sdp_service_exception("New method call error (" + std::string(bus.message()) + ')');
+    }
+    std::string sdp_session = "/PortableAPI/";
+    sdp_session += srv_name;
+    std::string struuid = BluetoothSocket::uuid2str(uuid);
+    const char* recordkey = "ServiceRecord";
+    const char *tmp;
 
-	std::stringstream sstr;
-	sstr << "<?xml version=\"1.0\" encoding=\"UTF-8\" ?>" << std::endl
-		  << "<record>" << std::endl
-		  << "	<attribute id=\"0x0003\">" << std::endl
-		  << "		<uuid value=\"" << struuid << "\" />" << std::endl
-		  << "	</attribute>" << std::endl 
-		  << "	<attribute id=\"0x0004\">" << std::endl
-		  << "		<sequence>" << std::endl
-		  << "			<sequence>" << std::endl
-		  << "				<uuid value=\"0x0100\" />" << std::endl
-		  << "			</sequence>" << std::endl
-		  << "			<sequence>" << std::endl
-		  << "				<uuid value=\"0x0003\" />" << std::endl
-		  << "				<uint8 value=\"0x" << std::setfill('0') << std::setw(2) << std::hex << static_cast<uint16_t>(port) << std::dec << "\" />" << std::endl
-		  << "			</sequence>" << std::endl
-		  << "		</sequence>" << std::endl
-		  << "	</attribute>" << std::endl
-		  << "	<attribute id=\"0x0005\">" << std::endl
-		  << "		<sequence>" << std::endl
-		  << "			<uuid value=\"0x1002\" />" << std::endl
-		  << "		</sequence>" << std::endl
-		  << "	</attribute>" << std::endl
-		  << "	<attribute id=\"0x0100\">" << std::endl
-		  << "		<text value=\"" << srv_name << "\" />" << std::endl
-		  << "	</attribute>" << std::endl
-		  << "	<attribute id=\"0x0101\">" << std::endl
-		  << "		<text value=\"" << srv_prov << "\" />" << std::endl
-		  << "	</attribute>" << std::endl
-		  << "	<attribute id=\"0x0102\">" << std::endl
-		  << "		<text value=\"" << srv_desc << "\" />" << std::endl
-		  << "	</attribute>" << std::endl
-		  << "</record>";
-	std::string sdprecord(sstr.str());
-	// Création des paramètres de la fonction pour dbus
-	dbus_message_iter_init_append(msg, &iter);
-	// On ajoute aux paramètres le nom du service
-	tmp = sdp_session.c_str();
-	dbus_message_iter_append_basic(&iter, DBUS_TYPE_OBJECT_PATH, &tmp);
-	// On ajoute aux paramètres l'uuid du service
-	tmp = struuid.c_str();
-	dbus_message_iter_append_basic(&iter, DBUS_TYPE_STRING, &tmp);
-	// On créé un tableau de dictionnaires pour les autres paramètres
-	dbus_message_iter_open_container(&iter, DBUS_TYPE_ARRAY,
-		DBUS_DICT_ENTRY_BEGIN_CHAR_AS_STRING
-			DBUS_TYPE_STRING_AS_STRING
-			DBUS_TYPE_VARIANT_AS_STRING
-		DBUS_DICT_ENTRY_END_CHAR_AS_STRING,
-		&dict);
-	// On créé une entrée dans le dictionnaire
-	dbus_message_iter_open_container(&dict, DBUS_TYPE_DICT_ENTRY, 0, &entry);
-	// On affecte la valeur de la clé du dictionnaire
-	dbus_message_iter_append_basic(&entry, DBUS_TYPE_STRING, &recordkey);
-	// On créé un variant de type string
-	dbus_message_iter_open_container(&entry, DBUS_TYPE_VARIANT, DBUS_TYPE_STRING_AS_STRING, &variant);
-	// On affecte la valeur du variant
-	tmp = sdprecord.c_str();
-	dbus_message_iter_append_basic(&variant, DBUS_TYPE_STRING, &tmp);
-	// On ferme le variant
-	dbus_message_iter_close_container(&entry, &variant);
-	// On ferme l'entrée du dictionnaire
-	dbus_message_iter_close_container(&dict, &entry);
-	// On ferme le tableau de dictionnaires
-	dbus_message_iter_close_container(&iter, &dict);
+    std::stringstream sstr;
+    sstr << "<?xml version=\"1.0\" encoding=\"UTF-8\" ?>" << std::endl
+          << "<record>" << std::endl
+          << "    <attribute id=\"0x0003\">" << std::endl
+          << "        <uuid value=\"" << struuid << "\" />" << std::endl
+          << "    </attribute>" << std::endl 
+          << "    <attribute id=\"0x0004\">" << std::endl
+          << "        <sequence>" << std::endl
+          << "            <sequence>" << std::endl
+          << "                <uuid value=\"0x0100\" />" << std::endl
+          << "            </sequence>" << std::endl
+          << "            <sequence>" << std::endl
+          << "                <uuid value=\"0x0003\" />" << std::endl
+          << "                <uint8 value=\"0x" << std::setfill('0') << std::setw(2) << std::hex << static_cast<uint16_t>(port) << std::dec << "\" />" << std::endl
+          << "            </sequence>" << std::endl
+          << "        </sequence>" << std::endl
+          << "    </attribute>" << std::endl
+          << "    <attribute id=\"0x0005\">" << std::endl
+          << "        <sequence>" << std::endl
+          << "            <uuid value=\"0x1002\" />" << std::endl
+          << "        </sequence>" << std::endl
+          << "    </attribute>" << std::endl
+          << "    <attribute id=\"0x0100\">" << std::endl
+          << "        <text value=\"" << srv_name << "\" />" << std::endl
+          << "    </attribute>" << std::endl
+          << "    <attribute id=\"0x0101\">" << std::endl
+          << "        <text value=\"" << srv_prov << "\" />" << std::endl
+          << "    </attribute>" << std::endl
+          << "    <attribute id=\"0x0102\">" << std::endl
+          << "        <text value=\"" << srv_desc << "\" />" << std::endl
+          << "    </attribute>" << std::endl
+          << "</record>";
+    std::string sdprecord(sstr.str());
+    // Création des paramètres de la fonction pour dbus
+    dbus_message_iter_init_append(msg, &iter);
+    // On ajoute aux paramètres le nom du service
+    tmp = sdp_session.c_str();
+    dbus_message_iter_append_basic(&iter, DBUS_TYPE_OBJECT_PATH, &tmp);
+    // On ajoute aux paramètres l'uuid du service
+    tmp = struuid.c_str();
+    dbus_message_iter_append_basic(&iter, DBUS_TYPE_STRING, &tmp);
+    // On créé un tableau de dictionnaires pour les autres paramètres
+    dbus_message_iter_open_container(&iter, DBUS_TYPE_ARRAY,
+        DBUS_DICT_ENTRY_BEGIN_CHAR_AS_STRING
+            DBUS_TYPE_STRING_AS_STRING
+            DBUS_TYPE_VARIANT_AS_STRING
+        DBUS_DICT_ENTRY_END_CHAR_AS_STRING,
+        &dict);
+    // On créé une entrée dans le dictionnaire
+    dbus_message_iter_open_container(&dict, DBUS_TYPE_DICT_ENTRY, 0, &entry);
+    // On affecte la valeur de la clé du dictionnaire
+    dbus_message_iter_append_basic(&entry, DBUS_TYPE_STRING, &recordkey);
+    // On créé un variant de type string
+    dbus_message_iter_open_container(&entry, DBUS_TYPE_VARIANT, DBUS_TYPE_STRING_AS_STRING, &variant);
+    // On affecte la valeur du variant
+    tmp = sdprecord.c_str();
+    dbus_message_iter_append_basic(&variant, DBUS_TYPE_STRING, &tmp);
+    // On ferme le variant
+    dbus_message_iter_close_container(&entry, &variant);
+    // On ferme l'entrée du dictionnaire
+    dbus_message_iter_close_container(&dict, &entry);
+    // On ferme le tableau de dictionnaires
+    dbus_message_iter_close_container(&iter, &dict);
 
-	if( (ret = dbus_connection_send_with_reply_and_block(bus, msg, DBUS_TIMEOUT_INFINITE, bus)) == nullptr )
-	{
-		throw sdp_service_exception("Unable to register SDP service!");
-	}
+    if( (ret = dbus_connection_send_with_reply_and_block(bus, msg, DBUS_TIMEOUT_INFINITE, bus)) == nullptr )
+    {
+        throw sdp_service_exception("Unable to register SDP service!");
+    }
 
-	service = std::move(sdp_session);
+    service = std::move(sdp_session);
 }
 
 void BluetoothSocket::unregister_sdp_service(service_t &service)
 {
-	BluezDBusSystem& bus = BluezDBusSystem::Inst();
-	DBusMessage *msg, *ret;
-	DBusMessageIter iter;
-	const char *tmp = service.c_str();
-	if( (msg = dbus_message_new_method_call("org.bluez", "/org/bluez", "org.bluez.ProfileManager1", "UnregisterProfile")) == nullptr )
-	{
-		throw sdp_service_exception("New method call error (" + std::string(bus.message()) + ')');
-	} 
-	// Création des paramètres de la fonction pour dbus
-	dbus_message_iter_init_append(msg, &iter);
-	// On ajoute aux paramètres le nom du service
-	dbus_message_iter_append_basic(&iter, DBUS_TYPE_OBJECT_PATH, &tmp);
-	if( (ret = dbus_connection_send_with_reply_and_block(bus, msg, DBUS_TIMEOUT_INFINITE, bus)) == nullptr )
-	{
-		throw sdp_service_exception("Unable to unregister SDP service!");
-	}
+    BluezDBusSystem& bus = BluezDBusSystem::Inst();
+    DBusMessage *msg, *ret;
+    DBusMessageIter iter;
+    const char *tmp = service.c_str();
+    if( (msg = dbus_message_new_method_call("org.bluez", "/org/bluez", "org.bluez.ProfileManager1", "UnregisterProfile")) == nullptr )
+    {
+        throw sdp_service_exception("New method call error (" + std::string(bus.message()) + ')');
+    } 
+    // Création des paramètres de la fonction pour dbus
+    dbus_message_iter_init_append(msg, &iter);
+    // On ajoute aux paramètres le nom du service
+    dbus_message_iter_append_basic(&iter, DBUS_TYPE_OBJECT_PATH, &tmp);
+    if( (ret = dbus_connection_send_with_reply_and_block(bus, msg, DBUS_TIMEOUT_INFINITE, bus)) == nullptr )
+    {
+        throw sdp_service_exception("Unable to unregister SDP service!");
+    }
 }
 
 #endif
@@ -1019,53 +1019,53 @@ SDPService::SDPService():_registered(false), _service(new service_t)
 
 SDPService::SDPService(SDPService &&other)
 {
-	_registered = other._registered; other._registered = false;
-	_service = other._service; other._service = nullptr;
-	_uuid = other._uuid;
-	_name = std::move(other._name);
-	_description = std::move(other._name);
-	_provider = std::move(other._provider);
+    _registered = other._registered; other._registered = false;
+    _service = other._service; other._service = nullptr;
+    _uuid = other._uuid;
+    _name = std::move(other._name);
+    _description = std::move(other._name);
+    _provider = std::move(other._provider);
 }
 
 SDPService& SDPService::operator =(SDPService &&other)
 {
-	_registered = other._registered; other._registered = false;
-	_service = other._service; other._service = nullptr;
-	_uuid = other._uuid;
-	_name = std::move(other._name);
-	_description = std::move(other._name);
-	_provider = std::move(other._provider);
-	return *this;
+    _registered = other._registered; other._registered = false;
+    _service = other._service; other._service = nullptr;
+    _uuid = other._uuid;
+    _name = std::move(other._name);
+    _description = std::move(other._name);
+    _provider = std::move(other._provider);
+    return *this;
 }
 
 SDPService::~SDPService()
 {
-	if (_registered)
-		unregisterService();
+    if (_registered)
+        unregisterService();
 
-	if( _service != nullptr )
-		delete _service;
+    if( _service != nullptr )
+        delete _service;
 }
 
 void SDPService::registerService(uuid_t uuid, uint8_t port, std::string const&name, std::string const& provider, std::string const& description)
 {
-	if (_registered)
-		throw error_in_value("Service already registered.");
-	
-	BluetoothSocket::register_sdp_service(*_service, uuid, port, name, provider, description);
+    if (_registered)
+        throw error_in_value("Service already registered.");
+    
+    BluetoothSocket::register_sdp_service(*_service, uuid, port, name, provider, description);
 
-	_uuid = uuid;
-	_name = name;
-	_registered = true;
+    _uuid = uuid;
+    _name = name;
+    _registered = true;
 }
 
 void SDPService::unregisterService()
 {
-	if (!_registered)
-		throw error_in_value("Service not registered.");
+    if (!_registered)
+        throw error_in_value("Service not registered.");
 
-	BluetoothSocket::unregister_sdp_service(*_service);
-	_registered = false;
+    BluetoothSocket::unregister_sdp_service(*_service);
+    _registered = false;
 }
 
 bool SDPService::is_registered() const { return _registered; }

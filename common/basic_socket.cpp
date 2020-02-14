@@ -21,24 +21,24 @@ using namespace PortableAPI;
 
 bool basic_socket::isvalid() const
 {
-	return (_sock.get() != nullptr && *_sock != Socket::invalid_socket);
+    return (_sock.get() != nullptr && *_sock != Socket::invalid_socket);
 }
 
 class LOCAL_API SocketDeleter
 {
 public:
-	void operator()(SOCKET*s)
-	{
-		if (s != nullptr)
-		{
-			if (*s != Socket::invalid_socket)
-			{
-				Socket::shutdown(*s, Socket::shutdown_flags::both);
-				Socket::closeSocket(*s);
-			}
-			delete s;
-		}
-	}
+    void operator()(SOCKET*s)
+    {
+        if (s != nullptr)
+        {
+            if (*s != Socket::invalid_socket)
+            {
+                Socket::shutdown(*s, Socket::shutdown_flags::both);
+                Socket::closeSocket(*s);
+            }
+            delete s;
+        }
+    }
 };
 
 basic_socket::basic_socket()
@@ -71,14 +71,14 @@ basic_socket& basic_socket::operator =(basic_socket&& other)
 void basic_socket::ioctlsocket(Socket::cmd_name cmd, unsigned long* arg)
 {
     auto res = Socket::ioctlsocket(*_sock, static_cast<long>(cmd), arg);
-	if(res)
+    if(res)
     {
 #if defined(__WINDOWS__)
         int error = WSAGetLastError();
 #elif defined(__LINUX__)
         int error = errno;
 #endif
-		throw socket_exception("ioctlsocket exception " + std::to_string(error));
+        throw socket_exception("ioctlsocket exception " + std::to_string(error));
     }
 }
 
@@ -112,8 +112,8 @@ void basic_socket::getsockopt(Socket::level level, Socket::option_name optname, 
 
 void basic_socket::shutdown(Socket::shutdown_flags how)
 {
-	if (Socket::shutdown(*_sock, how))
-		throw socket_exception("shutdown exception");
+    if (Socket::shutdown(*_sock, how))
+        throw socket_exception("shutdown exception");
 }
 
 void basic_socket::set_nonblocking(bool non_blocking)
@@ -124,11 +124,11 @@ void basic_socket::set_nonblocking(bool non_blocking)
 
 void basic_socket::socket(Socket::address_family af, Socket::types type, Socket::protocols proto)
 {
-	SOCKET s = Socket::socket(af, type, proto);
-	if (s == Socket::invalid_socket)
-		throw socket_exception("Cannot build socket");
-	
-	_sock.reset(new SOCKET(s), SocketDeleter());
+    SOCKET s = Socket::socket(af, type, proto);
+    if (s == Socket::invalid_socket)
+        throw socket_exception("Cannot build socket");
+    
+    _sock.reset(new SOCKET(s), SocketDeleter());
 }
 
 void basic_socket::bind(basic_addr& addr)
@@ -138,12 +138,12 @@ void basic_socket::bind(basic_addr& addr)
 
 SOCKET basic_socket::get_sock() const
 {
-	return *_sock;
+    return *_sock;
 }
 
 void basic_socket::reset_socket(SOCKET s)
 {
-	_sock.reset(new SOCKET(s), SocketDeleter());
+    _sock.reset(new SOCKET(s), SocketDeleter());
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -167,22 +167,22 @@ connected_socket::~connected_socket()
 
 void connected_socket::listen(int waiting_socks)
 {
-	Socket::listen(*_sock, waiting_socks);
+    Socket::listen(*_sock, waiting_socks);
 }
 
 void connected_socket::connect(basic_addr & addr)
 {
-	Socket::connect(*_sock, addr);
+    Socket::connect(*_sock, addr);
 }
 
 size_t connected_socket::recv(void* buffer, size_t len, Socket::socket_flags flags)
 {
-	return Socket::recv(*_sock, buffer, len, flags);
+    return Socket::recv(*_sock, buffer, len, flags);
 }
 
 size_t connected_socket::send(const void* buffer, size_t len, Socket::socket_flags flags)
 {
-	return Socket::send(*_sock, buffer, len, flags);
+    return Socket::send(*_sock, buffer, len, flags);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -206,10 +206,10 @@ unconnected_socket::~unconnected_socket()
 
 size_t unconnected_socket::recvfrom(basic_addr & addr, void* buffer, size_t len, Socket::socket_flags flags)
 {
-	return Socket::recvfrom(*_sock, addr, buffer, len, flags);
+    return Socket::recvfrom(*_sock, addr, buffer, len, flags);
 }
 
 size_t unconnected_socket::sendto(basic_addr & addr, const void* buffer, size_t len, Socket::socket_flags flags)
 {
-	return Socket::sendto(*_sock, addr, buffer, len, flags);
+    return Socket::sendto(*_sock, addr, buffer, len, flags);
 }

@@ -42,21 +42,21 @@ SOURCES += $(SOCKET_UNIX_SOURCES)
 OBJS = $(SOURCES:.cpp=.o)
  
 all: $(OBJS)
-	$(CXX) $(CXXCOMPFLAGS) $^ $(LIBRARIES) -o $(EXEC) && strip $(EXEC)
+    $(CXX) $(CXXCOMPFLAGS) $^ $(LIBRARIES) -o $(EXEC) && strip $(EXEC)
  
 main.o: $(HEADERS)
  
 %.o: %.cpp
-	$(CXX) -c $< -o $@ $(CXXFLAGS) $(CXXINCLUDES)
+    $(CXX) -c $< -o $@ $(CXXFLAGS) $(CXXINCLUDES)
  
 clean: 
-	find . -name '*.o' -exec rm -f {} \;
+    find . -name '*.o' -exec rm -f {} \;
  
 mrproper: clean
-	rm -rf $(EXEC)
+    rm -rf $(EXEC)
  
 debug: CXXFLAGS = $(FLAGS) -ggdb
 debug: all
 
 uuid_generator: uuid4gen.o
-	$(CXX) $(CXXCOMPFLAGS) $^ -o uuid_generator && strip uuid_generator
+    $(CXX) $(CXXCOMPFLAGS) $^ -o uuid_generator && strip uuid_generator

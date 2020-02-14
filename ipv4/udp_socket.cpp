@@ -21,7 +21,7 @@ using namespace PortableAPI;
 
 udp_socket::udp_socket()
 {
-	socket();
+    socket();
 }
 
 udp_socket::udp_socket(udp_socket const& other):unconnected_socket(other), _addr(other._addr)
@@ -39,35 +39,35 @@ udp_socket::~udp_socket()
 
 udp_socket & udp_socket::operator=(udp_socket const &other)
 {
-	_addr = other._addr;
-	basic_socket::operator=(other);
-	return *this;
+    _addr = other._addr;
+    basic_socket::operator=(other);
+    return *this;
 }
 
 udp_socket & udp_socket::operator=(udp_socket &&other)
 {
-	_addr = std::move(other._addr);
-	basic_socket::operator=(std::move(other));
-	return *this;
+    _addr = std::move(other._addr);
+    basic_socket::operator=(std::move(other));
+    return *this;
 }
 
 udp_socket::myaddr const & udp_socket::get_addr() const
 {
-	return _addr;
+    return _addr;
 }
 
 void udp_socket::socket()
 {
-	basic_socket::socket(Socket::address_family::inet, Socket::types::dgram, Socket::protocols::udp);
+    basic_socket::socket(Socket::address_family::inet, Socket::types::dgram, Socket::protocols::udp);
 }
 
 void udp_socket::bind(udp_socket::myaddr &addr)
 {
-	unconnected_socket::bind(addr);
+    unconnected_socket::bind(addr);
 }
 
 void udp_socket::close()
 {
-	Socket::closeSocket(*_sock);
-	socket();
+    Socket::closeSocket(*_sock);
+    socket();
 }

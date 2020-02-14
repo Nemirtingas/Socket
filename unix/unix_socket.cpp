@@ -36,54 +36,54 @@ unix_socket::~unix_socket()
 
 unix_socket & unix_socket::operator=(unix_socket const &other)
 {
-	_addr = other._addr;
-	basic_socket::operator=(other);
-	return *this;
+    _addr = other._addr;
+    basic_socket::operator=(other);
+    return *this;
 }
 
 unix_socket & unix_socket::operator=(unix_socket &&other)
 {
-	_addr = std::move(other._addr);
-	basic_socket::operator=(std::move(other));
-	return *this;
+    _addr = std::move(other._addr);
+    basic_socket::operator=(std::move(other));
+    return *this;
 }
 
 unix_socket::myaddr const & unix_socket::get_addr() const
 {
-	return _addr;
+    return _addr;
 }
 
 unix_socket unix_socket::accept()
 {
-	myaddr addr;
+    myaddr addr;
 
-	unix_socket res(Socket::accept(*_sock, addr));
-	res._addr = addr;
-	return res;
+    unix_socket res(Socket::accept(*_sock, addr));
+    res._addr = addr;
+    return res;
 }
 
 void unix_socket::server(myaddr & addr, int waiting_connections)
 {
-	socket();
-	connected_socket::bind(addr);
-	connected_socket::listen(waiting_connections);
-	_addr = addr;
+    socket();
+    connected_socket::bind(addr);
+    connected_socket::listen(waiting_connections);
+    _addr = addr;
 }
 
 void unix_socket::connect(myaddr & addr)
 {
-	socket();
-	connected_socket::connect(addr);
-	_addr = addr;
+    socket();
+    connected_socket::connect(addr);
+    _addr = addr;
 }
 
 void unix_socket::socket()
 {
-	basic_socket::socket(Socket::address_family::unix, Socket::types::stream, static_cast<Socket::protocols>(0));
+    basic_socket::socket(Socket::address_family::unix, Socket::types::stream, static_cast<Socket::protocols>(0));
 }
 
 void unix_socket::close()
 {
-	Socket::shutdown(*_sock, Socket::shutdown_flags::both);
-	Socket::closeSocket(*_sock);
+    Socket::shutdown(*_sock, Socket::shutdown_flags::both);
+    Socket::closeSocket(*_sock);
 }

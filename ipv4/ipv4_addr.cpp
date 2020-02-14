@@ -21,114 +21,114 @@ using namespace PortableAPI;
 
 ipv4_addr::ipv4_addr() :_sockaddr(new my_sockaddr)
 {
-	_sockaddr->sin_family = static_cast<uint16_t>(Socket::address_family::inet);
+    _sockaddr->sin_family = static_cast<uint16_t>(Socket::address_family::inet);
 }
 
 ipv4_addr::ipv4_addr(ipv4_addr const &other) : _sockaddr(new my_sockaddr)
 {
-	memcpy(_sockaddr, other._sockaddr, len());
+    memcpy(_sockaddr, other._sockaddr, len());
 }
 
 ipv4_addr::ipv4_addr(ipv4_addr &&other) : _sockaddr(nullptr)
 {
-	std::swap(_sockaddr, other._sockaddr);
+    std::swap(_sockaddr, other._sockaddr);
 }
 
 ipv4_addr & ipv4_addr::operator=(ipv4_addr const &other)
 {
-	memcpy(_sockaddr, other._sockaddr, len());
-	return *this;
+    memcpy(_sockaddr, other._sockaddr, len());
+    return *this;
 }
 
 ipv4_addr & ipv4_addr::operator=(ipv4_addr &&other)
 {
-	std::swap(_sockaddr, other._sockaddr);
-	return *this;
+    std::swap(_sockaddr, other._sockaddr);
+    return *this;
 }
 
 ipv4_addr::~ipv4_addr()
 {
-	delete _sockaddr;
+    delete _sockaddr;
 }
 
 std::string ipv4_addr::toString() const
 {
-	std::string ip, port;
-	ip = Socket::inet_ntoa(_sockaddr->sin_addr);
-	port = std::to_string(Socket::net_swap(_sockaddr->sin_port));
+    std::string ip, port;
+    ip = Socket::inet_ntoa(_sockaddr->sin_addr);
+    port = std::to_string(Socket::net_swap(_sockaddr->sin_port));
 
-	return ip + ':' + port;
+    return ip + ':' + port;
 }
 
 void ipv4_addr::fromString(std::string const & str)
 {
-	size_t pos;
+    size_t pos;
 
-	if ((pos = str.find(':')) != std::string::npos)
-	{
-		std::string ip = str.substr(0, pos);
-		std::string port = str.substr(pos + 1);
+    if ((pos = str.find(':')) != std::string::npos)
+    {
+        std::string ip = str.substr(0, pos);
+        std::string port = str.substr(pos + 1);
 #if defined(__WINDOWS__)
-		_sockaddr->sin_addr.S_un.S_addr = Socket::inet_addr(ip);
+        _sockaddr->sin_addr.S_un.S_addr = Socket::inet_addr(ip);
 #elif defined(__LINUX__)
-		_sockaddr->sin_addr.s_addr = Socket::inet_addr(ip);
+        _sockaddr->sin_addr.s_addr = Socket::inet_addr(ip);
 #endif
-		set_port(stoi(port));
-	}
-	else
-	{
+        set_port(stoi(port));
+    }
+    else
+    {
 #if defined(__WINDOWS__)
-		_sockaddr->sin_addr.S_un.S_addr = Socket::inet_addr(str);
+        _sockaddr->sin_addr.S_un.S_addr = Socket::inet_addr(str);
 #elif defined(__LINUX__)
-		_sockaddr->sin_addr.s_addr = Socket::inet_addr(str);
+        _sockaddr->sin_addr.s_addr = Socket::inet_addr(str);
 #endif
-	}
+    }
 }
 
 sockaddr & ipv4_addr::addr()
 {
-	return *reinterpret_cast<sockaddr*>(_sockaddr);
+    return *reinterpret_cast<sockaddr*>(_sockaddr);
 }
 
 size_t ipv4_addr::len() const
 {
-	return sizeof(sockaddr_in);
+    return sizeof(sockaddr_in);
 }
 
 void ipv4_addr::set_any_addr()
 {
-	memset(&_sockaddr->sin_addr, 0, sizeof(in_addr));
+    memset(&_sockaddr->sin_addr, 0, sizeof(in_addr));
 }
 
 void ipv4_addr::set_ip(uint32_t ip)
 {
 #if defined(__WINDOWS__)
-	_sockaddr->sin_addr.S_un.S_addr = Socket::net_swap(ip);
+    _sockaddr->sin_addr.S_un.S_addr = Socket::net_swap(ip);
 #elif defined(__LINUX__)
-	_sockaddr->sin_addr.s_addr = Socket::net_swap(ip);
+    _sockaddr->sin_addr.s_addr = Socket::net_swap(ip);
 #endif
 }
 
 void ipv4_addr::set_port(uint16_t port)
 {
-	_sockaddr->sin_port = Socket::net_swap(port);
+    _sockaddr->sin_port = Socket::net_swap(port);
 }
 
 uint32_t ipv4_addr::get_ip() const
 {
 #if defined(__WINDOWS__)
-	return Socket::net_swap(_sockaddr->sin_addr.S_un.S_addr);
+    return Socket::net_swap(_sockaddr->sin_addr.S_un.S_addr);
 #elif defined(__LINUX__)
-	return Socket::net_swap(_sockaddr->sin_addr.s_addr);
+    return Socket::net_swap(_sockaddr->sin_addr.s_addr);
 #endif
 }
 
 uint16_t ipv4_addr::get_port() const
 {
-	return Socket::net_swap(_sockaddr->sin_port);
+    return Socket::net_swap(_sockaddr->sin_port);
 }
 
 ipv4_addr::my_sockaddr& ipv4_addr::getAddr()
 {
-	return *_sockaddr;
+    return *_sockaddr;
 }

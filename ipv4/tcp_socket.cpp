@@ -36,54 +36,54 @@ tcp_socket::~tcp_socket()
 
 tcp_socket & tcp_socket::operator=(tcp_socket const &other)
 {
-	_addr = other._addr;
-	basic_socket::operator=(other);
-	return *this;
+    _addr = other._addr;
+    basic_socket::operator=(other);
+    return *this;
 }
 
 tcp_socket & tcp_socket::operator=(tcp_socket &&other)
 {
-	_addr = std::move(other._addr);
-	basic_socket::operator=(std::move(other));
-	return *this;
+    _addr = std::move(other._addr);
+    basic_socket::operator=(std::move(other));
+    return *this;
 }
 
 tcp_socket::myaddr const & tcp_socket::get_addr() const
 {
-	return _addr;
+    return _addr;
 }
 
 tcp_socket tcp_socket::accept()
 {
-	ipv4_addr addr;
+    ipv4_addr addr;
 
-	tcp_socket res(Socket::accept(*_sock, addr));
-	res._addr = addr;
-	return res;
+    tcp_socket res(Socket::accept(*_sock, addr));
+    res._addr = addr;
+    return res;
 }
 
 void tcp_socket::server(myaddr & addr, int waiting_connections)
 {
-	socket();
-	connected_socket::bind(addr);
-	connected_socket::listen(waiting_connections);
-	_addr = addr;
+    socket();
+    connected_socket::bind(addr);
+    connected_socket::listen(waiting_connections);
+    _addr = addr;
 }
 
 void tcp_socket::connect(myaddr & addr)
 {
-	socket();
-	connected_socket::connect(addr);
-	_addr = addr;
+    socket();
+    connected_socket::connect(addr);
+    _addr = addr;
 }
 
 void tcp_socket::socket()
 {
-	basic_socket::socket(Socket::address_family::inet, Socket::types::stream, Socket::protocols::tcp);
+    basic_socket::socket(Socket::address_family::inet, Socket::types::stream, Socket::protocols::tcp);
 }
 
 void tcp_socket::close()
 {
-	Socket::shutdown(*_sock, Socket::shutdown_flags::both);
-	Socket::closeSocket(*_sock);
+    Socket::shutdown(*_sock, Socket::shutdown_flags::both);
+    Socket::closeSocket(*_sock);
 }

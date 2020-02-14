@@ -23,10 +23,10 @@
 
 namespace PortableAPI
 {
-	class LOCAL_API basic_socket
-	{
-		public:
-			virtual ~basic_socket();
+    class LOCAL_API basic_socket
+    {
+        public:
+            virtual ~basic_socket();
 
             ////////////////////////////////////////////////////////////////////////////////
             // Méthode : ioctlsocket
@@ -49,20 +49,20 @@ namespace PortableAPI
             // paramètres sortants : void
             ////////////////////////////////////////////////////////////////////////////////
             void getsockopt(Socket::level level, Socket::option_name optname, void* optval, int* optlen);
-			////////////////////////////////////////////////////////////////////////////////
-			// Méthode : shutdown
-			// Usage   : Ferme la lecture, l'écriture ou les 2 de _Sock
-			// paramètres entrants : int _How = socketshutdown::both
-			// paramètres sortants : aucun
-			////////////////////////////////////////////////////////////////////////////////
-			void shutdown(Socket::shutdown_flags _How = Socket::shutdown_flags::both);
-			////////////////////////////////////////////////////////////////////////////////
-			// Méthode : close
-			// Usage   : Libère les ressources du socket
-			// paramètres entrants : aucun
-			// paramètres sortants : aucun
-			////////////////////////////////////////////////////////////////////////////////
-			virtual void close() = 0;
+            ////////////////////////////////////////////////////////////////////////////////
+            // Méthode : shutdown
+            // Usage   : Ferme la lecture, l'écriture ou les 2 de _Sock
+            // paramètres entrants : int _How = socketshutdown::both
+            // paramètres sortants : aucun
+            ////////////////////////////////////////////////////////////////////////////////
+            void shutdown(Socket::shutdown_flags _How = Socket::shutdown_flags::both);
+            ////////////////////////////////////////////////////////////////////////////////
+            // Méthode : close
+            // Usage   : Libère les ressources du socket
+            // paramètres entrants : aucun
+            // paramètres sortants : aucun
+            ////////////////////////////////////////////////////////////////////////////////
+            virtual void close() = 0;
             ////////////////////////////////////////////////////////////////////////////////
             // Méthode : set_nonblocking
             // Usage   : Passe en mode non bloquant
@@ -71,34 +71,34 @@ namespace PortableAPI
             ////////////////////////////////////////////////////////////////////////////////
             void set_nonblocking(bool non_blocking = true);
 
-			SOCKET get_sock() const;
-		protected:
-			std::shared_ptr<SOCKET> _sock;
+            SOCKET get_sock() const;
+        protected:
+            std::shared_ptr<SOCKET> _sock;
 
-			bool isvalid() const;
+            bool isvalid() const;
 
-			basic_socket();
-			basic_socket(basic_socket const&);
-			basic_socket(basic_socket &&);
-			basic_socket(SOCKET s);
+            basic_socket();
+            basic_socket(basic_socket const&);
+            basic_socket(basic_socket &&);
+            basic_socket(SOCKET s);
 
-			basic_socket& operator =(basic_socket const&);
-			basic_socket& operator =(basic_socket &&);
+            basic_socket& operator =(basic_socket const&);
+            basic_socket& operator =(basic_socket &&);
 
-			////////////////////////////////////////////////////////////////////////////////
-			// Méthode : socket
-			// Usage   : Crée le socket avec les informations passées
-			// paramètres entrants : Socket::address_family af, Socket::types type, Socket::protocols proto
-			// paramètres sortants : aucun
-			////////////////////////////////////////////////////////////////////////////////
-			void socket(Socket::address_family af, Socket::types type, Socket::protocols proto);
-			////////////////////////////////////////////////////////////////////////////////
-			// Méthode : reset_socket
-			// Usage   : Modifie la valeur de l'attribut _sock 
-			// paramètres entrants : SOCKET s
-			// paramètres sortants : aucun
-			////////////////////////////////////////////////////////////////////////////////
-			void reset_socket(SOCKET s);
+            ////////////////////////////////////////////////////////////////////////////////
+            // Méthode : socket
+            // Usage   : Crée le socket avec les informations passées
+            // paramètres entrants : Socket::address_family af, Socket::types type, Socket::protocols proto
+            // paramètres sortants : aucun
+            ////////////////////////////////////////////////////////////////////////////////
+            void socket(Socket::address_family af, Socket::types type, Socket::protocols proto);
+            ////////////////////////////////////////////////////////////////////////////////
+            // Méthode : reset_socket
+            // Usage   : Modifie la valeur de l'attribut _sock 
+            // paramètres entrants : SOCKET s
+            // paramètres sortants : aucun
+            ////////////////////////////////////////////////////////////////////////////////
+            void reset_socket(SOCKET s);
             ////////////////////////////////////////////////////////////////////////////////
             // Méthode : bind
             // Usage   : Bind une adresse
@@ -106,49 +106,49 @@ namespace PortableAPI
             // paramètres sortants : aucun
             ////////////////////////////////////////////////////////////////////////////////
             void bind(basic_addr& addr);
-	};
+    };
 
-	class LOCAL_API connected_socket : public basic_socket
-	{
-		protected:
-			connected_socket();
-			connected_socket(connected_socket const&);
-			connected_socket(connected_socket &&);
-			connected_socket(SOCKET s);
+    class LOCAL_API connected_socket : public basic_socket
+    {
+        protected:
+            connected_socket();
+            connected_socket(connected_socket const&);
+            connected_socket(connected_socket &&);
+            connected_socket(SOCKET s);
 
-			////////////////////////////////////////////////////////////////////////////////
-			// Méthode : listen
-			// Usage   : Permet au client d'être en écoute et d'accepter les clients
-			// paramètres entrants : int waiting_socks = 5
-			// paramètres sortants : aucun
-			////////////////////////////////////////////////////////////////////////////////
-			void listen(int waiting_socks = 5);
-			////////////////////////////////////////////////////////////////////////////////
-			// Méthode : connect
-			// Usage   : Connect le client à l'adresse addr
-			// paramètres entrants : basic_addr &addr
-			// paramètres sortants : aucun
-			////////////////////////////////////////////////////////////////////////////////
-			void connect(basic_addr& addr);
-		public:
-			virtual ~connected_socket();
+            ////////////////////////////////////////////////////////////////////////////////
+            // Méthode : listen
+            // Usage   : Permet au client d'être en écoute et d'accepter les clients
+            // paramètres entrants : int waiting_socks = 5
+            // paramètres sortants : aucun
+            ////////////////////////////////////////////////////////////////////////////////
+            void listen(int waiting_socks = 5);
+            ////////////////////////////////////////////////////////////////////////////////
+            // Méthode : connect
+            // Usage   : Connect le client à l'adresse addr
+            // paramètres entrants : basic_addr &addr
+            // paramètres sortants : aucun
+            ////////////////////////////////////////////////////////////////////////////////
+            void connect(basic_addr& addr);
+        public:
+            virtual ~connected_socket();
 
-			size_t recv(void* buffer, size_t len, Socket::socket_flags flags = Socket::socket_flags::normal);
-			size_t send(const void* buffer, size_t len, Socket::socket_flags flags = Socket::socket_flags::normal);
-	};
+            size_t recv(void* buffer, size_t len, Socket::socket_flags flags = Socket::socket_flags::normal);
+            size_t send(const void* buffer, size_t len, Socket::socket_flags flags = Socket::socket_flags::normal);
+    };
 
-	class LOCAL_API unconnected_socket : public basic_socket
-	{
-		protected:
-			unconnected_socket();
-			unconnected_socket(unconnected_socket const&);
-			unconnected_socket(unconnected_socket &&);
-			unconnected_socket(SOCKET s);
+    class LOCAL_API unconnected_socket : public basic_socket
+    {
+        protected:
+            unconnected_socket();
+            unconnected_socket(unconnected_socket const&);
+            unconnected_socket(unconnected_socket &&);
+            unconnected_socket(SOCKET s);
 
-		public:
-			virtual ~unconnected_socket();
+        public:
+            virtual ~unconnected_socket();
 
-			size_t recvfrom(basic_addr& addr, void* buffer, size_t len, Socket::socket_flags flags = Socket::socket_flags::normal);
-			size_t sendto(basic_addr & addr, const void* buffer, size_t len, Socket::socket_flags flags = Socket::socket_flags::normal);
-	};
+            size_t recvfrom(basic_addr& addr, void* buffer, size_t len, Socket::socket_flags flags = Socket::socket_flags::normal);
+            size_t sendto(basic_addr & addr, const void* buffer, size_t len, Socket::socket_flags flags = Socket::socket_flags::normal);
+    };
 }

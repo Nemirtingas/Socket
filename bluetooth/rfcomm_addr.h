@@ -22,34 +22,34 @@
 
 namespace PortableAPI
 {
-	class LOCAL_API rfcomm_addr : public basic_addr
-	{
-		public:
-			typedef sockaddr_rc my_sockaddr;
+    class LOCAL_API rfcomm_addr : public basic_addr
+    {
+        public:
+            typedef sockaddr_rc my_sockaddr;
 
-		private:
-			my_sockaddr *_sockaddr;
+        private:
+            my_sockaddr *_sockaddr;
 
-		public:
-			rfcomm_addr();
-			rfcomm_addr(rfcomm_addr const&);
-			rfcomm_addr(rfcomm_addr &&);
-			rfcomm_addr& operator =(rfcomm_addr const&);
-			rfcomm_addr& operator =(rfcomm_addr &&);
+        public:
+            rfcomm_addr();
+            rfcomm_addr(rfcomm_addr const&);
+            rfcomm_addr(rfcomm_addr &&);
+            rfcomm_addr& operator =(rfcomm_addr const&);
+            rfcomm_addr& operator =(rfcomm_addr &&);
 
-			virtual ~rfcomm_addr();
-			// Returns addr formated like <addr>@<channel>
-			virtual std::string toString() const;
-			// Pass in a formated std::string like <addr>[@<channel>]
-			virtual void fromString(std::string const& str);
-			virtual sockaddr& addr();
-			virtual size_t len() const;
-			virtual void set_any_addr();
-			void set_ip(bdaddr_t const&);
-			void set_channel(uint8_t channel);
-			bdaddr_t get_ip() const;
-			uint8_t get_channel() const;
-			my_sockaddr& getAddr();
-	};
+            virtual ~rfcomm_addr();
+            // Returns addr formated like <addr>@<channel>
+            virtual std::string toString() const;
+            // Pass in a formated std::string like <addr>[@<channel>]
+            virtual void fromString(std::string const& str);
+            virtual sockaddr& addr();
+            virtual size_t len() const;
+            virtual void set_any_addr();
+            void set_ip(bdaddr_t const&);
+            void set_channel(uint8_t channel);
+            bdaddr_t get_ip() const;
+            uint8_t get_channel() const;
+            my_sockaddr& getAddr();
+    };
 }
 #endif

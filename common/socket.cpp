@@ -30,110 +30,110 @@ basic_addr::~basic_addr()
 
 SOCKET Socket::accept(SOCKET s, basic_addr &addr)
 {
-	SOCKET res;
-	socklen_t len = addr.len();
-	if ((res = ::accept(s, &addr.addr(), &len)) == Socket::invalid_socket)
-	{
+    SOCKET res;
+    socklen_t len = addr.len();
+    if ((res = ::accept(s, &addr.addr(), &len)) == Socket::invalid_socket)
+    {
 #if defined(__WINDOWS__)
-		int32_t error = WSAGetLastError();
+        int32_t error = WSAGetLastError();
 #elif defined(__LINUX__)
-		int32_t error = errno;
+        int32_t error = errno;
 #endif
-		switch (error)
-		{
+        switch (error)
+        {
 #if defined(__WINDOWS__)
-			case WSANOTINITIALISED: throw wsa_not_initialised();
-			case WSAECONNRESET    : throw connection_reset();
-			case WSAEINVAL        : throw error_in_value("The listen function was not invoked prior to accept.");
-			case WSAENETDOWN      : throw wsa_net_down();
-			case WSAEWOULDBLOCK   : throw would_block();
+            case WSANOTINITIALISED: throw wsa_not_initialised();
+            case WSAECONNRESET    : throw connection_reset();
+            case WSAEINVAL        : throw error_in_value("The listen function was not invoked prior to accept.");
+            case WSAENETDOWN      : throw wsa_net_down();
+            case WSAEWOULDBLOCK   : throw would_block();
 #elif defined(__LINUX__)
-			case ECONNABORTED : throw connection_reset();
-			case EINVAL       : throw error_in_value("The listen function was not invoked prior to accept.");
+            case ECONNABORTED : throw connection_reset();
+            case EINVAL       : throw error_in_value("The listen function was not invoked prior to accept.");
 #if EAGAIN != EWOULDBLOCK
-			case EAGAIN: 
+            case EAGAIN: 
 #endif
-			case EWOULDBLOCK : throw would_block();
+            case EWOULDBLOCK : throw would_block();
 #endif
-			default               : throw socket_exception("accept exception: " + to_string(error));
-		}
-	}
+            default               : throw socket_exception("accept exception: " + to_string(error));
+        }
+    }
 
-	return res;
+    return res;
 }
 
 void Socket::bind(SOCKET s, basic_addr &addr)
 {
-	if (::bind(s, &addr.addr(), addr.len()) == -1)
-	{
+    if (::bind(s, &addr.addr(), addr.len()) == -1)
+    {
 #if defined(__WINDOWS__)
-		int32_t error = WSAGetLastError();
+        int32_t error = WSAGetLastError();
 #elif defined(__LINUX__)
-		int32_t error = errno;
+        int32_t error = errno;
 #endif
-		switch (error)
-		{
+        switch (error)
+        {
 #if defined(__WINDOWS__)
-			case WSANOTINITIALISED: throw wsa_not_initialised();
-			case WSAENETDOWN: throw wsa_net_down();
-			case WSAEADDRINUSE: throw address_in_use("The given address is already in use.");
-			case WSAEINVAL: throw error_in_value("The socket is already bound to an address.");
+            case WSANOTINITIALISED: throw wsa_not_initialised();
+            case WSAENETDOWN: throw wsa_net_down();
+            case WSAEADDRINUSE: throw address_in_use("The given address is already in use.");
+            case WSAEINVAL: throw error_in_value("The socket is already bound to an address.");
 #elif defined(__LINUX__)
-			case EADDRINUSE: throw address_in_use("The given address is already in use.");
-			case EINVAL: throw error_in_value("The socket is already bound to an address.");
+            case EADDRINUSE: throw address_in_use("The given address is already in use.");
+            case EINVAL: throw error_in_value("The socket is already bound to an address.");
 #endif
-			default: throw socket_exception("bind exception: " + to_string(error));
-		}
-	}
+            default: throw socket_exception("bind exception: " + to_string(error));
+        }
+    }
 }
 
 void Socket::closeSocket(SOCKET s)
 {
 #if defined(__WINDOWS__)
-	::closesocket(s);
+    ::closesocket(s);
 #elif defined(__LINUX__)
-	::close(s);
+    ::close(s);
 #endif
 }
 
 void Socket::connect(SOCKET s, basic_addr &addr)
 {
-	if (::connect(s, &addr.addr(), addr.len()) == -1)
-	{
+    if (::connect(s, &addr.addr(), addr.len()) == -1)
+    {
 #if defined(__WINDOWS__)
-		int32_t error = WSAGetLastError();
+        int32_t error = WSAGetLastError();
 #elif defined(__LINUX__)
-		int32_t error = errno;
+        int32_t error = errno;
 #endif
-		switch (error)
-		{
+        switch (error)
+        {
 #if defined(__WINDOWS__)
-			case WSANOTINITIALISED: throw wsa_not_initialised();
-			case WSAENETDOWN: throw wsa_net_down();
-			case WSAEADDRINUSE: throw address_in_use("Local address is already in use.");
-			case WSAEADDRNOTAVAIL: throw error_in_value("Address is not available.");
-			case WSAECONNREFUSED: throw connection_refused();
-			case WSAENETUNREACH: case WSAEHOSTUNREACH: throw network_unreachable();
-			case WSAETIMEDOUT: throw connection_timeout();
-			case WSAEISCONN: throw is_connected();
+            case WSANOTINITIALISED: throw wsa_not_initialised();
+            case WSAENETDOWN: throw wsa_net_down();
+            case WSAEADDRINUSE: throw address_in_use("Local address is already in use.");
+            case WSAEADDRNOTAVAIL: throw error_in_value("Address is not available.");
+            case WSAECONNREFUSED: throw connection_refused();
+            case WSAENETUNREACH: case WSAEHOSTUNREACH: throw network_unreachable();
+            case WSAETIMEDOUT: throw connection_timeout();
+            case WSAEISCONN: throw is_connected();
 #elif defined(__LINUX__)
-			case EINVAL: throw error_in_value("Address is not available.");
-			case EADDRINUSE: throw address_in_use("Local address is already in use.");
-			case ECONNREFUSED:  throw connection_refused();
-			case ENETUNREACH: throw network_unreachable();
-			case EISCONN: throw is_connected();
+            case EINVAL: throw error_in_value("Address is not available.");
+            case EADDRINUSE: throw address_in_use("Local address is already in use.");
+            case ECONNREFUSED:  throw connection_refused();
+            case ENETUNREACH: throw network_unreachable();
+            case EISCONN: throw is_connected();
 #endif
-			default: throw socket_exception("connect exception: " + to_string(error));
-		}
-	}
+            default: throw socket_exception("connect exception: " + to_string(error));
+        }
+    }
 }
 
 int Socket::ioctlsocket(SOCKET s, long cmd, unsigned long * arg)
 {
 #if defined(__WINDOWS__)
-	return ::ioctlsocket(s, cmd, arg);
+    return ::ioctlsocket(s, cmd, arg);
 #elif defined(__LINUX__)
-	return ::ioctl(s, cmd, arg);
+    return ::ioctl(s, cmd, arg);
 #endif
 }
 
@@ -157,72 +157,72 @@ int Socket::getsockopt(SOCKET s, int level, int optname, void* optval, int* optl
 
 void Socket::listen(SOCKET s, int waiting_connection)
 {
-	if (::listen(s, waiting_connection) == -1)
-	{
+    if (::listen(s, waiting_connection) == -1)
+    {
 #if defined(__WINDOWS__)
-		int32_t error = WSAGetLastError();
+        int32_t error = WSAGetLastError();
 #elif defined(__LINUX__)
-		int32_t error = errno;
+        int32_t error = errno;
 #endif
-		switch (error)
-		{
+        switch (error)
+        {
 #if defined(__WINDOWS__)
-			case WSANOTINITIALISED: throw wsa_not_initialised();
-			case WSAENETDOWN: throw wsa_net_down();
-			case WSAEADDRINUSE: throw address_in_use();
+            case WSANOTINITIALISED: throw wsa_not_initialised();
+            case WSAENETDOWN: throw wsa_net_down();
+            case WSAEADDRINUSE: throw address_in_use();
 #elif defined(__LINUX__)
-			case EADDRINUSE: throw address_in_use();
+            case EADDRINUSE: throw address_in_use();
 #endif
-			default: throw socket_exception("listen exception: " + to_string(error));
-		}
-	}
+            default: throw socket_exception("listen exception: " + to_string(error));
+        }
+    }
 }
 
 size_t Socket::recv(SOCKET s, void* buffer, size_t len, Socket::socket_flags flags)
 {
-	int res = ::recv(s, reinterpret_cast<char*>(buffer), len, static_cast<int32_t>(flags));
-	if (res == 0)
-		throw connection_reset();
-	else if( res == -1 )
-	{
+    int res = ::recv(s, reinterpret_cast<char*>(buffer), len, static_cast<int32_t>(flags));
+    if (res == 0)
+        throw connection_reset();
+    else if( res == -1 )
+    {
 #if defined(__WINDOWS__)
-		int32_t error = WSAGetLastError();
+        int32_t error = WSAGetLastError();
 #elif defined(__LINUX__)
-		int32_t error = errno;
+        int32_t error = errno;
 #endif
-		switch (error)
-		{
+        switch (error)
+        {
 #if defined(__WINDOWS__)
-			case WSANOTINITIALISED: throw wsa_not_initialised();
-			case WSAENETDOWN: throw wsa_net_down();
-			case WSAENOTCONN: throw not_connected();
+            case WSANOTINITIALISED: throw wsa_not_initialised();
+            case WSAENETDOWN: throw wsa_net_down();
+            case WSAENOTCONN: throw not_connected();
 #elif defined(__LINUX__)
-			case ENOTCONN: throw not_connected("The socket is not connected.");
-			case ECONNRESET: throw connection_reset("Connection reset by peer.");
+            case ENOTCONN: throw not_connected("The socket is not connected.");
+            case ECONNRESET: throw connection_reset("Connection reset by peer.");
 #endif
-			default: throw socket_exception("recv exception: " + to_string(error));
-		}
-	}
-	return static_cast<size_t>(res);
+            default: throw socket_exception("recv exception: " + to_string(error));
+        }
+    }
+    return static_cast<size_t>(res);
 }
 
 size_t Socket::recvfrom(SOCKET s, basic_addr &addr, void* buffer, size_t len, Socket::socket_flags flags)
 {
-	socklen_t slen = addr.len();
-	int res = ::recvfrom(s, reinterpret_cast<char*>(buffer), len, static_cast<int32_t>(flags), &addr.addr(), &slen);
-	if (res == -1)
-	{
+    socklen_t slen = addr.len();
+    int res = ::recvfrom(s, reinterpret_cast<char*>(buffer), len, static_cast<int32_t>(flags), &addr.addr(), &slen);
+    if (res == -1)
+    {
 #if defined(__WINDOWS__)
-		int32_t error = WSAGetLastError();
+        int32_t error = WSAGetLastError();
 #elif defined(__LINUX__)
-		int32_t error = errno;
+        int32_t error = errno;
 #endif
-		switch (error)
-		{
+        switch (error)
+        {
 #if defined(__WINDOWS__)
-			case WSANOTINITIALISED: throw wsa_not_initialised();
-			case WSAENETDOWN: throw wsa_net_down();
-			case WSAEINVAL: throw error_in_value("The socket is not bound to an address.");
+            case WSANOTINITIALISED: throw wsa_not_initialised();
+            case WSAENETDOWN: throw wsa_net_down();
+            case WSAEINVAL: throw error_in_value("The socket is not bound to an address.");
             case WSAEWOULDBLOCK: res = 0; break;
             case WSAECONNRESET: throw connection_reset();
 #elif defined(__LINUX__)
@@ -232,140 +232,140 @@ size_t Socket::recvfrom(SOCKET s, basic_addr &addr, void* buffer, size_t len, So
     #endif
             case EWOULDBLOCK: res = 0; break;
 #endif
-			default: throw socket_exception("recvfrom exception: " + to_string(error));
-		}
-	}
-	return static_cast<size_t>(res);
+            default: throw socket_exception("recvfrom exception: " + to_string(error));
+        }
+    }
+    return static_cast<size_t>(res);
 }
 
 size_t Socket::send(SOCKET s, const void* buffer, size_t len, Socket::socket_flags flags)
 {
-	int res = ::send(s, reinterpret_cast<char const*>(buffer), len, static_cast<int32_t>(flags));
+    int res = ::send(s, reinterpret_cast<char const*>(buffer), len, static_cast<int32_t>(flags));
 
-	if (res == -1)
-	{
+    if (res == -1)
+    {
 #if defined(__WINDOWS__)
-		int32_t error = WSAGetLastError();
+        int32_t error = WSAGetLastError();
 #elif defined(__LINUX__)
-		int32_t error = errno;
+        int32_t error = errno;
 #endif
-		switch (error)
-		{
+        switch (error)
+        {
 #if defined(__WINDOWS__)
-			case WSANOTINITIALISED: throw wsa_not_initialised();
-			case WSAENETDOWN: throw wsa_net_down();
-			case WSAENOTCONN: throw not_connected("The socket is not connected.");
-			case WSAECONNABORTED: throw connection_reset("Connection reset by peer.");
+            case WSANOTINITIALISED: throw wsa_not_initialised();
+            case WSAENETDOWN: throw wsa_net_down();
+            case WSAENOTCONN: throw not_connected("The socket is not connected.");
+            case WSAECONNABORTED: throw connection_reset("Connection reset by peer.");
 #elif defined(__LINUX__)
-			case ENOTCONN: throw not_connected("The socket is not connected.");
+            case ENOTCONN: throw not_connected("The socket is not connected.");
 #endif
-			default: throw socket_exception("send exception: " + to_string(error));
-		}
-	}
-	return res;
+            default: throw socket_exception("send exception: " + to_string(error));
+        }
+    }
+    return res;
 }
 
 size_t Socket::sendto(SOCKET s, basic_addr &addr, const void* buffer, size_t len, Socket::socket_flags flags)
 {
-	int res = ::sendto(s, reinterpret_cast<const char*>(buffer), len, static_cast<int32_t>(flags), &addr.addr(), addr.len());
-	if (res == -1)
-	{
+    int res = ::sendto(s, reinterpret_cast<const char*>(buffer), len, static_cast<int32_t>(flags), &addr.addr(), addr.len());
+    if (res == -1)
+    {
 #if defined(__WINDOWS__)
-		int32_t error = WSAGetLastError();
+        int32_t error = WSAGetLastError();
 #elif defined(__LINUX__)
-		int32_t error = errno;
+        int32_t error = errno;
 #endif
-		switch (error)
-		{
+        switch (error)
+        {
 #if defined(__WINDOWS__)
-			case WSANOTINITIALISED: throw wsa_not_initialised();
-			case WSAENETDOWN: throw wsa_net_down();
+            case WSANOTINITIALISED: throw wsa_not_initialised();
+            case WSAENETDOWN: throw wsa_net_down();
             case WSAENETUNREACH: throw network_unreachable();
 #elif defined(__LINUX__)
             case ENETUNREACH: throw network_unreachable();
 #endif
-			default: throw socket_exception("sendto exception: " + to_string(error));
-		}
-	}
-	return res;
+            default: throw socket_exception("sendto exception: " + to_string(error));
+        }
+    }
+    return res;
 }
 
 int Socket::shutdown(SOCKET s, Socket::shutdown_flags how)
 {
-	return ::shutdown(s, static_cast<int32_t>(how));
+    return ::shutdown(s, static_cast<int32_t>(how));
 }
 
 SOCKET Socket::socket(Socket::address_family af, Socket::types type, Socket::protocols proto)
 {
-	SOCKET s = ::socket(static_cast<int>(af), static_cast<int>(type), static_cast<int>(proto));
-	if (s == Socket::invalid_socket)
-	{
+    SOCKET s = ::socket(static_cast<int>(af), static_cast<int>(type), static_cast<int>(proto));
+    if (s == Socket::invalid_socket)
+    {
 #if defined(__WINDOWS__)
-		int32_t error = WSAGetLastError();
+        int32_t error = WSAGetLastError();
 #elif defined(__LINUX__)
-		int32_t error = errno;
+        int32_t error = errno;
 #endif
-		switch (error)
-		{
+        switch (error)
+        {
 #if defined(__WINDOWS__)
-			case WSANOTINITIALISED: throw wsa_not_initialised();
-			case WSAENETDOWN: throw wsa_net_down();
+            case WSANOTINITIALISED: throw wsa_not_initialised();
+            case WSAENETDOWN: throw wsa_net_down();
 #elif defined(__LINUX__)
 #endif
-			default: throw socket_exception("listen exception: " + to_string(error));
-		}
-	}
-	return s;
+            default: throw socket_exception("listen exception: " + to_string(error));
+        }
+    }
+    return s;
 }
 
 int Socket::getaddrinfo(const char * _Nodename, const char * _Servicename, const addrinfo * _Hints, addrinfo ** _Result)
 {
-	return ::getaddrinfo(_Nodename, _Servicename, _Hints, _Result);
+    return ::getaddrinfo(_Nodename, _Servicename, _Hints, _Result);
 }
 
 int Socket::getnameinfo(const sockaddr * _Addr, socklen_t _Addrlen, char * _Host, size_t _Hostlen, char * _Serv, size_t _Servlen, int _Flags)
 {
-	return ::getnameinfo(_Addr, _Addrlen, _Host, _Hostlen, _Serv, _Servlen, _Flags);
+    return ::getnameinfo(_Addr, _Addrlen, _Host, _Hostlen, _Serv, _Servlen, _Flags);
 }
 
 uint32_t Socket::inet_addr(std::string const& _Naddr)
 {
-	in_addr addr;
-	::inet_pton(static_cast<int>(Socket::address_family::inet), _Naddr.c_str(), &addr);
+    in_addr addr;
+    ::inet_pton(static_cast<int>(Socket::address_family::inet), _Naddr.c_str(), &addr);
 #if defined(__WINDOWS__)
-	return addr.S_un.S_addr;
+    return addr.S_un.S_addr;
 #elif defined(__LINUX__)
-	return addr.s_addr;
+    return addr.s_addr;
 #endif
 }
 
 std::string Socket::inet_ntoa(in_addr & _In)
 {
-	char tmp[16];
-	const char *str = ::inet_ntop(static_cast<int>(Socket::address_family::inet), &_In, tmp, 16);
-	return std::string(str);
+    char tmp[16];
+    const char *str = ::inet_ntop(static_cast<int>(Socket::address_family::inet), &_In, tmp, 16);
+    return std::string(str);
 }
 
 int Socket::select(int _Nfds, fd_set * _Readfd, fd_set * _Writefd, fd_set * _Exceptfd, timeval * _Timeout)
 {
-	return ::select(_Nfds, _Readfd, _Writefd, _Exceptfd, _Timeout);
+    return ::select(_Nfds, _Readfd, _Writefd, _Exceptfd, _Timeout);
 }
 
 #if(_WIN32_WINNT >= 0x0600)
 int Socket::poll(pollfd *_Fds, unsigned long _Nfds, int _Timeout)
 {
-	return WSAPoll(_Fds, _Nfds, _Timeout);
+    return WSAPoll(_Fds, _Nfds, _Timeout);
 }
 #elif defined(__LINUX__)
 int Socket::poll(pollfd *_Fds, unsigned long _Nfds, int _Timeout)
 {
-	return ::poll(_Fds, _Nfds, _Timeout);
+    return ::poll(_Fds, _Nfds, _Timeout);
 }
 #endif
 
 void Socket::InitSocket(uint32_t version)
 {
-	static Socket s(version);
+    static Socket s(version);
 }
 
 void Socket::SetLastError(int error)
@@ -379,39 +379,39 @@ void Socket::SetLastError(int error)
 void Socket::FreeSocket()
 {
 #if defined(__WINDOWS__)
-	WSACleanup();
+    WSACleanup();
 #endif
 }
 */
 
 WSAData const& Socket::GetWSAData()
 {
-	static WSAData datas;
-	return datas;
+    static WSAData datas;
+    return datas;
 }
 
 Socket::Socket(uint32_t version)
 {
 #if defined(__WINDOWS__)
-	int err = WSAStartup(version, &const_cast<WSAData&>(Socket::GetWSAData()));
-	switch (err)
-	{
-		case WSASYSNOTREADY    : throw(wsa_sys_not_ready());
-		case WSAVERNOTSUPPORTED: throw(wsa_version_not_supported());
-		case WSAEINPROGRESS    : throw(wsa_in_progress());
-		case WSAEPROCLIM       : throw(wsa_proclim());
-		case WSAEFAULT         : throw(wsa_fault());
-		case 0: break;
-		default: throw(socket_exception("Socket initialisation error: " + std::to_string(err)));
-	}
+    int err = WSAStartup(version, &const_cast<WSAData&>(Socket::GetWSAData()));
+    switch (err)
+    {
+        case WSASYSNOTREADY    : throw(wsa_sys_not_ready());
+        case WSAVERNOTSUPPORTED: throw(wsa_version_not_supported());
+        case WSAEINPROGRESS    : throw(wsa_in_progress());
+        case WSAEPROCLIM       : throw(wsa_proclim());
+        case WSAEFAULT         : throw(wsa_fault());
+        case 0: break;
+        default: throw(socket_exception("Socket initialisation error: " + std::to_string(err)));
+    }
 #else
-	(void)version;
+    (void)version;
 #endif
 }
 
 Socket::~Socket() 
 {
 #if defined(__WINDOWS__)
-	WSACleanup();
+    WSACleanup();
 #endif
 }

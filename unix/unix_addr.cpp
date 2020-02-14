@@ -21,54 +21,54 @@ using namespace PortableAPI;
 
 unix_addr::unix_addr() :_sockaddr(new my_sockaddr)
 {
-	_sockaddr->sun_family = static_cast<uint16_t>(Socket::address_family::unix);
+    _sockaddr->sun_family = static_cast<uint16_t>(Socket::address_family::unix);
 }
 
 unix_addr::unix_addr(unix_addr const &other) : _sockaddr(new my_sockaddr)
 {
-	memcpy(_sockaddr, other._sockaddr, len());
+    memcpy(_sockaddr, other._sockaddr, len());
 }
 
 unix_addr::unix_addr(unix_addr &&other) : _sockaddr(nullptr)
 {
-	std::swap(_sockaddr, other._sockaddr);
+    std::swap(_sockaddr, other._sockaddr);
 }
 
 unix_addr & unix_addr::operator=(unix_addr const &other)
 {
-	memcpy(_sockaddr, other._sockaddr, len());
-	return *this;
+    memcpy(_sockaddr, other._sockaddr, len());
+    return *this;
 }
 
 unix_addr & unix_addr::operator=(unix_addr &&other)
 {
-	std::swap(_sockaddr, other._sockaddr);
-	return *this;
+    std::swap(_sockaddr, other._sockaddr);
+    return *this;
 }
 
 unix_addr::~unix_addr()
 {
-	delete _sockaddr;
+    delete _sockaddr;
 }
 
 std::string unix_addr::toString() const
 {
-	return get_path();
+    return get_path();
 }
 
 void unix_addr::fromString(std::string const & str)
 {
-	set_path(str);
+    set_path(str);
 }
 
 sockaddr & unix_addr::addr()
 {
-	return *reinterpret_cast<sockaddr*>(_sockaddr);
+    return *reinterpret_cast<sockaddr*>(_sockaddr);
 }
 
 size_t unix_addr::len() const
 {
-	return sizeof(my_sockaddr);
+    return sizeof(my_sockaddr);
 }
 
 void unix_addr::set_any_addr()
@@ -77,16 +77,16 @@ void unix_addr::set_any_addr()
 
 void unix_addr::set_path(std::string const& path)
 {
-	strncpy(_sockaddr->sun_path, path.c_str(), sizeof(_sockaddr->sun_path));
+    strncpy(_sockaddr->sun_path, path.c_str(), sizeof(_sockaddr->sun_path));
 }
 
 std::string unix_addr::get_path() const
 {
-	std::string path(_sockaddr->sun_path);
-	return path;
+    std::string path(_sockaddr->sun_path);
+    return path;
 }
 
 unix_addr::my_sockaddr& unix_addr::getAddr()
 {
-	return *_sockaddr;
+    return *_sockaddr;
 }

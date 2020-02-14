@@ -22,29 +22,29 @@
 
 namespace PortableAPI
 {
-	class LOCAL_API udp_socket : public unconnected_socket
-	{
-		public:
-			typedef ipv4_addr myaddr;
+    class LOCAL_API udp_socket : public unconnected_socket
+    {
+        public:
+            typedef ipv4_addr myaddr;
 
-		private:
-			myaddr _addr;
+        private:
+            myaddr _addr;
 
-			udp_socket(SOCKET s);
+            udp_socket(SOCKET s);
 
-			void socket();
-		public:
-			udp_socket();
-			udp_socket(udp_socket const&);
-			udp_socket(udp_socket &&);
-			virtual ~udp_socket();
+            void socket();
+        public:
+            udp_socket();
+            udp_socket(udp_socket const&);
+            udp_socket(udp_socket &&);
+            virtual ~udp_socket();
 
-			udp_socket& operator =(udp_socket const&);
-			udp_socket& operator =(udp_socket &&);
+            udp_socket& operator =(udp_socket const&);
+            udp_socket& operator =(udp_socket &&);
 
-			myaddr const& get_addr() const;
-			void bind(myaddr& addr);
-			virtual void close();
-	};
+            myaddr const& get_addr() const;
+            void bind(myaddr& addr);
+            virtual void close();
+    };
 }
 #endif

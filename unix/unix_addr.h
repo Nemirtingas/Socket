@@ -21,39 +21,39 @@
 #include <Socket/common/basic_socket.h>
 
 #if defined(__LINUX__)
-	#include <sys/un.h>
+    #include <sys/un.h>
 #elif defined(__WINDOWS__)
-	#include <afunix.h>
+    #include <afunix.h>
 #endif
 
 namespace PortableAPI
 {
-	class LOCAL_API unix_addr : public basic_addr
-	{
-		public:
-			typedef sockaddr_un my_sockaddr;
+    class LOCAL_API unix_addr : public basic_addr
+    {
+        public:
+            typedef sockaddr_un my_sockaddr;
 
-		private:
-			my_sockaddr *_sockaddr;
+        private:
+            my_sockaddr *_sockaddr;
 
-		public:
-			unix_addr();
-			unix_addr(unix_addr const&);
-			unix_addr(unix_addr &&);
-			unix_addr& operator =(unix_addr const&);
-			unix_addr& operator =(unix_addr &&);
+        public:
+            unix_addr();
+            unix_addr(unix_addr const&);
+            unix_addr(unix_addr &&);
+            unix_addr& operator =(unix_addr const&);
+            unix_addr& operator =(unix_addr &&);
 
-			virtual ~unix_addr();
-			// Returns addr formated like <path>
-			virtual std::string toString() const;
-			// Pass in a formated std::string like <path>
-			virtual void fromString(std::string const& str);
-			virtual sockaddr& addr();
-			virtual size_t len() const;
-			virtual void set_any_addr();
-			void set_path(std::string const& path);
-			std::string get_path() const;
-			my_sockaddr& getAddr();
-	};
+            virtual ~unix_addr();
+            // Returns addr formated like <path>
+            virtual std::string toString() const;
+            // Pass in a formated std::string like <path>
+            virtual void fromString(std::string const& str);
+            virtual sockaddr& addr();
+            virtual size_t len() const;
+            virtual void set_any_addr();
+            void set_path(std::string const& path);
+            std::string get_path() const;
+            my_sockaddr& getAddr();
+    };
 }
 #endif
