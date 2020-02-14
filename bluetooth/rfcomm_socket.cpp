@@ -28,7 +28,7 @@ rfcomm_socket::rfcomm_socket(rfcomm_socket const& other):connected_socket(other)
 rfcomm_socket::rfcomm_socket(rfcomm_socket &&other):connected_socket(std::move(other)), _addr(std::move(other._addr))
 {}
 
-rfcomm_socket::rfcomm_socket(SOCKET s):connected_socket(s)
+rfcomm_socket::rfcomm_socket(Socket::socket_t s):connected_socket(s)
 {}
 
 rfcomm_socket::~rfcomm_socket()

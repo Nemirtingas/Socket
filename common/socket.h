@@ -48,10 +48,9 @@
 
     #include <netinet/in.h>
 
-    typedef int32_t SOCKET;
-    #define INVALID_SOCKET static_cast<SOCKET>(-1);
     struct WSAData {};
 #elif defined(__APPLE__)
+    #include <unistd.h>
     #include <netdb.h>
     #include <errno.h>
 
@@ -68,8 +67,6 @@
 
     #include <netinet/in.h>
 
-    typedef int32_t SOCKET;
-    #define INVALID_SOCKET static_cast<SOCKET>(-1);
     struct WSAData {};
 #endif
 
@@ -226,6 +223,13 @@ public:\
     class LOCAL_API Socket
     {
     public:
+#if defined(__WINDOWS__)
+        using socket_t = SOCKET;
+#elif defined(__LINUX__) || defined(__APPLE__)
+        using socket_t = int32_t;
+#endif
+        static constexpr socket_t invalid_socket = ((socket_t)(-1));
+
         ////////////////////////////////////////////////////////////////////////////////
         // namespace : address_family
         // Usage : socket address family
@@ -461,18 +465,18 @@ public:\
         ////////////////////////////////////////////////////////////////////////////////
         enum class shutdown_flags
         {
-#if defined(__LINUX__) || defined(__APPLE__)
-            reveive = SHUT_RD,
-            send = SHUT_WR,
-            both = SHUT_RDWR,
-#elif defined(__WINDOWS__)
+#if defined(__WINDOWS__)
             reveive = SD_RECEIVE,
             send = SD_SEND,
             both = SD_BOTH,
+#elif defined(__LINUX__) || defined(__APPLE__)
+            reveive = SHUT_RD,
+            send = SHUT_WR,
+            both = SHUT_RDWR,
 #endif
         };
 
-#if _WIN32_WINNT >= 0x0600 || defined(__LINUX__)
+#if _WIN32_WINNT >= 0x0600 || defined(__LINUX__) || defined(__APPLE__)
         ////////////////////////////////////////////////////////////////////////////////
         // namespace : poll_flags
         // Usage : socket poll flags
@@ -492,106 +496,104 @@ public:\
         };
 #endif
 
-        constexpr static SOCKET invalid_socket = INVALID_SOCKET;
-
         ////////////////////////////////////////////////////////////////////////////////
         // Méthode : accept
         // Usage   : Accepte la connexion d'un client sur s et récupère les informations client
-        // paramètres entrants : SOCKET s, basic_addr &addr
-        // paramètres sortants : SOCKET : client
+        // paramètres entrants : Socket::socket_t s, basic_addr &addr
+        // paramètres sortants : Socket::socket_t : client
         ////////////////////////////////////////////////////////////////////////////////
-        static SOCKET accept(SOCKET s, basic_addr &addr);
+        static Socket::socket_t accept(Socket::socket_t s, basic_addr &addr);
         ////////////////////////////////////////////////////////////////////////////////
         // Méthode : bind
         // Usage   : Associe l'adresse local_addr au s
-        // paramètres entrants : SOCKET s, basic_addr &addr
+        // paramètres entrants : Socket::socket_t s, basic_addr &addr
         // paramètres sortants : aucun
         ////////////////////////////////////////////////////////////////////////////////
-        static void bind(SOCKET s, basic_addr &addr);
+        static void bind(Socket::socket_t s, basic_addr &addr);
         ////////////////////////////////////////////////////////////////////////////////
         // Méthode : closeSocket
         // Usage   : Libère les ressources du socket s
-        // paramètres entrants : SOCKET s
+        // paramètres entrants : Socket::socket_t s
         // paramètres sortants : aucun
         ////////////////////////////////////////////////////////////////////////////////
-        static void closeSocket(SOCKET s);
+        static void closeSocket(Socket::socket_t s);
         ////////////////////////////////////////////////////////////////////////////////
         // Méthode : connect
         // Usage   : Connect le s à l'adresse remote_addr
-        // paramètres entrants : SOCKET s, basic_addr &addr
+        // paramètres entrants : Socket::socket_t s, basic_addr &addr
         // paramètres sortants : aucun
         ////////////////////////////////////////////////////////////////////////////////
-        static void connect(SOCKET s, basic_addr &addr);
+        static void connect(Socket::socket_t s, basic_addr &addr);
         ////////////////////////////////////////////////////////////////////////////////
         // Méthode : ioctlsocket
         // Usage   : Permet de modifier les paramètres d'un socket (non bloquant etc...)
-        // paramètres entrants : SOCKET s, long cmd, unsigned long* arg
+        // paramètres entrants : Socket::socket_t s, long cmd, unsigned long* arg
         // paramètres sortants : int : erreur
         ////////////////////////////////////////////////////////////////////////////////
-        static int ioctlsocket(SOCKET s, long cmd, unsigned long* arg);
+        static int ioctlsocket(Socket::socket_t s, long cmd, unsigned long* arg);
         ////////////////////////////////////////////////////////////////////////////////
         // Méthode : setsockopt
         // Usage   : Permet de modifier les options d'un socket (broadcast etc...)
-        // paramètres entrants : SOCKET s, int level, int optname, const void* optval, int optlen
+        // paramètres entrants : Socket::socket_t s, int level, int optname, const void* optval, socklen_t optlen
         // paramètres sortants : int : erreur
         ////////////////////////////////////////////////////////////////////////////////
-        static int setsockopt(SOCKET s, int level, int optname, const void* optval, int optlen);
+        static int setsockopt(Socket::socket_t s, int level, int optname, const void* optval, socklen_t optlen);
         ////////////////////////////////////////////////////////////////////////////////
         // Méthode : getsockopt
         // Usage   : Permet de lire les options d'un socket (broadcast etc...)
-        // paramètres entrants : SOCKET s, int level, int optname, void* optval, int* optlen
+        // paramètres entrants : Socket::socket_t s, int level, int optname, void* optval, socklen_t* optlen
         // paramètres sortants : int : erreur
         ////////////////////////////////////////////////////////////////////////////////
-        static int getsockopt(SOCKET s, int level, int optname, void* optval, int* optlen);
+        static int getsockopt(Socket::socket_t s, int level, int optname, void* optval, socklen_t* optlen);
         ////////////////////////////////////////////////////////////////////////////////
         // Méthode : listen
         // Usage   : Permet à s d'être en écoute et d'accepter les clients
-        // paramètres entrants : SOCKET s, int waiting_connection = 5
+        // paramètres entrants : Socket::socket_t s, int waiting_connection = 5
         // paramètres sortants : aucun
         ////////////////////////////////////////////////////////////////////////////////
-        static void listen(SOCKET s, int waiting_connection = 5);
+        static void listen(Socket::socket_t s, int waiting_connection = 5);
         ////////////////////////////////////////////////////////////////////////////////
         // Méthode : recv
         // Usage   : reçoit des données sur s (mode connecté)
-        // paramètres entrants : SOCKET s, void* buffer, size_t len, Socket::socket_flags flags = Socket::socket_flags::normal
+        // paramètres entrants : Socket::socket_t s, void* buffer, size_t len, Socket::socket_flags flags = Socket::socket_flags::normal
         // paramètres sortants : size_t : taille des données
         ////////////////////////////////////////////////////////////////////////////////
-        static size_t recv(SOCKET s, void* buffer, size_t len, Socket::socket_flags flags = Socket::socket_flags::normal);
+        static size_t recv(Socket::socket_t s, void* buffer, size_t len, Socket::socket_flags flags = Socket::socket_flags::normal);
         ////////////////////////////////////////////////////////////////////////////////
         // Méthode : recvfrom
         // Usage   : reçoit des données sur s et récupère la provenance (mode déconnecté)
-        // paramètres entrants : SOCKET s, basic_addr &addr, void* buffer, size_t len, Socket::socket_flags flags = Socket::socket_flags::normal
+        // paramètres entrants : Socket::socket_t s, basic_addr &addr, void* buffer, size_t len, Socket::socket_flags flags = Socket::socket_flags::normal
         // paramètres sortants : size_t : taille des données
         ////////////////////////////////////////////////////////////////////////////////
-        static size_t recvfrom(SOCKET s, basic_addr &addr, void* buffer, size_t len, Socket::socket_flags flags = Socket::socket_flags::normal);
+        static size_t recvfrom(Socket::socket_t s, basic_addr &addr, void* buffer, size_t len, Socket::socket_flags flags = Socket::socket_flags::normal);
         ////////////////////////////////////////////////////////////////////////////////
         // Méthode : send
         // Usage   : Envoie des données sur s (mode connecté)
-        // paramètres entrants : SOCKET s, const void* buffer, size_t len, Socket::socket_flags flags = Socket::socket_flags::normal
+        // paramètres entrants : Socket::socket_t s, const void* buffer, size_t len, Socket::socket_flags flags = Socket::socket_flags::normal
         // paramètres sortants : size_t : taille des données
         ////////////////////////////////////////////////////////////////////////////////
-        static size_t send(SOCKET s, const void* buffer, size_t len, Socket::socket_flags flags = Socket::socket_flags::normal);
+        static size_t send(Socket::socket_t s, const void* buffer, size_t len, Socket::socket_flags flags = Socket::socket_flags::normal);
         ////////////////////////////////////////////////////////////////////////////////
         // Méthode : sendto
         // Usage   : Envoie des données sur _Sock (mode déconnecté)
-        // paramètres entrants : SOCKET s, basic_addr &addr, const void* buffer, size_t len, Socket::socket_flags flags = Socket::socket_flags::normal
+        // paramètres entrants : Socket::socket_t s, basic_addr &addr, const void* buffer, size_t len, Socket::socket_flags flags = Socket::socket_flags::normal
         // paramètres sortants : size_t : taille des données
         ////////////////////////////////////////////////////////////////////////////////
-        static size_t sendto(SOCKET s, basic_addr &addr, const void* buffer, size_t len, Socket::socket_flags flags = Socket::socket_flags::normal);
+        static size_t sendto(Socket::socket_t s, basic_addr &addr, const void* buffer, size_t len, Socket::socket_flags flags = Socket::socket_flags::normal);
         ////////////////////////////////////////////////////////////////////////////////
         // Méthode : shutdown
         // Usage   : Ferme la lecture, l'écriture ou les 2 de _Sock
-        // paramètres entrants : SOCKET s, Socket::shutdown_flags how = Socket::shutdown_flags::both
+        // paramètres entrants : Socket::socket_t s, Socket::shutdown_flags how = Socket::shutdown_flags::both
         // paramètres sortants : int
         ////////////////////////////////////////////////////////////////////////////////
-        static int shutdown(SOCKET s, Socket::shutdown_flags how = Socket::shutdown_flags::both);
+        static int shutdown(Socket::socket_t s, Socket::shutdown_flags how = Socket::shutdown_flags::both);
         ////////////////////////////////////////////////////////////////////////////////
         // Méthode : socket
         // Usage   : Crée le socket avec les informations passées
         // paramètres entrants : Socket::address_family af, Socket::types type, Socket::protocols proto
-        // paramètres sortants : SOCKET
+        // paramètres sortants : Socket::socket_t
         ////////////////////////////////////////////////////////////////////////////////
-        static SOCKET socket(Socket::address_family af, Socket::types type, Socket::protocols proto);
+        static Socket::socket_t socket(Socket::address_family af, Socket::types type, Socket::protocols proto);
         ////////////////////////////////////////////////////////////////////////////////
         // Méthode : getaddrinfo
         // Usage   : récupère l'addrinfo en fonction du nom ou de la notation X.X.X.X
@@ -628,7 +630,7 @@ public:\
         // paramètres sortants : int : nb de socket qui ont répondu au select
         ////////////////////////////////////////////////////////////////////////////////
         static int select(int _Nfds, fd_set *_Readfd, fd_set *_Writefd, fd_set *_Exceptfd, timeval *_Timeout);
-#if(_WIN32_WINNT >= 0x0600) || defined(__LINUX__)
+#if(_WIN32_WINNT >= 0x0600) || defined(__LINUX__) || defined(__APPLE__)
         ////////////////////////////////////////////////////////////////////////////////
         // Méthode : poll
         // Usage   : Fait un sondage sur quel socket de _Fds à des données à lire ou 

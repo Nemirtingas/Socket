@@ -27,7 +27,7 @@ unix_socket::unix_socket(unix_socket const& other):connected_socket(other), _add
 unix_socket::unix_socket(unix_socket &&other):connected_socket(std::move(other)), _addr(std::move(other._addr))
 {}
 
-unix_socket::unix_socket(SOCKET s) : connected_socket(s)
+unix_socket::unix_socket(Socket::socket_t s) : connected_socket(s)
 {}
 
 unix_socket::~unix_socket()

@@ -30,7 +30,7 @@ udp_socket::udp_socket(udp_socket const& other):unconnected_socket(other), _addr
 udp_socket::udp_socket(udp_socket &&other):unconnected_socket(std::move(other)), _addr(std::move(other._addr))
 {}
 
-udp_socket::udp_socket(SOCKET s) : unconnected_socket(s)
+udp_socket::udp_socket(Socket::socket_t s) : unconnected_socket(s)
 {}
 
 udp_socket::~udp_socket()

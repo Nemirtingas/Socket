@@ -38,17 +38,17 @@ namespace PortableAPI
             ////////////////////////////////////////////////////////////////////////////////
             // Méthode : setsockopt
             // Usage   : Permet de modifier les options d'un socket (broadcast etc...)
-            // paramètres entrants : Socket::level level, Socket::option_name optname, const void* optval, int optlen
+            // paramètres entrants : Socket::level level, Socket::option_name optname, const void* optval, socklen_t optlen
             // paramètres sortants : void
             ////////////////////////////////////////////////////////////////////////////////
-            void setsockopt(Socket::level level, Socket::option_name optname, const void* optval, int optlen);
+            void setsockopt(Socket::level level, Socket::option_name optname, const void* optval, socklen_t optlen);
             ////////////////////////////////////////////////////////////////////////////////
             // Méthode : getsockopt
             // Usage   : Permet de lire les options d'un socket (broadcast etc...)
-            // paramètres entrants : Socket::level level, Socket::option_name optname, void* optval, int* optlen
+            // paramètres entrants : Socket::level level, Socket::option_name optname, void* optval, socklen_t* optlen
             // paramètres sortants : void
             ////////////////////////////////////////////////////////////////////////////////
-            void getsockopt(Socket::level level, Socket::option_name optname, void* optval, int* optlen);
+            void getsockopt(Socket::level level, Socket::option_name optname, void* optval, socklen_t* optlen);
             ////////////////////////////////////////////////////////////////////////////////
             // Méthode : shutdown
             // Usage   : Ferme la lecture, l'écriture ou les 2 de _Sock
@@ -71,16 +71,16 @@ namespace PortableAPI
             ////////////////////////////////////////////////////////////////////////////////
             void set_nonblocking(bool non_blocking = true);
 
-            SOCKET get_sock() const;
+            Socket::socket_t get_sock() const;
         protected:
-            std::shared_ptr<SOCKET> _sock;
+            std::shared_ptr<Socket::socket_t> _sock;
 
             bool isvalid() const;
 
             basic_socket();
             basic_socket(basic_socket const&);
             basic_socket(basic_socket &&);
-            basic_socket(SOCKET s);
+            basic_socket(Socket::socket_t s);
 
             basic_socket& operator =(basic_socket const&);
             basic_socket& operator =(basic_socket &&);
@@ -95,10 +95,10 @@ namespace PortableAPI
             ////////////////////////////////////////////////////////////////////////////////
             // Méthode : reset_socket
             // Usage   : Modifie la valeur de l'attribut _sock 
-            // paramètres entrants : SOCKET s
+            // paramètres entrants : Socket::socket_t s
             // paramètres sortants : aucun
             ////////////////////////////////////////////////////////////////////////////////
-            void reset_socket(SOCKET s);
+            void reset_socket(Socket::socket_t s);
             ////////////////////////////////////////////////////////////////////////////////
             // Méthode : bind
             // Usage   : Bind une adresse
@@ -114,7 +114,7 @@ namespace PortableAPI
             connected_socket();
             connected_socket(connected_socket const&);
             connected_socket(connected_socket &&);
-            connected_socket(SOCKET s);
+            connected_socket(Socket::socket_t s);
 
             ////////////////////////////////////////////////////////////////////////////////
             // Méthode : listen
@@ -143,7 +143,7 @@ namespace PortableAPI
             unconnected_socket();
             unconnected_socket(unconnected_socket const&);
             unconnected_socket(unconnected_socket &&);
-            unconnected_socket(SOCKET s);
+            unconnected_socket(Socket::socket_t s);
 
         public:
             virtual ~unconnected_socket();

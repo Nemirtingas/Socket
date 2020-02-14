@@ -31,7 +31,7 @@ namespace PortableAPI
         private:
             myaddr _addr;
 
-            rfcomm_socket(SOCKET s);
+            rfcomm_socket(Socket::socket_t s);
 
             void socket();
         public:

@@ -27,7 +27,7 @@ tcp_socket::tcp_socket(tcp_socket const& other):connected_socket(other), _addr(o
 tcp_socket::tcp_socket(tcp_socket &&other):connected_socket(std::move(other)), _addr(std::move(other._addr))
 {}
 
-tcp_socket::tcp_socket(SOCKET s) : connected_socket(s)
+tcp_socket::tcp_socket(Socket::socket_t s) : connected_socket(s)
 {}
 
 tcp_socket::~tcp_socket()

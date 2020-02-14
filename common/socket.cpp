@@ -28,9 +28,9 @@ const char* socket_exception::what() const noexcept { return mywhat.c_str(); }
 basic_addr::~basic_addr()
 {}
 
-SOCKET Socket::accept(SOCKET s, basic_addr &addr)
+Socket::socket_t Socket::accept(Socket::socket_t s, basic_addr &addr)
 {
-    SOCKET res;
+    Socket::socket_t res;
     socklen_t len = addr.len();
     if ((res = ::accept(s, &addr.addr(), &len)) == Socket::invalid_socket)
     {
@@ -62,7 +62,7 @@ SOCKET Socket::accept(SOCKET s, basic_addr &addr)
     return res;
 }
 
-void Socket::bind(SOCKET s, basic_addr &addr)
+void Socket::bind(Socket::socket_t s, basic_addr &addr)
 {
     if (::bind(s, &addr.addr(), addr.len()) == -1)
     {
@@ -87,7 +87,7 @@ void Socket::bind(SOCKET s, basic_addr &addr)
     }
 }
 
-void Socket::closeSocket(SOCKET s)
+void Socket::closeSocket(Socket::socket_t s)
 {
 #if defined(__WINDOWS__)
     ::closesocket(s);
@@ -96,7 +96,7 @@ void Socket::closeSocket(SOCKET s)
 #endif
 }
 
-void Socket::connect(SOCKET s, basic_addr &addr)
+void Socket::connect(Socket::socket_t s, basic_addr &addr)
 {
     if (::connect(s, &addr.addr(), addr.len()) == -1)
     {
@@ -128,7 +128,7 @@ void Socket::connect(SOCKET s, basic_addr &addr)
     }
 }
 
-int Socket::ioctlsocket(SOCKET s, long cmd, unsigned long * arg)
+int Socket::ioctlsocket(Socket::socket_t s, long cmd, unsigned long * arg)
 {
 #if defined(__WINDOWS__)
     return ::ioctlsocket(s, cmd, arg);
@@ -137,7 +137,7 @@ int Socket::ioctlsocket(SOCKET s, long cmd, unsigned long * arg)
 #endif
 }
 
-int Socket::setsockopt(SOCKET s, int level, int optname, const void* optval, int optlen)
+int Socket::setsockopt(Socket::socket_t s, int level, int optname, const void* optval, socklen_t optlen)
 {
 #if defined(__WINDOWS__)
     return ::setsockopt(s, level, optname, reinterpret_cast<const char*>(optval), optlen);
@@ -146,7 +146,7 @@ int Socket::setsockopt(SOCKET s, int level, int optname, const void* optval, int
 #endif
 }
 
-int Socket::getsockopt(SOCKET s, int level, int optname, void* optval, int* optlen)
+int Socket::getsockopt(Socket::socket_t s, int level, int optname, void* optval, socklen_t* optlen)
 {
 #if defined(__WINDOWS__)
     return ::getsockopt(s, level, optname, reinterpret_cast<char*>(optval), optlen);
@@ -155,7 +155,7 @@ int Socket::getsockopt(SOCKET s, int level, int optname, void* optval, int* optl
 #endif
 }
 
-void Socket::listen(SOCKET s, int waiting_connection)
+void Socket::listen(Socket::socket_t s, int waiting_connection)
 {
     if (::listen(s, waiting_connection) == -1)
     {
@@ -178,7 +178,7 @@ void Socket::listen(SOCKET s, int waiting_connection)
     }
 }
 
-size_t Socket::recv(SOCKET s, void* buffer, size_t len, Socket::socket_flags flags)
+size_t Socket::recv(Socket::socket_t s, void* buffer, size_t len, Socket::socket_flags flags)
 {
     int res = ::recv(s, reinterpret_cast<char*>(buffer), len, static_cast<int32_t>(flags));
     if (res == 0)
@@ -206,7 +206,7 @@ size_t Socket::recv(SOCKET s, void* buffer, size_t len, Socket::socket_flags fla
     return static_cast<size_t>(res);
 }
 
-size_t Socket::recvfrom(SOCKET s, basic_addr &addr, void* buffer, size_t len, Socket::socket_flags flags)
+size_t Socket::recvfrom(Socket::socket_t s, basic_addr &addr, void* buffer, size_t len, Socket::socket_flags flags)
 {
     socklen_t slen = addr.len();
     int res = ::recvfrom(s, reinterpret_cast<char*>(buffer), len, static_cast<int32_t>(flags), &addr.addr(), &slen);
@@ -238,7 +238,7 @@ size_t Socket::recvfrom(SOCKET s, basic_addr &addr, void* buffer, size_t len, So
     return static_cast<size_t>(res);
 }
 
-size_t Socket::send(SOCKET s, const void* buffer, size_t len, Socket::socket_flags flags)
+size_t Socket::send(Socket::socket_t s, const void* buffer, size_t len, Socket::socket_flags flags)
 {
     int res = ::send(s, reinterpret_cast<char const*>(buffer), len, static_cast<int32_t>(flags));
 
@@ -265,7 +265,7 @@ size_t Socket::send(SOCKET s, const void* buffer, size_t len, Socket::socket_fla
     return res;
 }
 
-size_t Socket::sendto(SOCKET s, basic_addr &addr, const void* buffer, size_t len, Socket::socket_flags flags)
+size_t Socket::sendto(Socket::socket_t s, basic_addr &addr, const void* buffer, size_t len, Socket::socket_flags flags)
 {
     int res = ::sendto(s, reinterpret_cast<const char*>(buffer), len, static_cast<int32_t>(flags), &addr.addr(), addr.len());
     if (res == -1)
@@ -290,14 +290,14 @@ size_t Socket::sendto(SOCKET s, basic_addr &addr, const void* buffer, size_t len
     return res;
 }
 
-int Socket::shutdown(SOCKET s, Socket::shutdown_flags how)
+int Socket::shutdown(Socket::socket_t s, Socket::shutdown_flags how)
 {
     return ::shutdown(s, static_cast<int32_t>(how));
 }
 
-SOCKET Socket::socket(Socket::address_family af, Socket::types type, Socket::protocols proto)
+Socket::socket_t Socket::socket(Socket::address_family af, Socket::types type, Socket::protocols proto)
 {
-    SOCKET s = ::socket(static_cast<int>(af), static_cast<int>(type), static_cast<int>(proto));
+    Socket::socket_t s = ::socket(static_cast<int>(af), static_cast<int>(type), static_cast<int>(proto));
     if (s == Socket::invalid_socket)
     {
 #if defined(__WINDOWS__)

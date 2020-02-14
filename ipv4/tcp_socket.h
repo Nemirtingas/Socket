@@ -30,7 +30,7 @@ namespace PortableAPI
         private:
             myaddr _addr;
 
-            tcp_socket(SOCKET s);
+            tcp_socket(Socket::socket_t s);
 
             void socket();
         public:

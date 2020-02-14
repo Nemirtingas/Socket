@@ -27,7 +27,7 @@ bool basic_socket::isvalid() const
 class LOCAL_API SocketDeleter
 {
 public:
-    void operator()(SOCKET*s)
+    void operator()(Socket::socket_t*s)
     {
         if (s != nullptr)
         {
@@ -50,7 +50,7 @@ basic_socket::basic_socket(basic_socket const& other) :_sock(other._sock)
 basic_socket::basic_socket(basic_socket&& other) : _sock(std::move(other._sock))
 {}
 
-basic_socket::basic_socket(SOCKET s) : _sock(new SOCKET(s), SocketDeleter())
+basic_socket::basic_socket(Socket::socket_t s) : _sock(new Socket::socket_t(s), SocketDeleter())
 {}
 
 basic_socket::~basic_socket()
@@ -82,7 +82,7 @@ void basic_socket::ioctlsocket(Socket::cmd_name cmd, unsigned long* arg)
     }
 }
 
-void basic_socket::setsockopt(Socket::level level, Socket::option_name optname, const void* optval, int optlen)
+void basic_socket::setsockopt(Socket::level level, Socket::option_name optname, const void* optval, socklen_t optlen)
 {
     auto res = Socket::setsockopt(*_sock, static_cast<int>(level), static_cast<int>(optname), optval, optlen);
     if (res)
@@ -96,7 +96,7 @@ void basic_socket::setsockopt(Socket::level level, Socket::option_name optname, 
     }
 }
 
-void basic_socket::getsockopt(Socket::level level, Socket::option_name optname, void* optval, int *optlen)
+void basic_socket::getsockopt(Socket::level level, Socket::option_name optname, void* optval, socklen_t *optlen)
 {
     auto res = Socket::getsockopt(*_sock, static_cast<int>(level), static_cast<int>(optname), optval, optlen);
     if (res)
@@ -124,11 +124,11 @@ void basic_socket::set_nonblocking(bool non_blocking)
 
 void basic_socket::socket(Socket::address_family af, Socket::types type, Socket::protocols proto)
 {
-    SOCKET s = Socket::socket(af, type, proto);
+    Socket::socket_t s = Socket::socket(af, type, proto);
     if (s == Socket::invalid_socket)
         throw socket_exception("Cannot build socket");
     
-    _sock.reset(new SOCKET(s), SocketDeleter());
+    _sock.reset(new Socket::socket_t(s), SocketDeleter());
 }
 
 void basic_socket::bind(basic_addr& addr)
@@ -136,14 +136,14 @@ void basic_socket::bind(basic_addr& addr)
     Socket::bind(*_sock, addr);
 }
 
-SOCKET basic_socket::get_sock() const
+Socket::socket_t basic_socket::get_sock() const
 {
     return *_sock;
 }
 
-void basic_socket::reset_socket(SOCKET s)
+void basic_socket::reset_socket(Socket::socket_t s)
 {
-    _sock.reset(new SOCKET(s), SocketDeleter());
+    _sock.reset(new Socket::socket_t(s), SocketDeleter());
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -159,7 +159,7 @@ connected_socket::connected_socket(connected_socket const &other) : basic_socket
 connected_socket::connected_socket(connected_socket &&other) : basic_socket(std::move(other))
 {}
 
-connected_socket::connected_socket(SOCKET s) : basic_socket(s)
+connected_socket::connected_socket(Socket::socket_t s) : basic_socket(s)
 {}
 
 connected_socket::~connected_socket()
@@ -198,7 +198,7 @@ unconnected_socket::unconnected_socket(unconnected_socket const &other) : basic_
 unconnected_socket::unconnected_socket(unconnected_socket &&other) : basic_socket(std::move(other))
 {}
 
-unconnected_socket::unconnected_socket(SOCKET s) : basic_socket(s)
+unconnected_socket::unconnected_socket(Socket::socket_t s) : basic_socket(s)
 {}
 
 unconnected_socket::~unconnected_socket()
