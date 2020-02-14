@@ -36,7 +36,7 @@ SOCKET Socket::accept(SOCKET s, basic_addr &addr)
     {
 #if defined(__WINDOWS__)
         int32_t error = WSAGetLastError();
-#elif defined(__LINUX__)
+#elif defined(__LINUX__) || defined(__APPLE__)
         int32_t error = errno;
 #endif
         switch (error)
@@ -68,7 +68,7 @@ void Socket::bind(SOCKET s, basic_addr &addr)
     {
 #if defined(__WINDOWS__)
         int32_t error = WSAGetLastError();
-#elif defined(__LINUX__)
+#elif defined(__LINUX__) || defined(__APPLE__)
         int32_t error = errno;
 #endif
         switch (error)
@@ -91,7 +91,7 @@ void Socket::closeSocket(SOCKET s)
 {
 #if defined(__WINDOWS__)
     ::closesocket(s);
-#elif defined(__LINUX__)
+#elif defined(__LINUX__) || defined(__APPLE__)
     ::close(s);
 #endif
 }
@@ -102,7 +102,7 @@ void Socket::connect(SOCKET s, basic_addr &addr)
     {
 #if defined(__WINDOWS__)
         int32_t error = WSAGetLastError();
-#elif defined(__LINUX__)
+#elif defined(__LINUX__) || defined(__APPLE__)
         int32_t error = errno;
 #endif
         switch (error)
@@ -132,7 +132,7 @@ int Socket::ioctlsocket(SOCKET s, long cmd, unsigned long * arg)
 {
 #if defined(__WINDOWS__)
     return ::ioctlsocket(s, cmd, arg);
-#elif defined(__LINUX__)
+#elif defined(__LINUX__) || defined(__APPLE__)
     return ::ioctl(s, cmd, arg);
 #endif
 }
@@ -141,7 +141,7 @@ int Socket::setsockopt(SOCKET s, int level, int optname, const void* optval, int
 {
 #if defined(__WINDOWS__)
     return ::setsockopt(s, level, optname, reinterpret_cast<const char*>(optval), optlen);
-#elif defined(__LINUX__)
+#elif defined(__LINUX__) || defined(__APPLE__)
     return ::setsockopt(s, level, optname, optval, static_cast<socklen_t>(optlen));
 #endif
 }
@@ -150,7 +150,7 @@ int Socket::getsockopt(SOCKET s, int level, int optname, void* optval, int* optl
 {
 #if defined(__WINDOWS__)
     return ::getsockopt(s, level, optname, reinterpret_cast<char*>(optval), optlen);
-#elif defined(__LINUX__)
+#elif defined(__LINUX__) || defined(__APPLE__)
     return ::getsockopt(s, level, optname, optval, optlen);
 #endif
 }
@@ -161,7 +161,7 @@ void Socket::listen(SOCKET s, int waiting_connection)
     {
 #if defined(__WINDOWS__)
         int32_t error = WSAGetLastError();
-#elif defined(__LINUX__)
+#elif defined(__LINUX__) || defined(__APPLE__)
         int32_t error = errno;
 #endif
         switch (error)
@@ -187,7 +187,7 @@ size_t Socket::recv(SOCKET s, void* buffer, size_t len, Socket::socket_flags fla
     {
 #if defined(__WINDOWS__)
         int32_t error = WSAGetLastError();
-#elif defined(__LINUX__)
+#elif defined(__LINUX__) || defined(__APPLE__)
         int32_t error = errno;
 #endif
         switch (error)
@@ -214,7 +214,7 @@ size_t Socket::recvfrom(SOCKET s, basic_addr &addr, void* buffer, size_t len, So
     {
 #if defined(__WINDOWS__)
         int32_t error = WSAGetLastError();
-#elif defined(__LINUX__)
+#elif defined(__LINUX__) || defined(__APPLE__)
         int32_t error = errno;
 #endif
         switch (error)
@@ -246,7 +246,7 @@ size_t Socket::send(SOCKET s, const void* buffer, size_t len, Socket::socket_fla
     {
 #if defined(__WINDOWS__)
         int32_t error = WSAGetLastError();
-#elif defined(__LINUX__)
+#elif defined(__LINUX__) || defined(__APPLE__)
         int32_t error = errno;
 #endif
         switch (error)
@@ -272,7 +272,7 @@ size_t Socket::sendto(SOCKET s, basic_addr &addr, const void* buffer, size_t len
     {
 #if defined(__WINDOWS__)
         int32_t error = WSAGetLastError();
-#elif defined(__LINUX__)
+#elif defined(__LINUX__) || defined(__APPLE__)
         int32_t error = errno;
 #endif
         switch (error)
@@ -302,7 +302,7 @@ SOCKET Socket::socket(Socket::address_family af, Socket::types type, Socket::pro
     {
 #if defined(__WINDOWS__)
         int32_t error = WSAGetLastError();
-#elif defined(__LINUX__)
+#elif defined(__LINUX__) || defined(__APPLE__)
         int32_t error = errno;
 #endif
         switch (error)
@@ -334,7 +334,7 @@ uint32_t Socket::inet_addr(std::string const& _Naddr)
     ::inet_pton(static_cast<int>(Socket::address_family::inet), _Naddr.c_str(), &addr);
 #if defined(__WINDOWS__)
     return addr.S_un.S_addr;
-#elif defined(__LINUX__)
+#elif defined(__LINUX__) || defined(__APPLE__)
     return addr.s_addr;
 #endif
 }
@@ -356,7 +356,7 @@ int Socket::poll(pollfd *_Fds, unsigned long _Nfds, int _Timeout)
 {
     return WSAPoll(_Fds, _Nfds, _Timeout);
 }
-#elif defined(__LINUX__)
+#elif defined(__LINUX__) || defined(__APPLE__)
 int Socket::poll(pollfd *_Fds, unsigned long _Nfds, int _Timeout)
 {
     return ::poll(_Fds, _Nfds, _Timeout);

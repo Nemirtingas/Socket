@@ -75,7 +75,7 @@ void basic_socket::ioctlsocket(Socket::cmd_name cmd, unsigned long* arg)
     {
 #if defined(__WINDOWS__)
         int error = WSAGetLastError();
-#elif defined(__LINUX__)
+#elif defined(__LINUX__) || defined(__APPLE__)
         int error = errno;
 #endif
         throw socket_exception("ioctlsocket exception " + std::to_string(error));
@@ -89,7 +89,7 @@ void basic_socket::setsockopt(Socket::level level, Socket::option_name optname, 
     {
 #if defined(__WINDOWS__)
         int error = WSAGetLastError();
-#elif defined(__LINUX__)
+#elif defined(__LINUX__) || defined(__APPLE__)
         int error = errno;
 #endif
         throw socket_exception("setsockopt exception " + std::to_string(error));
@@ -103,7 +103,7 @@ void basic_socket::getsockopt(Socket::level level, Socket::option_name optname, 
     {
 #if defined(__WINDOWS__)
         int error = WSAGetLastError();
-#elif defined(__LINUX__)
+#elif defined(__LINUX__) || defined(__APPLE__)
         int error = errno;
 #endif
         throw socket_exception("getsockopt exception " + std::to_string(error));

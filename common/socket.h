@@ -31,19 +31,42 @@
     #endif
 
     #pragma comment(lib, "ws2_32.lib")
-#elif defined(__LINUX__)
 
+#elif defined(__LINUX__)
     #include <unistd.h>
+    #include <signal.h>
+    #include <netdb.h>
+
+    #include <arpa/inet.h>
+
     #include <sys/types.h>
     #include <sys/wait.h>
     #include <sys/socket.h>
     #include <sys/un.h>
-    #include <netinet/in.h>
-    #include <arpa/inet.h>
     #include <sys/ioctl.h>
-    #include <signal.h>
     #include <sys/poll.h>
+
+    #include <netinet/in.h>
+
+    typedef int32_t SOCKET;
+    #define INVALID_SOCKET static_cast<SOCKET>(-1);
+    struct WSAData {};
+#elif defined(__APPLE__)
     #include <netdb.h>
+    #include <errno.h>
+
+    #include <arpa/inet.h>
+    
+    #include <sys/types.h>
+    #include <sys/wait.h>
+    #include <sys/socket.h>
+    #include <sys/un.h>
+    #include <sys/ioctl.h>
+    #include <sys/poll.h>
+    #include <sys/select.h>
+    #include <sys/filio.h>
+
+    #include <netinet/in.h>
 
     typedef int32_t SOCKET;
     #define INVALID_SOCKET static_cast<SOCKET>(-1);
@@ -231,6 +254,9 @@ public:\
             cluster = AF_CLUSTER,
             IEEE1284_4 = AF_12844,
             netdes = AF_NETDES,
+            irda = AF_IRDA,
+#elif defined(__LINUX__)
+            irda = AF_IRDA,
 #endif
             unix = AF_UNIX,
             inet = AF_INET,
@@ -239,7 +265,6 @@ public:\
             decnet = AF_DECnet,
             appletalk = AF_APPLETALK,
             inet6 = AF_INET6,
-            irda = AF_IRDA,
             unspec = AF_UNSPEC,
         };
 
@@ -397,6 +422,23 @@ public:\
             so_reuseport = SO_REUSEPORT,
             so_passcred = SO_PASSCRED,
             so_peercred = SO_PEERCRED,
+#elif defined(__APPLE__)
+            so_debug = SO_DEBUG,
+            so_reuseaddr = SO_REUSEADDR,
+            so_keepalive = SO_KEEPALIVE,
+            so_dontroute = SO_DONTROUTE,
+            so_broadcast = SO_BROADCAST,
+            so_linger = SO_LINGER,
+            so_oobinline = SO_OOBINLINE,
+            so_sndbuf = SO_SNDBUF,
+            so_rcvbuf = SO_RCVBUF,
+            so_sndlowat = SO_SNDLOWAT,
+            so_rcvlowat = SO_RCVLOWAT,
+            so_sndtimeo = SO_SNDTIMEO,
+            so_rcvtimeo = SO_RCVTIMEO,
+            so_error = SO_ERROR,
+            so_type = SO_TYPE,
+            so_reuseport = SO_REUSEPORT,
 #endif
         };
 
@@ -406,7 +448,7 @@ public:\
             fionread = FIONREAD,
             fionbio = FIONBIO,
             fioasync = FIOASYNC,
-#elif defined(__LINUX__)
+#elif defined(__LINUX__) || defined(__APPLE__)
             fionread = FIONREAD,
             fionbio = FIONBIO,
             fioasync = FIOASYNC,
@@ -419,7 +461,7 @@ public:\
         ////////////////////////////////////////////////////////////////////////////////
         enum class shutdown_flags
         {
-#if defined(__LINUX__)
+#if defined(__LINUX__) || defined(__APPLE__)
             reveive = SHUT_RD,
             send = SHUT_WR,
             both = SHUT_RDWR,
