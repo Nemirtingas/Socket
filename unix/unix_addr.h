@@ -20,10 +20,10 @@
 
 #include <Socket/common/basic_socket.h>
 
-#if defined(__LINUX__)
-    #include <sys/un.h>
-#elif defined(__WINDOWS__)
+#if defined(__WINDOWS__)
     #include <afunix.h>
+#elif defined(__LINUX__) || defined(__APPLE__)
+    #include <sys/un.h>
 #endif
 
 namespace PortableAPI

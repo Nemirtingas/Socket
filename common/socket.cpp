@@ -47,7 +47,7 @@ Socket::socket_t Socket::accept(Socket::socket_t s, basic_addr &addr)
             case WSAEINVAL        : throw error_in_value("The listen function was not invoked prior to accept.");
             case WSAENETDOWN      : throw wsa_net_down();
             case WSAEWOULDBLOCK   : throw would_block();
-#elif defined(__LINUX__)
+#elif defined(__LINUX__) || defined(__APPLE__)
             case ECONNABORTED : throw connection_reset();
             case EINVAL       : throw error_in_value("The listen function was not invoked prior to accept.");
 #if EAGAIN != EWOULDBLOCK
@@ -78,7 +78,7 @@ void Socket::bind(Socket::socket_t s, basic_addr &addr)
             case WSAENETDOWN: throw wsa_net_down();
             case WSAEADDRINUSE: throw address_in_use("The given address is already in use.");
             case WSAEINVAL: throw error_in_value("The socket is already bound to an address.");
-#elif defined(__LINUX__)
+#elif defined(__LINUX__) || defined(__APPLE__)
             case EADDRINUSE: throw address_in_use("The given address is already in use.");
             case EINVAL: throw error_in_value("The socket is already bound to an address.");
 #endif
@@ -116,7 +116,7 @@ void Socket::connect(Socket::socket_t s, basic_addr &addr)
             case WSAENETUNREACH: case WSAEHOSTUNREACH: throw network_unreachable();
             case WSAETIMEDOUT: throw connection_timeout();
             case WSAEISCONN: throw is_connected();
-#elif defined(__LINUX__)
+#elif defined(__LINUX__) || defined(__APPLE__)
             case EINVAL: throw error_in_value("Address is not available.");
             case EADDRINUSE: throw address_in_use("Local address is already in use.");
             case ECONNREFUSED:  throw connection_refused();
@@ -170,7 +170,7 @@ void Socket::listen(Socket::socket_t s, int waiting_connection)
             case WSANOTINITIALISED: throw wsa_not_initialised();
             case WSAENETDOWN: throw wsa_net_down();
             case WSAEADDRINUSE: throw address_in_use();
-#elif defined(__LINUX__)
+#elif defined(__LINUX__) || defined(__APPLE__)
             case EADDRINUSE: throw address_in_use();
 #endif
             default: throw socket_exception("listen exception: " + to_string(error));
@@ -196,7 +196,7 @@ size_t Socket::recv(Socket::socket_t s, void* buffer, size_t len, Socket::socket
             case WSANOTINITIALISED: throw wsa_not_initialised();
             case WSAENETDOWN: throw wsa_net_down();
             case WSAENOTCONN: throw not_connected();
-#elif defined(__LINUX__)
+#elif defined(__LINUX__) || defined(__APPLE__)
             case ENOTCONN: throw not_connected("The socket is not connected.");
             case ECONNRESET: throw connection_reset("Connection reset by peer.");
 #endif
@@ -225,7 +225,7 @@ size_t Socket::recvfrom(Socket::socket_t s, basic_addr &addr, void* buffer, size
             case WSAEINVAL: throw error_in_value("The socket is not bound to an address.");
             case WSAEWOULDBLOCK: res = 0; break;
             case WSAECONNRESET: throw connection_reset();
-#elif defined(__LINUX__)
+#elif defined(__LINUX__) || defined(__APPLE__)
             case EINVAL: throw error_in_value("The socket is not bound to an address.");
     #if EAGAIN != EWOULDBLOCK
             case EAGAIN:
@@ -256,7 +256,7 @@ size_t Socket::send(Socket::socket_t s, const void* buffer, size_t len, Socket::
             case WSAENETDOWN: throw wsa_net_down();
             case WSAENOTCONN: throw not_connected("The socket is not connected.");
             case WSAECONNABORTED: throw connection_reset("Connection reset by peer.");
-#elif defined(__LINUX__)
+#elif defined(__LINUX__) || defined(__APPLE__)
             case ENOTCONN: throw not_connected("The socket is not connected.");
 #endif
             default: throw socket_exception("send exception: " + to_string(error));
@@ -281,7 +281,7 @@ size_t Socket::sendto(Socket::socket_t s, basic_addr &addr, const void* buffer, 
             case WSANOTINITIALISED: throw wsa_not_initialised();
             case WSAENETDOWN: throw wsa_net_down();
             case WSAENETUNREACH: throw network_unreachable();
-#elif defined(__LINUX__)
+#elif defined(__LINUX__) || defined(__APPLE__)
             case ENETUNREACH: throw network_unreachable();
 #endif
             default: throw socket_exception("sendto exception: " + to_string(error));
@@ -310,7 +310,7 @@ Socket::socket_t Socket::socket(Socket::address_family af, Socket::types type, S
 #if defined(__WINDOWS__)
             case WSANOTINITIALISED: throw wsa_not_initialised();
             case WSAENETDOWN: throw wsa_net_down();
-#elif defined(__LINUX__)
+#elif defined(__LINUX__) || defined(__APPLE__)
 #endif
             default: throw socket_exception("listen exception: " + to_string(error));
         }

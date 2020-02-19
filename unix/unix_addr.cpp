@@ -21,6 +21,7 @@ using namespace PortableAPI;
 
 unix_addr::unix_addr() :_sockaddr(new my_sockaddr)
 {
+    memset(_sockaddr, 0, len());
     _sockaddr->sun_family = static_cast<uint16_t>(Socket::address_family::unix);
 }
 

@@ -21,6 +21,7 @@ using namespace PortableAPI;
 
 ipv4_addr::ipv4_addr() :_sockaddr(new my_sockaddr)
 {
+    memset(_sockaddr, 0, len());
     _sockaddr->sin_family = static_cast<uint16_t>(Socket::address_family::inet);
 }
 
@@ -70,7 +71,7 @@ void ipv4_addr::fromString(std::string const & str)
         std::string port = str.substr(pos + 1);
 #if defined(__WINDOWS__)
         _sockaddr->sin_addr.S_un.S_addr = Socket::inet_addr(ip);
-#elif defined(__LINUX__)
+#elif defined(__LINUX__) || defined(__APPLE__)
         _sockaddr->sin_addr.s_addr = Socket::inet_addr(ip);
 #endif
         set_port(stoi(port));
@@ -79,7 +80,7 @@ void ipv4_addr::fromString(std::string const & str)
     {
 #if defined(__WINDOWS__)
         _sockaddr->sin_addr.S_un.S_addr = Socket::inet_addr(str);
-#elif defined(__LINUX__)
+#elif defined(__LINUX__) || defined(__APPLE__)
         _sockaddr->sin_addr.s_addr = Socket::inet_addr(str);
 #endif
     }
@@ -104,7 +105,7 @@ void ipv4_addr::set_ip(uint32_t ip)
 {
 #if defined(__WINDOWS__)
     _sockaddr->sin_addr.S_un.S_addr = Socket::net_swap(ip);
-#elif defined(__LINUX__)
+#elif defined(__LINUX__) || defined(__APPLE__)
     _sockaddr->sin_addr.s_addr = Socket::net_swap(ip);
 #endif
 }
@@ -118,7 +119,7 @@ uint32_t ipv4_addr::get_ip() const
 {
 #if defined(__WINDOWS__)
     return Socket::net_swap(_sockaddr->sin_addr.S_un.S_addr);
-#elif defined(__LINUX__)
+#elif defined(__LINUX__) || defined(__APPLE__)
     return Socket::net_swap(_sockaddr->sin_addr.s_addr);
 #endif
 }
