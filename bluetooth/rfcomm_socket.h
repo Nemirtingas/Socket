@@ -18,39 +18,53 @@
 #ifndef _RFCOMM_SOCKET_INCLUDED_
 #define _RFCOMM_SOCKET_INCLUDED_
 
-#include <Socket/common/basic_socket.h>
 #include <Socket/bluetooth/rfcomm_addr.h>
+#include <Socket/common/basic_socket.h>
 
 namespace PortableAPI
 {
-    class LOCAL_API rfcomm_socket : public connected_socket
-    {
-        public:
-            typedef rfcomm_addr myaddr;
+    // Connect by uuid:
+    //#if defined(__WINDOWS__)
+    //    server_addr.from_string("00:11:22:33:44:55");
+    //    server_addr.set_channel(0);
+    //    server_addr.get_native_addr().serviceClassId = uuid;
+    //    clisock.connect(server_addr);
+    //#elif defined(__LINUX__)
+    //    server_addr.from_string("00:11:22:33:44:55");
+    //    server_addr.set_channel(BluetoothSocket::scanOpenPortFromUUID(uuid, server_addr.get_ip()));
+    //#endif
 
-        private:
-            myaddr _addr;
+    // Register SDP service:
+    //PortableAPI::Socket::InitSocket();
+    //PortableAPI::rfcomm_socket rfsock;
+    //PortableAPI::rfcomm_addr addr;
+    //PortableAPI::SDPService service;
+    //
+    //addr.from_string("00:11:22:33:44:55");
+    //int port; // Port 0 does bind but is invalid, start at 1
+    //for (port = 1; port < 32; ++port)
+    //{
+    //    addr.set_channel(port);
+    //    try
+    //    {
+    //        rfsock.bind(addr);
+    //        break;
+    //    }
+    //    catch (...)
+    //    {
+    //    }
+    //}
+    //if (port != 32)
+    //{
+    //    auto uuid = PortableAPI::BluetoothSocket::str2uuid(_BTHUUID_);
+    //    service.registerService(uuid, port, "test", "toto", "titi");
+    //}
 
-            rfcomm_socket(Socket::socket_t s);
-
-            void socket();
-        public:
-            rfcomm_socket();
-            rfcomm_socket(rfcomm_socket const&);
-            rfcomm_socket(rfcomm_socket &&);
-            virtual ~rfcomm_socket();
-
-            rfcomm_socket& operator =(rfcomm_socket const&);
-            rfcomm_socket& operator =(rfcomm_socket &&);
-
-            rfcomm_addr const& get_addr() const;
-            rfcomm_socket accept();
-            void server(rfcomm_addr& addr, int waiting_connections = 5);
-            SDPService server(rfcomm_addr& addr, uuid_t uuid, std::string name, std::string prov, std::string desc, int waiting_connections = 5);
-            void connect(rfcomm_addr& addr);
-            void connect(rfcomm_addr& addr, uuid_t uuid);
-            virtual void close();
-    };
+    using rfcomm_socket = connected_socket<rfcomm_addr,
+        static_cast<Socket::address_family>(BluetoothSocket::address_family::bth),
+        Socket::types::stream,
+        static_cast<Socket::protocols>(BluetoothSocket::protocols::rfcomm)
+    >;
 }
 
 #endif

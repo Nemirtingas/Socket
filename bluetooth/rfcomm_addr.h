@@ -33,23 +33,24 @@ namespace PortableAPI
         public:
             rfcomm_addr();
             rfcomm_addr(rfcomm_addr const&);
-            rfcomm_addr(rfcomm_addr &&);
+            rfcomm_addr(rfcomm_addr &&) noexcept;
             rfcomm_addr& operator =(rfcomm_addr const&);
-            rfcomm_addr& operator =(rfcomm_addr &&);
+            rfcomm_addr& operator =(rfcomm_addr &&) noexcept;
 
             virtual ~rfcomm_addr();
             // Returns addr formated like <addr>@<channel>
-            virtual std::string toString() const;
+            virtual std::string to_string() const;
             // Pass in a formated std::string like <addr>[@<channel>]
-            virtual void fromString(std::string const& str);
+            virtual void from_string(std::string const& str);
             virtual sockaddr& addr();
+            virtual sockaddr const& addr() const;
             virtual size_t len() const;
             virtual void set_any_addr();
             void set_ip(bdaddr_t const&);
             void set_channel(uint8_t channel);
             bdaddr_t get_ip() const;
             uint8_t get_channel() const;
-            my_sockaddr& getAddr();
+            my_sockaddr& get_native_addr();
     };
 }
 #endif

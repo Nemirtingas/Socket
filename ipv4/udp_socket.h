@@ -19,32 +19,11 @@
 #define _UDP_SOCKET_INCLUDED_
 
 #include <Socket/ipv4/ipv4_addr.h>
+#include <Socket/common/basic_socket.h>
 
 namespace PortableAPI
 {
-    class LOCAL_API udp_socket : public unconnected_socket
-    {
-        public:
-            typedef ipv4_addr myaddr;
-
-        private:
-            myaddr _addr;
-
-            udp_socket(Socket::socket_t s);
-
-            void socket();
-        public:
-            udp_socket();
-            udp_socket(udp_socket const&);
-            udp_socket(udp_socket &&);
-            virtual ~udp_socket();
-
-            udp_socket& operator =(udp_socket const&);
-            udp_socket& operator =(udp_socket &&);
-
-            myaddr const& get_addr() const;
-            void bind(myaddr& addr);
-            virtual void close();
-    };
+    using udp_socket = unconnected_socket<ipv4_addr, Socket::address_family::inet, Socket::types::dgram, Socket::protocols::udp>;
 }
+
 #endif

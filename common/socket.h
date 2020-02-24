@@ -213,9 +213,10 @@ public:\
     {
     public:
         virtual ~basic_addr();
-        virtual std::string toString() const = 0;
-        virtual void fromString(std::string const&) = 0;
+        virtual std::string to_string() const = 0;
+        virtual void from_string(std::string const&) = 0;
         virtual sockaddr& addr() = 0;
+        virtual sockaddr const& addr() const = 0;
         virtual size_t len() const = 0;
         virtual void set_any_addr() = 0;
     };
@@ -506,10 +507,10 @@ public:\
         ////////////////////////////////////////////////////////////////////////////////
         // Méthode : bind
         // Usage   : Associe l'adresse local_addr au s
-        // paramètres entrants : Socket::socket_t s, basic_addr &addr
+        // paramètres entrants : Socket::socket_t s, basic_addr const&addr
         // paramètres sortants : aucun
         ////////////////////////////////////////////////////////////////////////////////
-        static void bind(Socket::socket_t s, basic_addr &addr);
+        static void bind(Socket::socket_t s, basic_addr const&addr);
         ////////////////////////////////////////////////////////////////////////////////
         // Méthode : closeSocket
         // Usage   : Libère les ressources du socket s
@@ -520,10 +521,10 @@ public:\
         ////////////////////////////////////////////////////////////////////////////////
         // Méthode : connect
         // Usage   : Connect le s à l'adresse remote_addr
-        // paramètres entrants : Socket::socket_t s, basic_addr &addr
+        // paramètres entrants : Socket::socket_t s, basic_addr const&addr
         // paramètres sortants : aucun
         ////////////////////////////////////////////////////////////////////////////////
-        static void connect(Socket::socket_t s, basic_addr &addr);
+        static void connect(Socket::socket_t s, basic_addr const&addr);
         ////////////////////////////////////////////////////////////////////////////////
         // Méthode : ioctlsocket
         // Usage   : Permet de modifier les paramètres d'un socket (non bloquant etc...)

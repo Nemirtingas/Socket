@@ -66,26 +66,6 @@ private:
 
 using namespace PortableAPI;
 
-BluetoothDevice::BluetoothDevice() {}
-BluetoothDevice::BluetoothDevice(BluetoothDevice const& other):addr(other.addr), name(other.name)
-{}
-BluetoothDevice::BluetoothDevice(BluetoothDevice &&other):addr(other.addr),name(std::move(other.name))
-{}
-
-BluetoothDevice& BluetoothDevice::operator =(BluetoothDevice const&other)
-{
-    addr = other.addr;
-    name = other.name;
-    return *this;
-}
-
-BluetoothDevice& BluetoothDevice::operator =(BluetoothDevice &&other)
-{
-    addr = other.addr;
-    name = std::move(other.name);
-    return *this;
-}
-
 bool BluetoothSocket::isValidUUID(std::string const& struuid)
 {
     // Vérification de la taille et de la présence des séparateurs aux bons endroits
@@ -132,7 +112,7 @@ std::string BluetoothSocket::inet_ntoa(bdaddr_t & in)
 {
     wchar_t wstr[128];
     wchar_t *wtmp = wstr;
-    unsigned long x = 127;
+    unsigned long x = (sizeof(wstr)/sizeof(*wstr))-1;
 
     sockaddr_rc addr;
     addr.btAddr = in;
@@ -159,17 +139,17 @@ uuid_t BluetoothSocket::str2uuid(std::string const& struuid)
         uint8_t *uuid8 = reinterpret_cast<uint8_t*>(&uuid);
         
         sscanf_s(struuid.c_str(), __UUID_PRINTF_FORMAT__,
-            &uuid8[3], &uuid8[2], &uuid8[1], &uuid8[0],
-            &uuid8[5], &uuid8[4],
-            &uuid8[7], &uuid8[6],
-            &uuid8[8], &uuid8[9],
+            &uuid8[3] , &uuid8[2] , &uuid8[1], &uuid8[0],
+            &uuid8[5] , &uuid8[4] ,
+            &uuid8[7] , &uuid8[6] ,
+            &uuid8[8] , &uuid8[9] ,
             &uuid8[10], &uuid8[11], &uuid8[12], &uuid8[13], &uuid8[14], &uuid8[15]);
 
         //sscanf_s(struuid.c_str(), "%02X%02X%02X%02X-%02X%02X-%02X%02X-%02X%02X-%02X%02X%02X%02X%02X%02X",
-        //    &uuid32[3], &uuid32[2], &uuid32[1], &uuid32[0],
-        //    &uuid32[5], &uuid32[4], 
-        //    &uuid32[7], &uuid32[6],
-        //    &uuid32[8], &uuid32[9],
+        //    &uuid32[3] , &uuid32[2] , &uuid32[1], &uuid32[0],
+        //    &uuid32[5] , &uuid32[4] , 
+        //    &uuid32[7] , &uuid32[6] ,
+        //    &uuid32[8] , &uuid32[9] ,
         //    &uuid32[10], &uuid32[11], &uuid32[12], &uuid32[13], &uuid32[14], &uuid32[15]);
 
         // transtypage int32 -> int8
@@ -186,10 +166,10 @@ std::string BluetoothSocket::uuid2str( uuid_t const& uuid )
     char str[37] = {0};
     const uint8_t *datas = reinterpret_cast<const uint8_t*>(&uuid);
     snprintf(str, 37, __UUID_PRINTF_FORMAT__,
-        datas[3], datas[2], datas[1], datas[0],
-        datas[5], datas[4],
-        datas[7], datas[6],
-        datas[8], datas[9],
+        datas[3] , datas[2] , datas[1], datas[0],
+        datas[5] , datas[4] ,
+        datas[7] , datas[6] ,
+        datas[8] , datas[9] ,
         datas[10], datas[11], datas[12], datas[13], datas[14], datas[15]);
     return std::string(str);
 }
@@ -198,6 +178,7 @@ std::list<BluetoothDevice> BluetoothSocket::scan(bool flushCache)
 {
     std::list<BluetoothDevice> devices;
     BluetoothDevice device;
+    std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> converter;
 
     HANDLE hLookup;
     union
@@ -205,15 +186,15 @@ std::list<BluetoothDevice> BluetoothSocket::scan(bool flushCache)
         char buffer[4096];
         double __unused;
     };
-    WSAQUERYSETA wsaq = { 0 };
-    wsaq.dwSize = sizeof(WSAQUERYSETA);
+    WSAQUERYSETW wsaq = { 0 };
+    wsaq.dwSize = sizeof(WSAQUERYSETW);
     wsaq.dwNameSpace = NS_BTH;
     wsaq.lpcsaBuffer = 0;
     int flags = LUP_CONTAINERS;
     if (flushCache)
         flags |= LUP_FLUSHCACHE;
     // Démarrage de la recherche de service
-    if (WSALookupServiceBeginA(&wsaq, flags, &hLookup))
+    if (WSALookupServiceBeginW(&wsaq, flags, &hLookup))
     {
         switch (WSAGetLastError())
         {
@@ -225,14 +206,15 @@ std::list<BluetoothDevice> BluetoothSocket::scan(bool flushCache)
         }
     }
 
-    LPWSAQUERYSETA pwsaResults = (LPWSAQUERYSETA)buffer;
+    LPWSAQUERYSETW pwsaResults = (LPWSAQUERYSETW)buffer;
     DWORD dwSize = sizeof(buffer);
-    memset(pwsaResults, 0, sizeof(WSAQUERYSETA));
-    pwsaResults->dwSize = sizeof(WSAQUERYSETA);
+    memset(pwsaResults, 0, sizeof(WSAQUERYSETW));
+    pwsaResults->dwSize = sizeof(WSAQUERYSETW);
     pwsaResults->dwNameSpace = NS_BTH;
     pwsaResults->lpBlob = NULL;
+
     // Récupération de l'appareil
-    while(!WSALookupServiceNextA(hLookup, LUP_RETURN_NAME | LUP_RETURN_ADDR, &dwSize, pwsaResults))
+    while(!WSALookupServiceNextW(hLookup, LUP_RETURN_NAME | LUP_RETURN_ADDR, &dwSize, pwsaResults))
     {
         if (pwsaResults->dwNumberOfCsAddrs != 1)
             break;
@@ -240,7 +222,9 @@ std::list<BluetoothDevice> BluetoothSocket::scan(bool flushCache)
         device.addr = ((sockaddr_rc *)pwsaResults->lpcsaBuffer->RemoteAddr.lpSockaddr)->btAddr;
         // Affectation du nom de l'appareil
         if (pwsaResults->lpszServiceInstanceName != nullptr && *(pwsaResults->lpszServiceInstanceName))
-            device.name = pwsaResults->lpszServiceInstanceName;
+        {
+            device.name = converter.to_bytes(pwsaResults->lpszServiceInstanceName);
+        }
         else
             device.name = "[inconnu]";
 
@@ -373,8 +357,21 @@ void BluetoothSocket::register_sdp_service(service_t & service, uuid_t uuid, uin
 {
     memset(&service, 0, sizeof(service_t));
     service.dwSize = sizeof(service_t);
-    service.lpszServiceInstanceName = const_cast<char*>(srv_name.c_str());
-    service.lpszComment = const_cast<char*>(srv_desc.c_str());
+    std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> converter;
+    std::wstring wstr;
+    WCHAR* lpwstr;
+
+    wstr = std::move(converter.from_bytes(srv_name));
+    lpwstr = new WCHAR[wstr.length()+1];
+    wstr.copy(lpwstr, wstr.length());
+    wstr[wstr.length()] = L'\0';
+    service.lpszServiceInstanceName = lpwstr;
+
+    wstr = std::move(converter.from_bytes(srv_desc));
+    lpwstr = new WCHAR[wstr.length() + 1];
+    wstr.copy(lpwstr, wstr.length());
+    wstr[wstr.length()] = L'\0';
+    service.lpszComment = lpwstr;
 
     GUID nullguid = { 0 };
 
@@ -399,7 +396,7 @@ void BluetoothSocket::register_sdp_service(service_t & service, uuid_t uuid, uin
     csAddr->iProtocol = static_cast<uint32_t>(BluetoothSocket::protocols::rfcomm);
     service.lpcsaBuffer = csAddr;
     // Essayer d'enregistrer le service
-    if (WSASetServiceA(&service, RNRSERVICE_REGISTER, 0))
+    if (WSASetServiceW(&service, RNRSERVICE_REGISTER, 0))
     {
         delete addr;
         delete csAddr;
@@ -418,11 +415,13 @@ void BluetoothSocket::register_sdp_service(service_t & service, uuid_t uuid, uin
 
 void BluetoothSocket::unregister_sdp_service(service_t &service)
 {
-    int res = WSASetServiceA(&service, RNRSERVICE_DELETE, 0);
+    int res = WSASetServiceW(&service, RNRSERVICE_DELETE, 0);
 
-    delete service.lpcsaBuffer->LocalAddr.lpSockaddr;
-    delete service.lpcsaBuffer;
-    delete service.lpServiceClassId;
+    delete   service.lpcsaBuffer->LocalAddr.lpSockaddr;
+    delete   service.lpcsaBuffer;
+    delete   service.lpServiceClassId;
+    delete[] service.lpszServiceInstanceName;
+    delete[] service.lpszComment;
     memset(&service, 0, sizeof(service_t));
 
     if (res)
@@ -463,17 +462,17 @@ uuid_t BluetoothSocket::str2uuid(std::string const&struuid)
         uint8_t  uuid8[16];
 
         sscanf(struuid.c_str(), __UUID_PRINTF_FORMAT__,
-            &uuid8[0], &uuid8[1], &uuid8[2], &uuid8[3],
-            &uuid8[4], &uuid8[5],
-            &uuid8[6], &uuid8[7],
-            &uuid8[8], &uuid8[9],
+            &uuid8[0] , &uuid8[1] , &uuid8[2], &uuid8[3],
+            &uuid8[4] , &uuid8[5] ,
+            &uuid8[6] , &uuid8[7] ,
+            &uuid8[8] , &uuid8[9] ,
             &uuid8[10], &uuid8[11], &uuid8[12], &uuid8[13], &uuid8[14], &uuid8[15]);
 
         //sscanf(struuid.c_str(), "%02X%02X%02X%02X-%02X%02X-%02X%02X-%02X%02X-%02X%02X%02X%02X%02X%02X",
-        //    &uuid32[0], &uuid32[1], &uuid32[2], &uuid32[3],
-        //    &uuid32[4], &uuid32[5],
-        //    &uuid32[6], &uuid32[7],
-        //    &uuid32[8], &uuid32[9],
+        //    &uuid32[0] , &uuid32[1] , &uuid32[2], &uuid32[3],
+        //    &uuid32[4] , &uuid32[5] ,
+        //    &uuid32[6] , &uuid32[7] ,
+        //    &uuid32[8] , &uuid32[9] ,
         //    &uuid32[10], &uuid32[11], &uuid32[12], &uuid32[13], &uuid32[14], &uuid32[15]);
 
         // transtypage int32 -> int8
@@ -493,10 +492,10 @@ std::string BluetoothSocket::uuid2str( uuid_t const& uuid )
     {
         uint8_t const *datas = uuid.value.uuid128.data;
         snprintf(str, 37, __UUID_PRINTF_FORMAT__,
-            datas[0], datas[1], datas[2], datas[3],
-            datas[4], datas[5],
-            datas[6], datas[7],
-            datas[8], datas[9],
+            datas[0] , datas[1] , datas[2], datas[3],
+            datas[4] , datas[5] ,
+            datas[6] , datas[7] ,
+            datas[8] , datas[9] ,
             datas[10], datas[11], datas[12], datas[13], datas[14], datas[15]);
     }
     return std::string(str);
@@ -766,16 +765,16 @@ std::list<BluetoothDevice> BluetoothSocket::scan(bool flushCache)
                             break;
                         }
                     }
-                    if( adapter_path.length() )
+                    if( !adapter_path.empty() )
                         break;
                 }
-                if( adapter_path.length() )
+                if( !adapter_path.empty() )
                     break;
             }
-            if( adapter_path.length() )
+            if( !adapter_path.empty() )
                 break;
         }
-        if( adapter_path.length() )
+        if( !adapter_path.empty() )
             break;
     }
 
@@ -920,36 +919,36 @@ void BluetoothSocket::register_sdp_service(service_t & service, uuid_t uuid, uin
     const char *tmp;
 
     std::stringstream sstr;
-    sstr << "<?xml version=\"1.0\" encoding=\"UTF-8\" ?>" << std::endl
-          << "<record>" << std::endl
-          << "    <attribute id=\"0x0003\">" << std::endl
-          << "        <uuid value=\"" << struuid << "\" />" << std::endl
-          << "    </attribute>" << std::endl 
-          << "    <attribute id=\"0x0004\">" << std::endl
-          << "        <sequence>" << std::endl
-          << "            <sequence>" << std::endl
-          << "                <uuid value=\"0x0100\" />" << std::endl
-          << "            </sequence>" << std::endl
-          << "            <sequence>" << std::endl
-          << "                <uuid value=\"0x0003\" />" << std::endl
+    sstr  << "<?xml version=\"1.0\" encoding=\"UTF-8\" ?>"   << std::endl
+          << "<record>"                                      << std::endl
+          << "    <attribute id=\"0x0003\">"                 << std::endl
+          << "        <uuid value=\"" << struuid << "\" />"  << std::endl
+          << "    </attribute>"                              << std::endl 
+          << "    <attribute id=\"0x0004\">"                 << std::endl
+          << "        <sequence>"                            << std::endl
+          << "            <sequence>"                        << std::endl
+          << "                <uuid value=\"0x0100\" />"     << std::endl
+          << "            </sequence>"                       << std::endl
+          << "            <sequence>"                        << std::endl
+          << "                <uuid value=\"0x0003\" />"     << std::endl
           << "                <uint8 value=\"0x" << std::setfill('0') << std::setw(2) << std::hex << static_cast<uint16_t>(port) << std::dec << "\" />" << std::endl
-          << "            </sequence>" << std::endl
-          << "        </sequence>" << std::endl
-          << "    </attribute>" << std::endl
-          << "    <attribute id=\"0x0005\">" << std::endl
-          << "        <sequence>" << std::endl
-          << "            <uuid value=\"0x1002\" />" << std::endl
-          << "        </sequence>" << std::endl
-          << "    </attribute>" << std::endl
-          << "    <attribute id=\"0x0100\">" << std::endl
+          << "            </sequence>"                       << std::endl
+          << "        </sequence>"                           << std::endl
+          << "    </attribute>"                              << std::endl
+          << "    <attribute id=\"0x0005\">"                 << std::endl
+          << "        <sequence>"                            << std::endl
+          << "            <uuid value=\"0x1002\" />"         << std::endl
+          << "        </sequence>"                           << std::endl
+          << "    </attribute>"                              << std::endl
+          << "    <attribute id=\"0x0100\">"                 << std::endl
           << "        <text value=\"" << srv_name << "\" />" << std::endl
-          << "    </attribute>" << std::endl
-          << "    <attribute id=\"0x0101\">" << std::endl
+          << "    </attribute>"                              << std::endl
+          << "    <attribute id=\"0x0101\">"                 << std::endl
           << "        <text value=\"" << srv_prov << "\" />" << std::endl
-          << "    </attribute>" << std::endl
-          << "    <attribute id=\"0x0102\">" << std::endl
+          << "    </attribute>"                              << std::endl
+          << "    <attribute id=\"0x0102\">"                 << std::endl
           << "        <text value=\"" << srv_desc << "\" />" << std::endl
-          << "    </attribute>" << std::endl
+          << "    </attribute>"                              << std::endl
           << "</record>";
     std::string sdprecord(sstr.str());
     // Création des paramètres de la fonction pour dbus
@@ -1014,10 +1013,12 @@ void BluetoothSocket::unregister_sdp_service(service_t &service)
 #endif
 #endif
 
-SDPService::SDPService():_registered(false), _service(new service_t)
+SDPService::SDPService():
+    _registered(false),
+    _service(new service_t)
 {}
 
-SDPService::SDPService(SDPService &&other)
+SDPService::SDPService(SDPService &&other) noexcept
 {
     _registered = other._registered; other._registered = false;
     _service = other._service; other._service = nullptr;
@@ -1027,7 +1028,7 @@ SDPService::SDPService(SDPService &&other)
     _provider = std::move(other._provider);
 }
 
-SDPService& SDPService::operator =(SDPService &&other)
+SDPService& SDPService::operator =(SDPService &&other) noexcept
 {
     _registered = other._registered; other._registered = false;
     _service = other._service; other._service = nullptr;

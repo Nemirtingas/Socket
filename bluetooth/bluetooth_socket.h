@@ -18,8 +18,6 @@
 #ifndef __BLUETOOTH_SOCKET_INCLUDED__
 #define __BLUETOOTH_SOCKET_INCLUDED__
 
-#define _WINSOCK_DEPRECATED_NO_WARNINGS
-
 #include <Socket/common/socket.h>
 
 #if defined(__LINUX__)
@@ -45,7 +43,7 @@ typedef std::string service_t;
 typedef GUID uuid_t;
 typedef BTH_ADDR bdaddr_t;
 typedef SOCKADDR_BTH sockaddr_rc;
-typedef WSAQUERYSETA service_t;
+typedef WSAQUERYSETW service_t;
 
 #endif
 
@@ -70,11 +68,13 @@ public:\
     public:
         bdaddr_t addr;
         std::string name;
-        BluetoothDevice();
-        BluetoothDevice(BluetoothDevice const&);
-        BluetoothDevice(BluetoothDevice &&);
-        BluetoothDevice& operator=(BluetoothDevice const&);
-        BluetoothDevice& operator=(BluetoothDevice &&);
+
+        BluetoothDevice()                            = default;
+        BluetoothDevice(BluetoothDevice const&)      = default;
+        BluetoothDevice(BluetoothDevice &&) noexcept = default;
+
+        BluetoothDevice& operator=(BluetoothDevice const&)      = default;
+        BluetoothDevice& operator=(BluetoothDevice &&) noexcept = default;
     };
 
     class LOCAL_API BluetoothSocket : public Socket
@@ -192,8 +192,8 @@ public:\
 
     public:
         SDPService();
-        SDPService(SDPService &&);
-        SDPService& operator =(SDPService &&);
+        SDPService(SDPService &&) noexcept;
+        SDPService& operator =(SDPService &&) noexcept;
         ~SDPService();
 
         void registerService(uuid_t uuid, uint8_t port, std::string const&name, std::string const&prov, std::string const&desc);

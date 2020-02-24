@@ -19,8 +19,10 @@
 
 using namespace PortableAPI;
 
-rfcomm_addr::rfcomm_addr() :_sockaddr(new my_sockaddr)
+rfcomm_addr::rfcomm_addr() :
+    _sockaddr(new my_sockaddr)
 {
+    memset(_sockaddr, 0, len());
 #if defined(__WINDOWS__)
     _sockaddr->addressFamily = static_cast<uint16_t>(BluetoothSocket::address_family::bth);
 #elif defined(__LINUX__)
@@ -28,12 +30,14 @@ rfcomm_addr::rfcomm_addr() :_sockaddr(new my_sockaddr)
 #endif
 }
 
-rfcomm_addr::rfcomm_addr(rfcomm_addr const &other) : _sockaddr(new my_sockaddr)
+rfcomm_addr::rfcomm_addr(rfcomm_addr const &other) :
+    _sockaddr(new my_sockaddr)
 {
     memcpy(_sockaddr, other._sockaddr, len());
 }
 
-rfcomm_addr::rfcomm_addr(rfcomm_addr &&other) : _sockaddr(nullptr)
+rfcomm_addr::rfcomm_addr(rfcomm_addr &&other) noexcept:
+    _sockaddr(nullptr)
 {
     std::swap(_sockaddr, other._sockaddr);
 }
@@ -44,7 +48,7 @@ rfcomm_addr & rfcomm_addr::operator=(rfcomm_addr const &other)
     return *this;
 }
 
-rfcomm_addr & rfcomm_addr::operator=(rfcomm_addr &&other)
+rfcomm_addr & rfcomm_addr::operator=(rfcomm_addr &&other) noexcept
 {
     std::swap(_sockaddr, other._sockaddr);
     return *this;
@@ -55,7 +59,7 @@ rfcomm_addr::~rfcomm_addr()
     delete _sockaddr;
 }
 
-std::string rfcomm_addr::toString() const
+std::string rfcomm_addr::to_string() const
 {
     std::string ip, port;
 #if defined(__WINDOWS__)
@@ -69,7 +73,7 @@ std::string rfcomm_addr::toString() const
     return ip + '@' + port;
 }
 
-void rfcomm_addr::fromString(std::string const & str)
+void rfcomm_addr::from_string(std::string const & str)
 {
     size_t pos;
 
@@ -95,6 +99,11 @@ void rfcomm_addr::fromString(std::string const & str)
 }
 
 sockaddr & rfcomm_addr::addr()
+{
+    return *reinterpret_cast<sockaddr*>(_sockaddr);
+}
+
+sockaddr const& rfcomm_addr::addr() const
 {
     return *reinterpret_cast<sockaddr*>(_sockaddr);
 }
@@ -149,7 +158,7 @@ uint8_t rfcomm_addr::get_channel() const
 #endif
 }
 
-rfcomm_addr::my_sockaddr& rfcomm_addr::getAddr()
+rfcomm_addr::my_sockaddr& rfcomm_addr::get_native_addr()
 {
     return *_sockaddr;
 }

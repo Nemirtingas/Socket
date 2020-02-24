@@ -41,32 +41,8 @@ public:
     }
 };
 
-basic_socket::basic_socket()
-{}
-
-basic_socket::basic_socket(basic_socket const& other) :_sock(other._sock)
-{}
-
-basic_socket::basic_socket(basic_socket&& other) : _sock(std::move(other._sock))
-{}
-
 basic_socket::basic_socket(Socket::socket_t s) : _sock(new Socket::socket_t(s), SocketDeleter())
 {}
-
-basic_socket::~basic_socket()
-{}
-
-basic_socket& basic_socket::operator =(basic_socket const& other)
-{
-    _sock = other._sock;
-    return *this;
-}
-
-basic_socket& basic_socket::operator =(basic_socket&& other)
-{
-    _sock = std::move(other._sock);
-    return *this;
-}
 
 void basic_socket::ioctlsocket(Socket::cmd_name cmd, unsigned long* arg)
 {
@@ -116,6 +92,11 @@ void basic_socket::shutdown(Socket::shutdown_flags how)
         throw socket_exception("shutdown exception");
 }
 
+void basic_socket::close()
+{
+    Socket::closeSocket(*_sock);
+}
+
 void basic_socket::set_nonblocking(bool non_blocking)
 {
     unsigned long mode = (non_blocking ? 1 : 0);
@@ -124,16 +105,8 @@ void basic_socket::set_nonblocking(bool non_blocking)
 
 void basic_socket::socket(Socket::address_family af, Socket::types type, Socket::protocols proto)
 {
-    Socket::socket_t s = Socket::socket(af, type, proto);
-    if (s == Socket::invalid_socket)
-        throw socket_exception("Cannot build socket");
-    
+    Socket::socket_t s = Socket::socket(af, type, proto);    
     _sock.reset(new Socket::socket_t(s), SocketDeleter());
-}
-
-void basic_socket::bind(basic_addr& addr)
-{
-    Socket::bind(*_sock, addr);
 }
 
 Socket::socket_t basic_socket::get_sock() const
@@ -144,72 +117,4 @@ Socket::socket_t basic_socket::get_sock() const
 void basic_socket::reset_socket(Socket::socket_t s)
 {
     _sock.reset(new Socket::socket_t(s), SocketDeleter());
-}
-
-///////////////////////////////////////////////////////////////////////////////
-// connected_socket class
-///////////////////////////////////////////////////////////////////////////////
-
-connected_socket::connected_socket():basic_socket()
-{}
-
-connected_socket::connected_socket(connected_socket const &other) : basic_socket(other)
-{}
-
-connected_socket::connected_socket(connected_socket &&other) : basic_socket(std::move(other))
-{}
-
-connected_socket::connected_socket(Socket::socket_t s) : basic_socket(s)
-{}
-
-connected_socket::~connected_socket()
-{}
-
-void connected_socket::listen(int waiting_socks)
-{
-    Socket::listen(*_sock, waiting_socks);
-}
-
-void connected_socket::connect(basic_addr & addr)
-{
-    Socket::connect(*_sock, addr);
-}
-
-size_t connected_socket::recv(void* buffer, size_t len, Socket::socket_flags flags)
-{
-    return Socket::recv(*_sock, buffer, len, flags);
-}
-
-size_t connected_socket::send(const void* buffer, size_t len, Socket::socket_flags flags)
-{
-    return Socket::send(*_sock, buffer, len, flags);
-}
-
-///////////////////////////////////////////////////////////////////////////////
-// unconnected_socket class
-///////////////////////////////////////////////////////////////////////////////
-
-unconnected_socket::unconnected_socket() :basic_socket()
-{}
-
-unconnected_socket::unconnected_socket(unconnected_socket const &other) : basic_socket(other)
-{}
-
-unconnected_socket::unconnected_socket(unconnected_socket &&other) : basic_socket(std::move(other))
-{}
-
-unconnected_socket::unconnected_socket(Socket::socket_t s) : basic_socket(s)
-{}
-
-unconnected_socket::~unconnected_socket()
-{}
-
-size_t unconnected_socket::recvfrom(basic_addr & addr, void* buffer, size_t len, Socket::socket_flags flags)
-{
-    return Socket::recvfrom(*_sock, addr, buffer, len, flags);
-}
-
-size_t unconnected_socket::sendto(basic_addr & addr, const void* buffer, size_t len, Socket::socket_flags flags)
-{
-    return Socket::sendto(*_sock, addr, buffer, len, flags);
 }

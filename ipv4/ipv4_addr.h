@@ -15,8 +15,8 @@
  * along with Socket.  If not, see <https://www.gnu.org/licenses/>
  */
 
-#ifndef _SOCK_ADDR_INCLUDED_
-#define _SOCK_ADDR_INCLUDED_
+#ifndef _IPV4_ADDR_INCLUDED_
+#define _IPV4_ADDR_INCLUDED_
 
 #include <Socket/common/basic_socket.h>
 
@@ -36,23 +36,24 @@ namespace PortableAPI
         public:
             ipv4_addr();
             ipv4_addr(ipv4_addr const&);
-            ipv4_addr(ipv4_addr &&);
+            ipv4_addr(ipv4_addr &&) noexcept;
             ipv4_addr& operator =(ipv4_addr const&);
-            ipv4_addr& operator =(ipv4_addr &&);
+            ipv4_addr& operator =(ipv4_addr &&) noexcept;
 
             virtual ~ipv4_addr();
             // Returns addr formated like <ip>:<port>
-            virtual std::string toString() const;
+            virtual std::string to_string() const;
             // Pass in a formated std::string like <ip>[:<port>]
-            virtual void fromString(std::string const& str);
+            virtual void from_string(std::string const& str);
             virtual sockaddr& addr();
+            virtual sockaddr const& addr() const;
             virtual size_t len() const;
             virtual void set_any_addr();
             void set_ip(uint32_t);
             void set_port(uint16_t);
             uint32_t get_ip() const;
             uint16_t get_port() const;
-            my_sockaddr& getAddr();
+            my_sockaddr& get_native_addr();
     };
 }
 #endif

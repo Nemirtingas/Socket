@@ -19,34 +19,10 @@
 #define _TCP_SOCKET_INCLUDED_
 
 #include <Socket/ipv4/ipv4_addr.h>
+#include <Socket/common/basic_socket.h>
 
 namespace PortableAPI
 {
-    class LOCAL_API tcp_socket : public connected_socket
-    {
-        public:
-            typedef ipv4_addr myaddr;
-
-        private:
-            myaddr _addr;
-
-            tcp_socket(Socket::socket_t s);
-
-            void socket();
-        public:
-            tcp_socket();
-            tcp_socket(tcp_socket const&);
-            tcp_socket(tcp_socket &&);
-            virtual ~tcp_socket();
-
-            tcp_socket& operator =(tcp_socket const&);
-            tcp_socket& operator =(tcp_socket &&);
-
-            myaddr const& get_addr() const;
-            tcp_socket accept();
-            void server(myaddr& addr, int waiting_connections = 5);
-            void connect(myaddr& addr);
-            virtual void close();
-    };
+    using tcp_socket = connected_socket<ipv4_addr, Socket::address_family::inet, Socket::types::stream, Socket::protocols::tcp>;
 }
 #endif

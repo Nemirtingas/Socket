@@ -62,7 +62,7 @@ Socket::socket_t Socket::accept(Socket::socket_t s, basic_addr &addr)
     return res;
 }
 
-void Socket::bind(Socket::socket_t s, basic_addr &addr)
+void Socket::bind(Socket::socket_t s, basic_addr const&addr)
 {
     if (::bind(s, &addr.addr(), addr.len()) == -1)
     {
@@ -96,7 +96,7 @@ void Socket::closeSocket(Socket::socket_t s)
 #endif
 }
 
-void Socket::connect(Socket::socket_t s, basic_addr &addr)
+void Socket::connect(Socket::socket_t s, basic_addr const&addr)
 {
     if (::connect(s, &addr.addr(), addr.len()) == -1)
     {

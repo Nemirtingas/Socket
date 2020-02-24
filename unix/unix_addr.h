@@ -39,21 +39,22 @@ namespace PortableAPI
         public:
             unix_addr();
             unix_addr(unix_addr const&);
-            unix_addr(unix_addr &&);
+            unix_addr(unix_addr &&) noexcept;
             unix_addr& operator =(unix_addr const&);
-            unix_addr& operator =(unix_addr &&);
+            unix_addr& operator =(unix_addr &&) noexcept;
 
             virtual ~unix_addr();
             // Returns addr formated like <path>
-            virtual std::string toString() const;
+            virtual std::string to_string() const;
             // Pass in a formated std::string like <path>
-            virtual void fromString(std::string const& str);
+            virtual void from_string(std::string const& str);
             virtual sockaddr& addr();
+            virtual sockaddr const& addr() const;
             virtual size_t len() const;
             virtual void set_any_addr();
             void set_path(std::string const& path);
             std::string get_path() const;
-            my_sockaddr& getAddr();
+            my_sockaddr& get_native_addr();
     };
 }
 #endif

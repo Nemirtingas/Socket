@@ -26,7 +26,7 @@ namespace PortableAPI
     class LOCAL_API basic_socket
     {
         public:
-            virtual ~basic_socket();
+            virtual ~basic_socket() = default;
 
             ////////////////////////////////////////////////////////////////////////////////
             // Méthode : ioctlsocket
@@ -62,7 +62,7 @@ namespace PortableAPI
             // paramètres entrants : aucun
             // paramètres sortants : aucun
             ////////////////////////////////////////////////////////////////////////////////
-            virtual void close() = 0;
+            void close();
             ////////////////////////////////////////////////////////////////////////////////
             // Méthode : set_nonblocking
             // Usage   : Passe en mode non bloquant
@@ -77,13 +77,13 @@ namespace PortableAPI
 
             bool isvalid() const;
 
-            basic_socket();
-            basic_socket(basic_socket const&);
-            basic_socket(basic_socket &&);
+            basic_socket()                    = default;
+            basic_socket(basic_socket const&) = default;
+            basic_socket(basic_socket &&)     = default;
             basic_socket(Socket::socket_t s);
 
-            basic_socket& operator =(basic_socket const&);
-            basic_socket& operator =(basic_socket &&);
+            basic_socket& operator =(basic_socket const&) = default;
+            basic_socket& operator =(basic_socket &&)     = default;
 
             ////////////////////////////////////////////////////////////////////////////////
             // Méthode : socket
@@ -99,56 +99,123 @@ namespace PortableAPI
             // paramètres sortants : aucun
             ////////////////////////////////////////////////////////////////////////////////
             void reset_socket(Socket::socket_t s);
-            ////////////////////////////////////////////////////////////////////////////////
-            // Méthode : bind
-            // Usage   : Bind une adresse
-            // paramètres entrants : basic_addr& addr
-            // paramètres sortants : aucun
-            ////////////////////////////////////////////////////////////////////////////////
-            void bind(basic_addr& addr);
     };
 
+    template<typename Addr, Socket::address_family family, Socket::types type, Socket::protocols proto>
     class LOCAL_API connected_socket : public basic_socket
     {
-        protected:
-            connected_socket();
-            connected_socket(connected_socket const&);
-            connected_socket(connected_socket &&);
-            connected_socket(Socket::socket_t s);
+        public:
+            using myaddr_t = Addr;
+            using mytype_t = connected_socket<Addr, family, type, proto>;
 
+        protected:
+            connected_socket(Socket::socket_t s);
+            myaddr_t _addr;
+
+        public:
+            connected_socket();
+            connected_socket(connected_socket const&)      = default;
+            connected_socket(connected_socket &&) noexcept = default;
+
+            connected_socket& operator=(connected_socket const&)     = default;
+            connected_socket& operator=(connected_socket&&) noexcept = default;
+
+            virtual ~connected_socket() = default;
+
+            ////////////////////////////////////////////////////////////////////////////////
+            // Méthode : get_addr
+            // Usage   : Get the internal addr object
+            // paramètres entrants : none
+            // paramètres sortants : myaddr_t const&
+            ////////////////////////////////////////////////////////////////////////////////
+            inline myaddr_t const& get_addr() const;
             ////////////////////////////////////////////////////////////////////////////////
             // Méthode : listen
             // Usage   : Permet au client d'être en écoute et d'accepter les clients
             // paramètres entrants : int waiting_socks = 5
             // paramètres sortants : aucun
             ////////////////////////////////////////////////////////////////////////////////
-            void listen(int waiting_socks = 5);
+            inline void listen(int waiting_socks = 5);
             ////////////////////////////////////////////////////////////////////////////////
             // Méthode : connect
             // Usage   : Connect le client à l'adresse addr
-            // paramètres entrants : basic_addr &addr
+            // paramètres entrants : myaddr_t const &addr
             // paramètres sortants : aucun
             ////////////////////////////////////////////////////////////////////////////////
-            void connect(basic_addr& addr);
-        public:
-            virtual ~connected_socket();
+            inline void connect(myaddr_t const& addr);
+            ////////////////////////////////////////////////////////////////////////////////
+            // Méthode : accept
+            // Usage   : Accepte la connexion un client
+            // paramètres entrants : mytype_t
+            // paramètres sortants : aucun
+            ////////////////////////////////////////////////////////////////////////////////
+            inline mytype_t accept();
+            ////////////////////////////////////////////////////////////////////////////////
+            // Méthode : socket
+            // Usage   : Créé un nouveau socket en libérant les anciennes ressources
+            // paramètres entrants : aucun
+            // paramètres sortants : aucun
+            // Throw   : Peut lancer une exception si la création du socket échoue
+            ////////////////////////////////////////////////////////////////////////////////
+            inline void socket();
+            ////////////////////////////////////////////////////////////////////////////////
+            // Méthode : bind
+            // Usage   : Bind une adresse
+            // paramètres entrants : myaddr_t const& addr
+            // paramètres sortants : aucun
+            ////////////////////////////////////////////////////////////////////////////////
+            inline void bind(myaddr_t const& addr);
 
             size_t recv(void* buffer, size_t len, Socket::socket_flags flags = Socket::socket_flags::normal);
             size_t send(const void* buffer, size_t len, Socket::socket_flags flags = Socket::socket_flags::normal);
     };
 
+    template<typename Addr, Socket::address_family family, Socket::types type, Socket::protocols proto>
     class LOCAL_API unconnected_socket : public basic_socket
     {
+        public:
+            using myaddr_t = Addr;
+            using mytype_t = unconnected_socket<Addr, family, type, proto>;
+
         protected:
-            unconnected_socket();
-            unconnected_socket(unconnected_socket const&);
-            unconnected_socket(unconnected_socket &&);
-            unconnected_socket(Socket::socket_t s);
+            myaddr_t _addr;
 
         public:
-            virtual ~unconnected_socket();
+            unconnected_socket();
+            unconnected_socket(unconnected_socket const&)      = default;
+            unconnected_socket(unconnected_socket &&) noexcept = default;
+
+            unconnected_socket& operator=(unconnected_socket const&)      = default;
+            unconnected_socket& operator=(unconnected_socket &&) noexcept = default;
+
+            virtual ~unconnected_socket() = default;
+
+            ////////////////////////////////////////////////////////////////////////////////
+            // Méthode : get_addr
+            // Usage   : Get the internal addr object
+            // paramètres entrants : none
+            // paramètres sortants : myaddr_t const&
+            ////////////////////////////////////////////////////////////////////////////////
+            inline myaddr_t const& get_addr() const;
+            ////////////////////////////////////////////////////////////////////////////////
+            // Méthode : socket
+            // Usage   : Créé un nouveau socket en libérant les anciennes ressources
+            // paramètres entrants : aucun
+            // paramètres sortants : aucun
+            // Throw   : Peut lancer une exception si la création du socket échoue
+            ////////////////////////////////////////////////////////////////////////////////
+            inline void socket();
+            ////////////////////////////////////////////////////////////////////////////////
+            // Méthode : bind
+            // Usage   : Bind une adresse
+            // paramètres entrants : myaddr_t const& addr
+            // paramètres sortants : aucun
+            ////////////////////////////////////////////////////////////////////////////////
+            inline void bind(myaddr_t const& addr);
 
             size_t recvfrom(basic_addr& addr, void* buffer, size_t len, Socket::socket_flags flags = Socket::socket_flags::normal);
             size_t sendto(basic_addr & addr, const void* buffer, size_t len, Socket::socket_flags flags = Socket::socket_flags::normal);
     };
+
+#include "basic_socket.inl"
 }

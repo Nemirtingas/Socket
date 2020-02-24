@@ -19,18 +19,21 @@
 
 using namespace PortableAPI;
 
-unix_addr::unix_addr() :_sockaddr(new my_sockaddr)
+unix_addr::unix_addr() :
+    _sockaddr(new my_sockaddr)
 {
     memset(_sockaddr, 0, len());
     _sockaddr->sun_family = static_cast<uint16_t>(Socket::address_family::unix);
 }
 
-unix_addr::unix_addr(unix_addr const &other) : _sockaddr(new my_sockaddr)
+unix_addr::unix_addr(unix_addr const &other) :
+    _sockaddr(new my_sockaddr)
 {
     memcpy(_sockaddr, other._sockaddr, len());
 }
 
-unix_addr::unix_addr(unix_addr &&other) : _sockaddr(nullptr)
+unix_addr::unix_addr(unix_addr &&other) noexcept :
+    _sockaddr(nullptr)
 {
     std::swap(_sockaddr, other._sockaddr);
 }
@@ -41,7 +44,7 @@ unix_addr & unix_addr::operator=(unix_addr const &other)
     return *this;
 }
 
-unix_addr & unix_addr::operator=(unix_addr &&other)
+unix_addr & unix_addr::operator=(unix_addr &&other) noexcept
 {
     std::swap(_sockaddr, other._sockaddr);
     return *this;
@@ -52,17 +55,22 @@ unix_addr::~unix_addr()
     delete _sockaddr;
 }
 
-std::string unix_addr::toString() const
+std::string unix_addr::to_string() const
 {
     return get_path();
 }
 
-void unix_addr::fromString(std::string const & str)
+void unix_addr::from_string(std::string const & str)
 {
     set_path(str);
 }
 
 sockaddr & unix_addr::addr()
+{
+    return *reinterpret_cast<sockaddr*>(_sockaddr);
+}
+
+sockaddr const& unix_addr::addr() const
 {
     return *reinterpret_cast<sockaddr*>(_sockaddr);
 }
@@ -78,7 +86,10 @@ void unix_addr::set_any_addr()
 
 void unix_addr::set_path(std::string const& path)
 {
-    strncpy(_sockaddr->sun_path, path.c_str(), sizeof(_sockaddr->sun_path));
+    path.copy(_sockaddr->sun_path, UNIX_PATH_MAX);
+
+    auto i = (path.length() >= UNIX_PATH_MAX ? (UNIX_PATH_MAX - 1) : path.length());
+    _sockaddr->sun_path[i] = '\0';
 }
 
 std::string unix_addr::get_path() const
@@ -87,7 +98,7 @@ std::string unix_addr::get_path() const
     return path;
 }
 
-unix_addr::my_sockaddr& unix_addr::getAddr()
+unix_addr::my_sockaddr& unix_addr::get_native_addr()
 {
     return *_sockaddr;
 }

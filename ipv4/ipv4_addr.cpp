@@ -19,18 +19,21 @@
 
 using namespace PortableAPI;
 
-ipv4_addr::ipv4_addr() :_sockaddr(new my_sockaddr)
+ipv4_addr::ipv4_addr() :
+    _sockaddr(new my_sockaddr)
 {
     memset(_sockaddr, 0, len());
     _sockaddr->sin_family = static_cast<uint16_t>(Socket::address_family::inet);
 }
 
-ipv4_addr::ipv4_addr(ipv4_addr const &other) : _sockaddr(new my_sockaddr)
+ipv4_addr::ipv4_addr(ipv4_addr const &other) :
+    _sockaddr(new my_sockaddr)
 {
     memcpy(_sockaddr, other._sockaddr, len());
 }
 
-ipv4_addr::ipv4_addr(ipv4_addr &&other) : _sockaddr(nullptr)
+ipv4_addr::ipv4_addr(ipv4_addr &&other) noexcept :
+    _sockaddr(nullptr)
 {
     std::swap(_sockaddr, other._sockaddr);
 }
@@ -41,7 +44,7 @@ ipv4_addr & ipv4_addr::operator=(ipv4_addr const &other)
     return *this;
 }
 
-ipv4_addr & ipv4_addr::operator=(ipv4_addr &&other)
+ipv4_addr & ipv4_addr::operator=(ipv4_addr &&other) noexcept
 {
     std::swap(_sockaddr, other._sockaddr);
     return *this;
@@ -52,7 +55,7 @@ ipv4_addr::~ipv4_addr()
     delete _sockaddr;
 }
 
-std::string ipv4_addr::toString() const
+std::string ipv4_addr::to_string() const
 {
     std::string ip, port;
     ip = Socket::inet_ntoa(_sockaddr->sin_addr);
@@ -61,7 +64,7 @@ std::string ipv4_addr::toString() const
     return ip + ':' + port;
 }
 
-void ipv4_addr::fromString(std::string const & str)
+void ipv4_addr::from_string(std::string const & str)
 {
     size_t pos;
 
@@ -87,6 +90,11 @@ void ipv4_addr::fromString(std::string const & str)
 }
 
 sockaddr & ipv4_addr::addr()
+{
+    return *reinterpret_cast<sockaddr*>(_sockaddr);
+}
+
+sockaddr const& ipv4_addr::addr() const
 {
     return *reinterpret_cast<sockaddr*>(_sockaddr);
 }
@@ -129,7 +137,7 @@ uint16_t ipv4_addr::get_port() const
     return Socket::net_swap(_sockaddr->sin_port);
 }
 
-ipv4_addr::my_sockaddr& ipv4_addr::getAddr()
+ipv4_addr::my_sockaddr& ipv4_addr::get_native_addr()
 {
     return *_sockaddr;
 }

@@ -15,38 +15,14 @@
  * along with Socket.  If not, see <https://www.gnu.org/licenses/>
  */
 
-#ifndef _TCP_SOCKET_INCLUDED_
-#define _TCP_SOCKET_INCLUDED_
+#ifndef _UNIX_SOCKET_INCLUDED_
+#define _UNIX_SOCKET_INCLUDED_
 
 #include <Socket/unix/unix_addr.h>
+#include <Socket/common/basic_socket.h>
 
 namespace PortableAPI
 {
-    class LOCAL_API unix_socket : public connected_socket
-    {
-        public:
-            typedef unix_addr myaddr;
-
-        private:
-            myaddr _addr;
-
-            unix_socket(Socket::socket_t s);
-
-            void socket();
-        public:
-            unix_socket();
-            unix_socket(unix_socket const&);
-            unix_socket(unix_socket &&);
-            virtual ~unix_socket();
-
-            unix_socket& operator =(unix_socket const&);
-            unix_socket& operator =(unix_socket &&);
-
-            myaddr const& get_addr() const;
-            unix_socket accept();
-            void server(myaddr& addr, int waiting_connections = 5);
-            void connect(myaddr& addr);
-            virtual void close();
-    };
+    using unix_socket = connected_socket<unix_addr, Socket::address_family::unix, Socket::types::stream, static_cast<Socket::protocols>(0)>;
 }
 #endif
