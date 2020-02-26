@@ -66,6 +66,9 @@ public:\
 
 #undef SOCKET_EXCEPTION_CLASS
 
+    ////////////
+    /// @brief Class with address and name about a device
+    ////////////
     class LOCAL_API BluetoothDevice
     {
     public:
@@ -80,6 +83,9 @@ public:\
         BluetoothDevice& operator=(BluetoothDevice &&) noexcept = default;
     };
 
+    ////////////
+    /// @brief Utility Class for manipulating uuids
+    ////////////
     class LOCAL_API Uuid
     {
     public:
@@ -96,75 +102,93 @@ public:\
         uuid_t _uuid;
 
     public:
-        ////////////////////////////////////////////////////////////////////////////////
-        // Méthode : uuid16_to_uuid128
-        // Usage   : Transforme un uuid16 en uuid128 (base bluetooth)
-        // paramètres entrants : uint16_t
-        // paramètres sortants : aucun
-        ////////////////////////////////////////////////////////////////////////////////
+        ////////////
+        /// @brief Converts a bluetooth uuid16 to uuid128
+        /// @param[in] uuid uuid16
+        /// @return 
+        ////////////
         void uuid16_to_uuid128(uint16_t uuid);
-        ////////////////////////////////////////////////////////////////////////////////
-        // Méthode : uuid32_to_uuid128
-        // Usage   : Transforme un uuid32 en uuid128 (base bluetooth)
-        // paramètres entrants : uint16_t
-        // paramètres sortants : aucun
-        ////////////////////////////////////////////////////////////////////////////////
+        ////////////
+        /// @brief Converts a bluetooth uuid32 to uuid128
+        /// @param[in] uuid uuid32
+        /// @return 
+        ////////////
         void uuid32_to_uuid128(uint32_t uuid);
-        ////////////////////////////////////////////////////////////////////////////////
-        // Méthode : uuid128_to_uuid16
-        // Usage   : Transforme un uuid128 en uuid16 (base bluetooth)
-        // paramètres entrants : uuid_t
-        // paramètres sortants : aucun
-        ////////////////////////////////////////////////////////////////////////////////
+        ////////////
+        /// @brief Converts a bluetooth uuid128 to uuid16
+        /// @param[in] uuid uuid128
+        /// @return 
+        ////////////
         void uuid128_to_uuid16(uuid_t const& uuid);
-        ////////////////////////////////////////////////////////////////////////////////
-        // Méthode : uuid128_to_uuid32
-        // Usage   : Transforme un uuid128 en uuid32 (base bluetooth)
-        // paramètres entrants : uuid_t
-        // paramètres sortants : aucun
-        ////////////////////////////////////////////////////////////////////////////////
+        ////////////
+        /// @brief Converts a bluetooth uuid128 to uuid32
+        /// @param[in] uuid uuid128
+        /// @return 
+        ////////////
         void uuid128_to_uuid32(uuid_t const& uuid);
-        ////////////////////////////////////////////////////////////////////////////////
-        // Méthode : isValidUUID
-        // Usage   : vérifie si la chaine est bien au format UUID
-        // paramètres entrants : std::string const& struuid
-        // paramètres sortants : bool
-        // UUID must be formatted like : [0-9a-zA-Z]{8}-([0-9a-zA-Z]{4}-){3}-[0-9a-zA-Z]{12}
-        ////////////////////////////////////////////////////////////////////////////////
-        static bool isValidUUID(std::string const& struuid);
-        ////////////////////////////////////////////////////////////////////////////////
-        // Méthode : from_string
-        // Usage   : Transforme une chaine en uuid
-        // paramètres entrants : std::string const& struuid
-        // paramètres sortants : aucun
-        ////////////////////////////////////////////////////////////////////////////////
+        ////////////
+        /// @brief Checks if the string is a valid uuid
+        ///        Must be formated like to: 01234567-89AB-CDEF-0123-456789ABCDEF
+        /// @param[in] struuid A string representation of an UUID
+        /// @return Is valid
+        ////////////
+        static bool is_valid_uuid(std::string const& struuid);
+        ////////////
+        /// @brief Set the internal value from the string
+        ///        Must be formated like to: 01234567-89AB-CDEF-0123-456789ABCDEF
+        /// @param[in] struuid A string representation of an UUID
+        /// @return 
+        ////////////
         void from_string(std::string const& struuid);
-        ////////////////////////////////////////////////////////////////////////////////
-        // Méthode : to_string
-        // Usage   : Transforme un uuid en chaine
-        // paramètres entrants : aucun
-        // paramètres entrants : std::string
-        ////////////////////////////////////////////////////////////////////////////////
+        ////////////
+        /// @brief Transforms the internal UUID into a human readable string
+        /// @return UUID as string
+        ////////////
         std::string to_string();
-
+        ////////////
+        /// @brief Sets the UUID from the native type
+        /// @param[in] uuid The native uuid
+        /// @return 
+        ////////////
         void set_uuid128(uuid_t const& uuid);
-
+        ////////////
+        /// @brief Check if the other uuid equals us
+        /// @param[in] other The other UUID to compare to
+        /// @return Is equal
+        ////////////
         bool operator ==(Uuid const& other);
+        ////////////
+        /// @brief Check if the other uuid equals us
+        /// @param[in] other The other UUID to compare to
+        /// @return Is not equal
+        ////////////
         bool operator !=(Uuid const& other);
-
+        ////////////
+        /// @brief Get the native uuid
+        /// @return The native uuid
+        ////////////
         uuid_t const& get_native_uuid() const;
-
+        ////////////
+        /// @brief 
+        ////////////
         Uuid();
+        ////////////
+        /// @brief Build the UUID from the native type
+        /// @param[in] uuid The native uuid
+        /// @return 
+        ////////////
         Uuid(uuid_t const& uuid);
     };
 
+    ////////////
+    /// @brief A wrapper class for 'C' network & socket Bluetooth functions
+    ////////////
     class LOCAL_API BluetoothSocket : public Socket
     {
     public:
-        ////////////////////////////////////////////////////////////////////////////////
-        // namespace : address_family
-        // Usage : socket address family
-        ////////////////////////////////////////////////////////////////////////////////
+        /////////////
+        /// @brief Bluetooth network address family enum 
+        ////////////
         enum class address_family
         {
 #if defined(__WINDOWS__)
@@ -174,10 +198,9 @@ public:\
 #endif
         };
 
-        ////////////////////////////////////////////////////////////////////////////////
-        // namespace : protocols
-        // Usage : socket protocols
-        ////////////////////////////////////////////////////////////////////////////////
+        ////////////
+        /// @brief Bluetooth network protocols enum
+        ////////////
         enum class protocols
         {
 #if defined(__WINDOWS__)
@@ -197,52 +220,59 @@ public:\
         static constexpr uint8_t bth_base_uuid[16] = { 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x10, 0x00, 0x80, 0x00, 0x00, 0x80, 0x5F, 0x9B, 0x34, 0xFB };
 #endif
 
-        ////////////////////////////////////////////////////////////////////////////////
-        // Méthode : inet_pton
-        // Usage   : Transforme une chaine en adresse bluetooth
-        // paramètres entrants : Socket::address_family, std::string const&
-        // paramètres sortants : int
-        ////////////////////////////////////////////////////////////////////////////////
-        static int inet_pton(BluetoothSocket::address_family family, std::string const& str_addr, void* out_buf);
-        ////////////////////////////////////////////////////////////////////////////////
-        // Méthode : inet_pton
-        // Usage   : Transforme une adresse bluetooth en chaine
-        // paramètres entrants : Socket::address_family, std::string &, const void*
-        // paramètres sortants : const char*
-        ////////////////////////////////////////////////////////////////////////////////
-        static const char* inet_ntop(BluetoothSocket::address_family family, std::string& out_addr, const void* addr);
-        ////////////////////////////////////////////////////////////////////////////////
-        // Méthode : scan
-        // Usage   : Scan les périphériques bluetooth à proximité
-        // paramètres entrants : bool
-        // paramètres sortants : std::list<bluetoothDevice> : les appareils trouvés
-        ////////////////////////////////////////////////////////////////////////////////
+        ////////////
+        /// @brief Wrapper for 'C' inet_pton function. Transforms a string to its binary representation
+        /// @param[in]  family   The address family. Must be BluetoothSocket::adress_family::bth
+        /// @param[in]  str_addr A string that contains the text representation of the address to convert to numeric binary form.
+        /// @param[out] out_buf  A pointer to a buffer in which to store the numeric binary representation of the address. The address is returned in network byte order.
+        /// @return 
+        ////////////
+        static void inet_pton(BluetoothSocket::address_family family, std::string const& str_addr, void* out_buf);
+        ////////////
+        /// @brief Wrapper for 'C' inet_pton function. Transforms a binary representation to a human readable string
+        /// @param[in]  family   The address family. Must be BluetoothSocket::adress_family::bth
+        /// @param[in]  addr     A pointer to a buffer in which 
+        /// @param[out] str_addr A string in which to store the representation of the address.
+        /// @return 
+        ////////////
+        static void inet_ntop(BluetoothSocket::address_family family, const void* addr, std::string& str_addr);
+        ////////////
+        /// @brief Starts a Bluetooth scan to detect nearby devices
+        /// @param[in]  flushCache Flush the cache before scanning
+        /// @return A list of BluetoothDevices
+        ////////////
         static std::list<BluetoothDevice> scan(bool flushCache = true);
-        ////////////////////////////////////////////////////////////////////////////////
-        // Méthode : scanOpenPortFromUUID
-        // Usage   : Recherche le canal ouvert du serveur qui a enregistré l'UUID
-        // paramètres entrants : Uuid const&uuid, bdaddr_t const&bthaddr
-        // paramètres sortants : int : port
-        ////////////////////////////////////////////////////////////////////////////////
-        static int scanOpenPortFromUUID(Uuid const&uuid, bdaddr_t const&bthaddr);
-        ////////////////////////////////////////////////////////////////////////////////
-        // Méthode : register_sdp_service
-        // Usage   : Enregistre le service dans le SDP
-        // paramètres entrants : service_t & service, uuid_t const& uuid, uint8_t port, std::string const&srv_name, std::string const&srv_prov, std::string const&srv_desc
-        // paramètres sortants : ///////////
-        // exceptions : wsa_not_initialised, error_in_value, socket_exception
-        ////////////////////////////////////////////////////////////////////////////////
+        ////////////
+        /// @brief Query the remote device's SDP about the UUID's port
+        /// @param[in]  uuid    The remote service UUID
+        /// @param[in]  bthaddr The remote addr
+        /// @return The service port or -1 if the function failed or if there is no service
+        ////////////
+        static int scan_open_port_from_uuid(Uuid const&uuid, bdaddr_t const&bthaddr);
+        ////////////
+        /// @brief Register an uuid/port pair into the Bluetooth SDP
+        ///        Can throw a sdp_service_exception
+        /// @param[inout] The service handle
+        /// @param[in]    The service uuid
+        /// @param[in]    The service port
+        /// @param[in]    The service name
+        /// @param[in]    The service provider
+        /// @param[in]    The service description
+        /// @return        
+        ////////////
         static void register_sdp_service(service_t & service, uuid_t const& uuid, uint8_t port, std::string const&srv_name, std::string const&srv_prov, std::string const&srv_desc);
-        ////////////////////////////////////////////////////////////////////////////////
-        // Méthode : register_sdp_service
-        // Usage   : Arrête le service SDP précédemment enregistré
-        // paramètres entrants : service_t & service
-        // paramètres sortants : ///////////
-        // exceptions : wsa_not_initialised, error_in_value, socket_exception
-        ////////////////////////////////////////////////////////////////////////////////
+        ////////////
+        /// @brief Unregister a SDP record
+        ///        Can throw a sdp_service_exception
+        /// @param[inout] The service handle
+        /// @return        
+        ////////////
         static void unregister_sdp_service(service_t &service);
     };
 
+    ////////////
+    /// @brief A SDP Record class
+    ////////////
     class LOCAL_API SDPService
     {
         friend class BluetoothSocket;

@@ -128,30 +128,30 @@ void Socket::connect(Socket::socket_t s, basic_addr const&addr)
     }
 }
 
-int Socket::ioctlsocket(Socket::socket_t s, long cmd, unsigned long * arg)
+int Socket::ioctlsocket(Socket::socket_t s, Socket::cmd_name cmd, unsigned long * arg)
 {
 #if defined(__WINDOWS__)
-    return ::ioctlsocket(s, cmd, arg);
+    return ::ioctlsocket(s, static_cast<long>(cmd), arg);
 #elif defined(__LINUX__) || defined(__APPLE__)
-    return ::ioctl(s, cmd, arg);
+    return ::ioctl(s, static_cast<long>(cmd), arg);
 #endif
 }
 
-int Socket::setsockopt(Socket::socket_t s, int level, int optname, const void* optval, socklen_t optlen)
+int Socket::setsockopt(Socket::socket_t s, Socket::level level, Socket::option_name optname, const void* optval, socklen_t optlen)
 {
 #if defined(__WINDOWS__)
-    return ::setsockopt(s, level, optname, reinterpret_cast<const char*>(optval), optlen);
+    return ::setsockopt(s, static_cast<int>(level), static_cast<int>(optname), reinterpret_cast<const char*>(optval), optlen);
 #elif defined(__LINUX__) || defined(__APPLE__)
-    return ::setsockopt(s, level, optname, optval, static_cast<socklen_t>(optlen));
+    return ::setsockopt(s, static_cast<int>(level), static_cast<int>(optname), optval, static_cast<socklen_t>(optlen));
 #endif
 }
 
-int Socket::getsockopt(Socket::socket_t s, int level, int optname, void* optval, socklen_t* optlen)
+int Socket::getsockopt(Socket::socket_t s, Socket::level level, Socket::option_name optname, void* optval, socklen_t* optlen)
 {
 #if defined(__WINDOWS__)
-    return ::getsockopt(s, level, optname, reinterpret_cast<char*>(optval), optlen);
+    return ::getsockopt(s, static_cast<int>(level), static_cast<int>(optname), reinterpret_cast<char*>(optval), optlen);
 #elif defined(__LINUX__) || defined(__APPLE__)
-    return ::getsockopt(s, level, optname, optval, optlen);
+    return ::getsockopt(s, static_cast<int>(level), static_cast<int>(optname), optval, optlen);
 #endif
 }
 
@@ -196,9 +196,14 @@ size_t Socket::recv(Socket::socket_t s, void* buffer, size_t len, Socket::socket
             case WSANOTINITIALISED: throw wsa_not_initialised();
             case WSAENETDOWN: throw wsa_net_down();
             case WSAENOTCONN: throw not_connected();
+            case WSAEWOULDBLOCK: res = 0; break;
 #elif defined(__LINUX__) || defined(__APPLE__)
             case ENOTCONN: throw not_connected("The socket is not connected.");
             case ECONNRESET: throw connection_reset("Connection reset by peer.");
+    #if EAGAIN != EWOULDBLOCK
+            case EAGAIN:
+    #endif
+            case EWOULDBLOCK: res = 0; break;
 #endif
             default: throw socket_exception("recv exception: " + to_string(error));
         }
@@ -255,9 +260,14 @@ size_t Socket::send(Socket::socket_t s, const void* buffer, size_t len, Socket::
             case WSANOTINITIALISED: throw wsa_not_initialised();
             case WSAENETDOWN: throw wsa_net_down();
             case WSAENOTCONN: throw not_connected("The socket is not connected.");
+            case WSAEWOULDBLOCK: res = 0; break;
             case WSAECONNABORTED: throw connection_reset("Connection reset by peer.");
 #elif defined(__LINUX__) || defined(__APPLE__)
             case ENOTCONN: throw not_connected("The socket is not connected.");
+    #if EAGAIN != EWOULDBLOCK
+            case EAGAIN:
+    #endif
+            case EWOULDBLOCK: res = 0; break;
 #endif
             default: throw socket_exception("send exception: " + to_string(error));
         }
@@ -265,7 +275,7 @@ size_t Socket::send(Socket::socket_t s, const void* buffer, size_t len, Socket::
     return res;
 }
 
-size_t Socket::sendto(Socket::socket_t s, basic_addr &addr, const void* buffer, size_t len, Socket::socket_flags flags)
+size_t Socket::sendto(Socket::socket_t s, basic_addr const&addr, const void* buffer, size_t len, Socket::socket_flags flags)
 {
     int res = ::sendto(s, reinterpret_cast<const char*>(buffer), len, static_cast<int32_t>(flags), &addr.addr(), addr.len());
     if (res == -1)
@@ -328,40 +338,54 @@ int Socket::getnameinfo(const sockaddr * addr, socklen_t addrlen, char * host, s
     return ::getnameinfo(addr, addrlen, host, hostlen, serv, servlen, flags);
 }
 
-int Socket::inet_pton(Socket::address_family family, std::string const& str_addr, void *out_buf)
+void Socket::inet_pton(Socket::address_family family, std::string const& str_addr, void *out_buf)
 {
-    return ::inet_pton(static_cast<int>(family), str_addr.c_str(), out_buf);
+    ::inet_pton(static_cast<int>(family), str_addr.c_str(), out_buf);
 }
 
-const char* Socket::inet_ntop(Socket::address_family family, std::string& str_addr, const void* addr)
+void Socket::inet_ntop(Socket::address_family family, const void* addr, std::string& str_addr)
 {
     char buff[1024] = {};
-    const char* res = ::inet_ntop(static_cast<int>(family), addr, buff, sizeof(buff)/sizeof(*buff));
+    if (::inet_ntop(static_cast<int>(family), addr, buff, sizeof(buff) / sizeof(*buff)) == nullptr)
+        throw error_in_value("Error in value, cannot parse addr");
     str_addr = buff;
-
-    return (res == nullptr ? nullptr : str_addr.c_str());
 }
 
-int Socket::select(int _Nfds, fd_set * _Readfd, fd_set * _Writefd, fd_set * _Exceptfd, timeval * _Timeout)
+int Socket::select(int nfds, fd_set* readfd, fd_set* writefd, fd_set* exceptfd, timeval* timeout)
 {
-    return ::select(_Nfds, _Readfd, _Writefd, _Exceptfd, _Timeout);
+    return ::select(nfds, readfd, writefd, exceptfd, timeout);
 }
 
 #if(_WIN32_WINNT >= 0x0600)
-int Socket::poll(pollfd *_Fds, unsigned long _Nfds, int _Timeout)
+int Socket::poll(pollfd* fds, unsigned long nfds, int timeout)
 {
-    return WSAPoll(_Fds, _Nfds, _Timeout);
+    return WSAPoll(fds, nfds, timeout);
 }
 #elif defined(__LINUX__) || defined(__APPLE__)
-int Socket::poll(pollfd *_Fds, unsigned long _Nfds, int _Timeout)
+int Socket::poll(pollfd* fds, unsigned long nfds, int timeout)
 {
-    return ::poll(_Fds, _Nfds, _Timeout);
+    return ::poll(fds, nfds, timeout);
 }
 #endif
 
 void Socket::InitSocket(uint32_t version)
 {
-    static Socket s(version);
+#if defined(__WINDOWS__)
+    static Socket s;
+    int err = WSAStartup(version, &const_cast<WSAData&>(Socket::GetWSAData()));
+    switch (err)
+    {
+        case WSASYSNOTREADY: throw(wsa_sys_not_ready());
+        case WSAVERNOTSUPPORTED: throw(wsa_version_not_supported());
+        case WSAEINPROGRESS: throw(wsa_in_progress());
+        case WSAEPROCLIM: throw(wsa_proclim());
+        case WSAEFAULT: throw(wsa_fault());
+        case 0: break;
+        default: throw(socket_exception("Socket initialisation error: " + std::to_string(err)));
+    }
+#else
+    (void)version;
+#endif
 }
 
 void Socket::SetLastError(int error)
@@ -388,23 +412,8 @@ WSAData const& Socket::GetWSAData()
     return datas;
 }
 
-Socket::Socket(uint32_t version)
+Socket::Socket()
 {
-#if defined(__WINDOWS__)
-    int err = WSAStartup(version, &const_cast<WSAData&>(Socket::GetWSAData()));
-    switch (err)
-    {
-        case WSASYSNOTREADY    : throw(wsa_sys_not_ready());
-        case WSAVERNOTSUPPORTED: throw(wsa_version_not_supported());
-        case WSAEINPROGRESS    : throw(wsa_in_progress());
-        case WSAEPROCLIM       : throw(wsa_proclim());
-        case WSAEFAULT         : throw(wsa_fault());
-        case 0: break;
-        default: throw(socket_exception("Socket initialisation error: " + std::to_string(err)));
-    }
-#else
-    (void)version;
-#endif
 }
 
 Socket::~Socket() 

@@ -23,6 +23,9 @@
 
 namespace PortableAPI
 {
+    ////////////
+    /// @brief Template specialization for unix socket
+    ////////////
     using unix_socket = connected_socket<unix_addr, Socket::address_family::unix, Socket::types::stream, static_cast<Socket::protocols>(0)>;
 }
 #endif

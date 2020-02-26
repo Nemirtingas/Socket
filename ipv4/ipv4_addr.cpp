@@ -17,6 +17,12 @@
 
 #include <Socket/ipv4/ipv4_addr.h>
 
+#ifdef __WINDOWS__
+  #ifndef s_addr
+    #define s_addr S_un.S_addr
+  #endif
+#endif
+
 using namespace PortableAPI;
 
 ipv4_addr::ipv4_addr() :
@@ -58,7 +64,7 @@ ipv4_addr::~ipv4_addr()
 std::string ipv4_addr::to_string(bool with_port) const
 {
     std::string res;
-    Socket::inet_ntop(Socket::address_family::inet, res, &_sockaddr->sin_addr);
+    Socket::inet_ntop(Socket::address_family::inet, &_sockaddr->sin_addr, res);
     if (with_port)
     {
         res.push_back(':');
@@ -70,9 +76,9 @@ std::string ipv4_addr::to_string(bool with_port) const
 
 void ipv4_addr::from_string(std::string const & str)
 {
-    size_t pos;
+    size_t pos = str.find(':');
 
-    if ((pos = str.find(':')) != std::string::npos)
+    if (pos != std::string::npos)
     {
         std::string ip = str.substr(0, pos);
         std::string port = str.substr(pos + 1);
@@ -100,18 +106,9 @@ size_t ipv4_addr::len() const
     return sizeof(sockaddr_in);
 }
 
-void ipv4_addr::set_any_addr()
+void ipv4_addr::set_addr(in_addr const& addr)
 {
-    memset(&_sockaddr->sin_addr, 0, sizeof(in_addr));
-}
-
-void ipv4_addr::set_ip(uint32_t ip)
-{
-#if defined(__WINDOWS__)
-    _sockaddr->sin_addr.S_un.S_addr = Socket::net_swap(ip);
-#elif defined(__LINUX__) || defined(__APPLE__)
-    _sockaddr->sin_addr.s_addr = Socket::net_swap(ip);
-#endif
+    _sockaddr->sin_addr.s_addr = Socket::net_swap(addr.s_addr);
 }
 
 void ipv4_addr::set_port(uint16_t port)
@@ -119,13 +116,11 @@ void ipv4_addr::set_port(uint16_t port)
     _sockaddr->sin_port = Socket::net_swap(port);
 }
 
-uint32_t ipv4_addr::get_ip() const
+in_addr ipv4_addr::get_addr() const
 {
-#if defined(__WINDOWS__)
-    return Socket::net_swap(_sockaddr->sin_addr.S_un.S_addr);
-#elif defined(__LINUX__) || defined(__APPLE__)
-    return Socket::net_swap(_sockaddr->sin_addr.s_addr);
-#endif
+    in_addr res;
+    res.s_addr = Socket::net_swap(_sockaddr->sin_addr.s_addr);
+    return res;
 }
 
 uint16_t ipv4_addr::get_port() const

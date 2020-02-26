@@ -22,10 +22,18 @@
 
 namespace PortableAPI
 {
+    ////////////
+    /// @brief A bluetooth sock_addr object
+    ////////////
     class LOCAL_API bth_addr : public basic_addr
     {
         public:
-            typedef sockaddr_rc my_sockaddr;
+            using my_sockaddr = sockaddr_rc;
+#if defined(__WINDOWS__)
+            constexpr static bdaddr_t any_addr = 0ull;
+#elif defined(__LINUX__)
+            constexpr static bdaddr_t any_addr = { 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 };
+#endif
 
         private:
             my_sockaddr *_sockaddr;
@@ -38,18 +46,59 @@ namespace PortableAPI
             bth_addr& operator =(bth_addr &&) noexcept;
 
             virtual ~bth_addr();
-            // Returns addr formated like <addr>[@<channel>]
+            ////////////
+            /// @brief Transforms the address to a human readable string
+            /// @param[in] with_port Append the port
+            /// @return Address formated like <addr>[@<channel>]
+            ////////////
             virtual std::string to_string(bool with_port = false) const;
-            // Pass in a formated std::string like <addr>[@<channel>]
+            ////////////
+            /// @brief Transforms the human readable string into an address
+            /// @param[in] str Pass in a formated string like <addr>[@<channel>]
+            /// @return 
+            ////////////
             virtual void from_string(std::string const& str);
+            ////////////
+            /// @brief Gets the generic sockaddr ref
+            /// @return The sockaddr ref
+            ////////////
             virtual sockaddr& addr();
+            ////////////
+            /// @brief Gets the generic const sockaddr ref
+            /// @return The const sockaddr ref
+            ////////////
             virtual sockaddr const& addr() const;
+            ////////////
+            /// @brief Get the sockaddr size
+            /// @return sockaddr size
+            ////////////
             virtual size_t len() const;
-            virtual void set_any_addr();
-            void set_ip(bdaddr_t const&);
+            ////////////
+            /// @brief Sets the addr
+            /// @param[in]  addr The bluetooth addr
+            /// @return 
+            ////////////
+            void set_addr(bdaddr_t const& addr);
+            ////////////
+            /// @brief Sets the buetooth channel
+            /// @param[in]  channel The bluetooth channel
+            /// @return 
+            ////////////
             void set_channel(uint8_t channel);
-            bdaddr_t get_ip() const;
+            ////////////
+            /// @brief Gets the Bluetooth addr
+            /// @return The Bluetooth addr
+            ////////////
+            bdaddr_t get_addr() const;
+            ////////////
+            /// @brief Gets the Bluetooth channel
+            /// @return The Bluetooth channel
+            ////////////
             uint8_t get_channel() const;
+            ////////////
+            /// @brief Gets the native addr structure
+            /// @return Native structure
+            ////////////
             my_sockaddr& get_native_addr();
     };
 }

@@ -28,7 +28,7 @@ namespace PortableAPI
     class LOCAL_API ipv6_addr : public basic_addr
     {
         public:
-            typedef struct sockaddr_in6 my_sockaddr;
+            using my_sockaddr = sockaddr_in6;
             constexpr static struct in6_addr any_addr      = IN6ADDR_ANY_INIT;
             constexpr static struct in6_addr loopback_addr = IN6ADDR_LOOPBACK_INIT;
 

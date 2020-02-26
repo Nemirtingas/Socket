@@ -22,13 +22,22 @@
 
 namespace PortableAPI
 {
+    ////////////
+    /// @brief An IPV4 sock_addr object
+    ////////////
     class LOCAL_API ipv4_addr : public basic_addr
     {
         public:
-            typedef sockaddr_in my_sockaddr;
-            constexpr static uint32_t any_addr       = INADDR_ANY;
-            constexpr static uint32_t loopback_addr  = INADDR_LOOPBACK;
-            constexpr static uint32_t broadcast_addr = INADDR_BROADCAST;
+            using my_sockaddr = sockaddr_in;
+#if defined(__WINDOWS__)
+            constexpr static struct in_addr any_addr       = { 0x00, 0x00, 0x00, 0x00 };
+            constexpr static struct in_addr loopback_addr  = { 0x01, 0x00, 0x00, 0x7f };
+            constexpr static struct in_addr broadcast_addr = { 0xff, 0xff, 0xff, 0xff };
+#elif defined(__LINUX__) || defined(__APPLE__)
+            constexpr static struct in_addr any_addr       = { INADDR_ANY       };
+            constexpr static struct in_addr loopback_addr  = { INADDR_LOOPBACK  };
+            constexpr static struct in_addr broadcast_addr = { INADDR_BROADCAST };
+#endif
 
         private:
             my_sockaddr *_sockaddr;
@@ -41,18 +50,59 @@ namespace PortableAPI
             ipv4_addr& operator =(ipv4_addr &&) noexcept;
 
             virtual ~ipv4_addr();
-            // Returns addr formated like <ip>[:<port>]
+            ////////////
+            /// @brief Transforms the address to a human readable string
+            /// @param[in] with_port Append the port
+            /// @return Address formated like <ip>[:<port>]
+            ////////////
             virtual std::string to_string(bool with_port = false) const;
-            // Pass in a formated std::string like <ip>[:<port>]
+            ////////////
+            /// @brief Transforms the human readable string into an address
+            /// @param[in] str Pass in a formated string like <ip>[:<port>]
+            /// @return 
+            ////////////
             virtual void from_string(std::string const& str);
+            ////////////
+            /// @brief Gets the generic sockaddr ref
+            /// @return The sockaddr ref
+            ////////////
             virtual sockaddr& addr();
+            ////////////
+            /// @brief Gets the generic const sockaddr ref
+            /// @return The const sockaddr ref
+            ////////////
             virtual sockaddr const& addr() const;
+            ////////////
+            /// @brief Get the sockaddr size
+            /// @return sockaddr size
+            ////////////
             virtual size_t len() const;
-            virtual void set_any_addr();
-            void set_ip(uint32_t);
-            void set_port(uint16_t);
-            uint32_t get_ip() const;
+            ////////////
+            /// @brief Sets the IPV4 addr
+            /// @param[in]  addr The IPV4 addr
+            /// @return 
+            ////////////
+            void set_addr(in_addr const& addr);
+            ////////////
+            /// @brief Sets the IPV4 port
+            /// @param[in]  port The IPV4 port
+            /// @return 
+            ////////////
+            void set_port(uint16_t port);
+            ////////////
+            /// @brief Gets the IPV6 addr
+            /// @return The IPV6 addr
+            ////////////
+            in_addr get_addr() const;
+            ////////////
+            /// @brief Gets the IPV4 port
+            /// @return The IPV4 port
+            ////////////
             uint16_t get_port() const;
+            ////////////
+            /// @brief Gets the native addr structure
+            /// @return Native structure
+            ////////////
             my_sockaddr& get_native_addr();
     };
 }

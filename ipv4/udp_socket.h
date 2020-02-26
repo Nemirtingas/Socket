@@ -23,6 +23,9 @@
 
 namespace PortableAPI
 {
+    ////////////
+    /// @brief Template specialization for ipv4 udp socket
+    ////////////
     using udp_socket = unconnected_socket<ipv4_addr, Socket::address_family::inet, Socket::types::dgram, Socket::protocols::udp>;
 }
 

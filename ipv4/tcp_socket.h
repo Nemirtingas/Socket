@@ -23,6 +23,9 @@
 
 namespace PortableAPI
 {
+    ////////////
+    /// @brief Template specialization for ipv4 tcp socket
+    ////////////
     using tcp_socket = connected_socket<ipv4_addr, Socket::address_family::inet, Socket::types::stream, Socket::protocols::tcp>;
 }
 #endif

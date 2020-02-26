@@ -57,12 +57,12 @@ unix_addr::~unix_addr()
 
 std::string unix_addr::to_string() const
 {
-    return get_path();
+    return get_addr();
 }
 
 void unix_addr::from_string(std::string const & str)
 {
-    set_path(str);
+    set_addr(str);
 }
 
 sockaddr & unix_addr::addr()
@@ -80,19 +80,15 @@ size_t unix_addr::len() const
     return sizeof(my_sockaddr);
 }
 
-void unix_addr::set_any_addr()
+void unix_addr::set_addr(std::string const& addr)
 {
-}
+    addr.copy(_sockaddr->sun_path, UNIX_PATH_MAX);
 
-void unix_addr::set_path(std::string const& path)
-{
-    path.copy(_sockaddr->sun_path, UNIX_PATH_MAX);
-
-    auto i = (path.length() >= UNIX_PATH_MAX ? (UNIX_PATH_MAX - 1) : path.length());
+    auto i = (addr.length() >= UNIX_PATH_MAX ? (UNIX_PATH_MAX - 1) : addr.length());
     _sockaddr->sun_path[i] = '\0';
 }
 
-std::string unix_addr::get_path() const
+std::string unix_addr::get_addr() const
 {
     std::string path(_sockaddr->sun_path);
     return path;

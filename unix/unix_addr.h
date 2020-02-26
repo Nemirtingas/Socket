@@ -22,10 +22,10 @@
 
 #if defined(__WINDOWS__)
     #include <afunix.h>
-#elif defined(__LINUX__) || defined(__APPLE__)
-    #ifndef UNIX_PATH_MAX
-        #define UNIX_PATH_MAX 108
-    #endif
+#endif
+
+#ifndef UNIX_PATH_MAX
+  #define UNIX_PATH_MAX 108
 #endif
 
 namespace PortableAPI
@@ -33,7 +33,7 @@ namespace PortableAPI
     class LOCAL_API unix_addr : public basic_addr
     {
         public:
-            typedef sockaddr_un my_sockaddr;
+            using my_sockaddr = sockaddr_un;
 
         private:
             my_sockaddr *_sockaddr;
@@ -46,16 +46,48 @@ namespace PortableAPI
             unix_addr& operator =(unix_addr &&) noexcept;
 
             virtual ~unix_addr();
-            // Returns addr formated like <path>
+            ////////////
+            /// @brief Transforms the address to a human readable string
+            /// @param[in] with_port Append the port
+            /// @return Address formated like <path>
+            ////////////
             virtual std::string to_string() const;
-            // Pass in a formated std::string like <path>
+            ////////////
+            /// @brief Transforms the human readable string into an address
+            /// @param[in] str Pass in a formated string like <path>
+            /// @return 
+            ////////////
             virtual void from_string(std::string const& str);
+            ////////////
+            /// @brief Gets the generic sockaddr ref
+            /// @return The sockaddr ref
+            ////////////
             virtual sockaddr& addr();
+            ////////////
+            /// @brief Gets the generic const sockaddr ref
+            /// @return The const sockaddr ref
+            ////////////
             virtual sockaddr const& addr() const;
+            ////////////
+            /// @brief Get the sockaddr size
+            /// @return sockaddr size
+            ////////////
             virtual size_t len() const;
-            virtual void set_any_addr();
-            void set_path(std::string const& path);
-            std::string get_path() const;
+            ////////////
+            /// @brief Sets the path
+            /// @param[in]  addr The path
+            /// @return 
+            ////////////
+            void set_addr(std::string const& path);
+            ////////////
+            /// @brief Gets the path
+            /// @return The path
+            ////////////
+            std::string get_addr() const;
+            ////////////
+            /// @brief Gets the native addr structure
+            /// @return Native structure
+            ////////////
             my_sockaddr& get_native_addr();
     };
 }

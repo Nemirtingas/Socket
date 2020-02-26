@@ -64,9 +64,9 @@ std::string bth_addr::to_string(bool with_port) const
     std::string res;
 
 #if defined(__WINDOWS__)
-    BluetoothSocket::inet_ntop(BluetoothSocket::address_family::bth, res, &_sockaddr->btAddr);
+    BluetoothSocket::inet_ntop(BluetoothSocket::address_family::bth, &_sockaddr->btAddr, res);
 #elif defined(__LINUX__)
-    BluetoothSocket::inet_ntop(BluetoothSocket::address_family::bth, res, &_sockaddr->rc_bdaddr);
+    BluetoothSocket::inet_ntop(BluetoothSocket::address_family::bth, &_sockaddr->rc_bdaddr, res);
 #endif
 
     if (with_port)
@@ -122,21 +122,12 @@ size_t bth_addr::len() const
     return sizeof(my_sockaddr);
 }
 
-void bth_addr::set_any_addr()
+void bth_addr::set_addr(bdaddr_t const& addr)
 {
 #if defined(__WINDOWS__)
-    memset(&_sockaddr->btAddr, 0, sizeof(bdaddr_t));
+    _sockaddr->btAddr = addr;
 #elif defined(__LINUX__)
-    memset(&_sockaddr->rc_bdaddr, 0, sizeof(bdaddr_t));
-#endif
-}
-
-void bth_addr::set_ip(bdaddr_t const& ip)
-{
-#if defined(__WINDOWS__)
-    _sockaddr->btAddr = ip;
-#elif defined(__LINUX__)
-    _sockaddr->rc_bdaddr = ip;
+    _sockaddr->rc_bdaddr = addr;
 #endif
 }
 
@@ -149,7 +140,7 @@ void bth_addr::set_channel(uint8_t channel)
 #endif
 }
 
-bdaddr_t bth_addr::get_ip() const
+bdaddr_t bth_addr::get_addr() const
 {
 #if defined(__WINDOWS__)
     return _sockaddr->btAddr;

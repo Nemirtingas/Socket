@@ -42,7 +42,13 @@ private:
 
     BluezDBusSystem() :_conn(nullptr) {}
 
-    SINGLETON(BluezDBusSystem)
+    BluezDBusSystem( BluezDBusSystem const& ) = delete;
+    BluezDBusSystem( BluezDBusSystem && ) = delete;
+    BluezDBusSystem& operator=( BluezDBusSystem const& ) = delete;
+    BluezDBusSystem& operator=( BluezDBusSystem && ) = delete;
+
+public:
+    static BluezDBusSystem& Inst()
     {
         static BluezDBusSystem _inst;
 
@@ -80,7 +86,7 @@ Uuid::Uuid(uuid_t const& uuid)
     set_uuid128(uuid);
 }
 
-bool Uuid::isValidUUID(std::string const& struuid)
+bool Uuid::is_valid_uuid(std::string const& struuid)
 {
     // Vérification de la taille et de la présence des séparateurs aux bons endroits
     if(   struuid.length() != 36
@@ -143,7 +149,7 @@ void Uuid::uuid128_to_uuid32(uuid_t const& uuid)
 void Uuid::from_string(std::string const& struuid)
 {
     // si c'est une uuid
-    if (isValidUUID(struuid))
+    if (is_valid_uuid(struuid))
     {
         _type = Uuid::type::uuid128;
         uint8_t* uuid8 = reinterpret_cast<uint8_t*>(&_uuid);
@@ -204,10 +210,10 @@ uuid_t const& Uuid::get_native_uuid() const
 ///////////////////////////////////////////////////////////////////////////////
 // BluetoothSocket Class
 
-int BluetoothSocket::inet_pton(BluetoothSocket::address_family family, std::string const& str_addr, void* out_buf)
+void BluetoothSocket::inet_pton(BluetoothSocket::address_family family, std::string const& str_addr, void* out_buf)
 {
     if (family != BluetoothSocket::address_family::bth)
-        return -1;
+        throw error_in_value("Error in family, cannot parse addr");
 
     sockaddr_rc sockaddr;
     socklen_t lg = sizeof(sockaddr_rc);
@@ -215,16 +221,17 @@ int BluetoothSocket::inet_pton(BluetoothSocket::address_family family, std::stri
     std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> converter;
     std::wstring waddr = converter.from_bytes(str_addr);
 
-    int res = WSAStringToAddressW(const_cast<wchar_t*>(waddr.c_str()), static_cast<uint32_t>(BluetoothSocket::address_family::bth), nullptr, (LPSOCKADDR)&sockaddr, (socklen_t*)&lg);
+    if(WSAStringToAddressW(const_cast<wchar_t*>(waddr.c_str()), static_cast<uint32_t>(BluetoothSocket::address_family::bth), nullptr, (LPSOCKADDR)&sockaddr, (socklen_t*)&lg))
+        throw error_in_value("Error in value, cannot parse addr");
+
 
     *reinterpret_cast<BTH_ADDR*>(out_buf) = sockaddr.btAddr;
-    return (res ? 0 : 1);
 }
 
-const char* BluetoothSocket::inet_ntop(BluetoothSocket::address_family family, std::string& out_addr, const void* addr)
+void BluetoothSocket::inet_ntop(BluetoothSocket::address_family family, const void* addr, std::string& str_addr)
 {
     if (family != BluetoothSocket::address_family::bth)
-        return nullptr;
+        throw error_in_value("Error in family, cannot parse addr");
 
     wchar_t wstr[128];
     wchar_t* wtmp = wstr;
@@ -236,16 +243,14 @@ const char* BluetoothSocket::inet_ntop(BluetoothSocket::address_family family, s
 
     if (WSAAddressToStringW((LPSOCKADDR)&rcaddr, sizeof(rcaddr), nullptr, wstr, &wstr_len) != 0)
     {
-        out_addr.clear();
-        return nullptr;
+        str_addr.clear();
+        throw error_in_value("Error in value, cannot parse addr");
     }
     // Windows renvoie l'adresse d'une facon chelou :
     // (XX:XX:XX:XX:XX:XX):XX:XX:XX
     // alors on crée une sous-chaine
     std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> converter;
-    out_addr = std::move(converter.to_bytes(wstr+1, wstr+18));
-
-    return out_addr.c_str();
+    str_addr = std::move(converter.to_bytes(wstr+1, wstr+18));
 }
 
 std::list<BluetoothDevice> BluetoothSocket::scan(bool flushCache)
@@ -392,7 +397,7 @@ int sdp_get_proto_port(SDP_ELEMENT_DATA& protocol_container, WORD proto_uuid)
     return port;
 }
 
-int BluetoothSocket::scanOpenPortFromUUID(Uuid const& uuid, bdaddr_t const& addr)
+int BluetoothSocket::scan_open_port_from_uuid(Uuid const& uuid, bdaddr_t const& addr)
 {
     int port = -1;
 
@@ -403,7 +408,7 @@ int BluetoothSocket::scanOpenPortFromUUID(Uuid const& uuid, bdaddr_t const& addr
     HANDLE hLookup;
     GUID protocol = RFCOMM_PROTOCOL_UUID;
     std::string str_addr;
-    BluetoothSocket::inet_ntop(BluetoothSocket::address_family::bth, str_addr, &addr);
+    BluetoothSocket::inet_ntop(BluetoothSocket::address_family::bth, &addr, str_addr);
     std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> converter;
     std::wstring addressAsString = converter.from_bytes("(" + str_addr + ")");
     DWORD flags = LUP_FLUSHCACHE | LUP_RETURN_BLOB;
@@ -552,7 +557,7 @@ void BluetoothSocket::register_sdp_service(service_t & service, uuid_t const& uu
         {
             case WSANOTINITIALISED: throw wsa_not_initialised("A successful WSAStartup call must occur before using this function.");
             case WSAEINVAL: throw error_in_value("One or more required parameters were invalid or missing.");
-            default: throw socket_exception("register_sdp_service exception: " + std::to_string(err));
+            default: throw sdp_service_exception("register_sdp_service exception: " + std::to_string(err));
         }
     }
 }
@@ -575,7 +580,7 @@ void BluetoothSocket::unregister_sdp_service(service_t &service)
         {
             case WSANOTINITIALISED: throw wsa_not_initialised("A successful WSAStartup call must occur before using this function.");
             case WSAEINVAL: throw error_in_value("One or more required parameters were invalid or missing.");
-            default: throw socket_exception("register_sdp_service exception: " + std::to_string(res));
+            default: throw sdp_service_exception("register_sdp_service exception: " + std::to_string(res));
         }
     }
 }
@@ -619,7 +624,7 @@ void Uuid::uuid128_to_uuid32(uuid_t const& uuid)
 void Uuid::from_string(std::string const& struuid)
 {
     // si c'est une uuid
-    if (isValidUUID(struuid))
+    if (is_valid_uuid(struuid))
     {
         _type = Uuid::type::uuid128;
         uint8_t* datas = _uuid.value.uuid128.data;
@@ -680,25 +685,27 @@ uuid_t const& Uuid::get_native_uuid() const
 ///////////////////////////////////////////////////////////////////////////////
 // BluetoothSocket Class
 
-int BluetoothSocket::inet_pton(BluetoothSocket::address_family family, std::string const& str_addr, void* out_buf)
+void BluetoothSocket::inet_pton(BluetoothSocket::address_family family, std::string const& str_addr, void* out_buf)
 {
     if (family != BluetoothSocket::address_family::bth)
-        return -1;
+        throw error_in_value("Error in family, cannot parse addr");
 
-    return (str2ba(str_addr.c_str(), reinterpret_cast<bdaddr_t*>(out_buf)) == -1 ? 0 : 1);
+    if(str2ba(str_addr.c_str(), reinterpret_cast<bdaddr_t*>(out_buf)) == -1)
+        throw error_in_value("Error in value, cannot parse addr");
 }
 
-const char* BluetoothSocket::inet_ntop(BluetoothSocket::address_family family, std::string& out_addr, const void* addr)
+void BluetoothSocket::inet_ntop(BluetoothSocket::address_family family, const void* addr, std::string& str_addr)
 {
     if (family != BluetoothSocket::address_family::bth)
-        return nullptr;
+        throw error_in_value("Error in family, cannot parse addr");
 
-    out_addr.resize(17);
-    int res = ba2str(reinterpret_cast<const bdaddr_t*>(addr), &out_addr[0]);
-    return (res == 17 ? out_addr.c_str() : nullptr);
+    str_addr.clear();
+    str_addr.resize(17);
+    if(ba2str(reinterpret_cast<const bdaddr_t*>(addr), &str_addr[0]) != 17 )
+        throw error_in_value("Error in value, cannot parse addr");
 }
 
-int BluetoothSocket::scanOpenPortFromUUID(Uuid const& _uuid, bdaddr_t const& addr)
+int BluetoothSocket::scan_open_port_from_uuid(Uuid const& _uuid, bdaddr_t const& addr)
 {
     bdaddr_t Any = { { 0 } };
     int port = -1;
@@ -822,7 +829,7 @@ void BluetoothSocket::register_sdp_service(service_t & service, uuid_t const& uu
     // démarrer une connexion avec le sdp
     service = sdp_connect(&addr_any, &addr_local, SDP_RETRY_IF_BUSY);
     if (service == 0)
-        throw socket_exception("Can't connect to local SDP server.");
+        throw sdp_service_exception("Can't connect to local SDP server.");
 
     // les UUID du service
     uuid_t root_uuid, l2cap_uuid, rfcomm_uuid;
@@ -887,7 +894,7 @@ void BluetoothSocket::register_sdp_service(service_t & service, uuid_t const& uu
     if (r)
     {
         sdp_close(service);
-        throw socket_exception("Unable to register SDP service.");
+        throw sdp_service_exception("Unable to register SDP service.");
     }
 }
 

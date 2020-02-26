@@ -46,7 +46,7 @@ basic_socket::basic_socket(Socket::socket_t s) : _sock(new Socket::socket_t(s), 
 
 void basic_socket::ioctlsocket(Socket::cmd_name cmd, unsigned long* arg)
 {
-    auto res = Socket::ioctlsocket(*_sock, static_cast<long>(cmd), arg);
+    auto res = Socket::ioctlsocket(*_sock, cmd, arg);
     if(res)
     {
 #if defined(__WINDOWS__)
@@ -60,7 +60,7 @@ void basic_socket::ioctlsocket(Socket::cmd_name cmd, unsigned long* arg)
 
 void basic_socket::setsockopt(Socket::level level, Socket::option_name optname, const void* optval, socklen_t optlen)
 {
-    auto res = Socket::setsockopt(*_sock, static_cast<int>(level), static_cast<int>(optname), optval, optlen);
+    auto res = Socket::setsockopt(*_sock, level, optname, optval, optlen);
     if (res)
     {
 #if defined(__WINDOWS__)
@@ -74,7 +74,7 @@ void basic_socket::setsockopt(Socket::level level, Socket::option_name optname, 
 
 void basic_socket::getsockopt(Socket::level level, Socket::option_name optname, void* optval, socklen_t *optlen)
 {
-    auto res = Socket::getsockopt(*_sock, static_cast<int>(level), static_cast<int>(optname), optval, optlen);
+    auto res = Socket::getsockopt(*_sock, level, optname, optval, optlen);
     if (res)
     {
 #if defined(__WINDOWS__)
@@ -105,11 +105,11 @@ void basic_socket::set_nonblocking(bool non_blocking)
 
 void basic_socket::socket(Socket::address_family af, Socket::types type, Socket::protocols proto)
 {
-    Socket::socket_t s = Socket::socket(af, type, proto);    
+    Socket::socket_t s = Socket::socket(af, type, proto); 
     _sock.reset(new Socket::socket_t(s), SocketDeleter());
 }
 
-Socket::socket_t basic_socket::get_sock() const
+Socket::socket_t basic_socket::get_native_socket() const
 {
     return *_sock;
 }

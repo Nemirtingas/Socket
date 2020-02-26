@@ -103,7 +103,7 @@ size_t unconnected_socket<Addr, family, type, proto>::recvfrom(basic_addr& addr,
 }
 
 template<typename Addr, Socket::address_family family, Socket::types type, Socket::protocols proto>
-size_t unconnected_socket<Addr, family, type, proto>::sendto(basic_addr& addr, const void* buffer, size_t len, Socket::socket_flags flags)
+size_t unconnected_socket<Addr, family, type, proto>::sendto(const basic_addr& addr, const void* buffer, size_t len, Socket::socket_flags flags)
 {
     return Socket::sendto(*_sock, addr, buffer, len, flags);
 }

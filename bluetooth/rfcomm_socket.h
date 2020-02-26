@@ -61,6 +61,9 @@ namespace PortableAPI
     //    }
     //}
 
+    ////////////
+    /// @brief Template specialization for Bluetooth rfcomm socket
+    ////////////
     using rfcomm_socket = connected_socket<bth_addr,
         static_cast<Socket::address_family>(BluetoothSocket::address_family::bth),
         Socket::types::stream,
