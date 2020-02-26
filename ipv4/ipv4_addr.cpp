@@ -106,14 +106,24 @@ size_t ipv4_addr::len() const
     return sizeof(sockaddr_in);
 }
 
+void ipv4_addr::set_ip(uint32_t ip)
+{
+    _sockaddr->sin_addr.s_addr = Socket::net_swap(ip);
+}
+
 void ipv4_addr::set_addr(in_addr const& addr)
 {
-    _sockaddr->sin_addr.s_addr = Socket::net_swap(addr.s_addr);
+    set_ip(addr.s_addr);
 }
 
 void ipv4_addr::set_port(uint16_t port)
 {
     _sockaddr->sin_port = Socket::net_swap(port);
+}
+
+uint32_t ipv4_addr::get_ip() const
+{
+    return Socket::net_swap(_sockaddr->sin_addr.s_addr);
 }
 
 in_addr ipv4_addr::get_addr() const

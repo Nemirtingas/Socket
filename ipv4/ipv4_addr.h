@@ -78,6 +78,12 @@ namespace PortableAPI
             ////////////
             virtual size_t len() const;
             ////////////
+            /// @brief Sets the IPV4 ip
+            /// @param[in]  addr The IPV4 ip
+            /// @return 
+            ////////////
+            void set_ip(uint32_t ip);
+            ////////////
             /// @brief Sets the IPV4 addr
             /// @param[in]  addr The IPV4 addr
             /// @return 
@@ -90,8 +96,13 @@ namespace PortableAPI
             ////////////
             void set_port(uint16_t port);
             ////////////
-            /// @brief Gets the IPV6 addr
-            /// @return The IPV6 addr
+            /// @brief Gets the IPV4 ip
+            /// @return The IPV4 ip
+            ////////////
+            uint32_t get_ip() const;
+            ////////////
+            /// @brief Gets the IPV4 addr
+            /// @return The IPV4 addr
             ////////////
             in_addr get_addr() const;
             ////////////
