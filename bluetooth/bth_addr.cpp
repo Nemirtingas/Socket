@@ -59,41 +59,50 @@ bth_addr::~bth_addr()
     delete _sockaddr;
 }
 
-std::string bth_addr::to_string() const
+std::string bth_addr::to_string(bool with_port) const
 {
-    std::string ip, port;
+    std::string res;
+
 #if defined(__WINDOWS__)
-    ip = BluetoothSocket::inet_ntoa(_sockaddr->btAddr);
-    port = std::to_string(_sockaddr->port);
+    BluetoothSocket::inet_ntop(BluetoothSocket::address_family::bth, res, &_sockaddr->btAddr);
 #elif defined(__LINUX__)
-    ip = BluetoothSocket::inet_ntoa(_sockaddr->rc_bdaddr);
-    port = std::to_string(_sockaddr->rc_channel);
+    BluetoothSocket::inet_ntop(BluetoothSocket::address_family::bth, res, &_sockaddr->rc_bdaddr);
 #endif
 
-    return ip + '@' + port;
+    if (with_port)
+    {
+        res.push_back('@');
+#if defined(__WINDOWS__)
+        res += std::to_string(_sockaddr->port);
+#elif defined(__LINUX__)
+        res += std::to_string(_sockaddr->rc_channel);
+#endif
+    }
+
+    return res;
 }
 
 void bth_addr::from_string(std::string const & str)
 {
-    size_t pos;
+    size_t pos = str.find('@');
 
-    if ((pos = str.find('@')) != std::string::npos)
+    if (pos != std::string::npos)
     {
         std::string ip = str.substr(0, pos);
         std::string channel = str.substr(pos + 1);
 #if defined(__WINDOWS__)
-        _sockaddr->btAddr = BluetoothSocket::inet_addr(ip);
+        BluetoothSocket::inet_pton(BluetoothSocket::address_family::bth, ip, &_sockaddr->btAddr);
 #elif defined(__LINUX__)
-        _sockaddr->rc_bdaddr = BluetoothSocket::inet_addr(ip);
+        BluetoothSocket::inet_pton(BluetoothSocket::address_family::bth, ip, &_sockaddr->rc_bdaddr);
 #endif
         set_channel(stoi(channel));
     }
     else
     {
 #if defined(__WINDOWS__)
-        _sockaddr->btAddr = BluetoothSocket::inet_addr(str);
+        BluetoothSocket::inet_pton(BluetoothSocket::address_family::bth, str, &_sockaddr->btAddr);
 #elif defined(__LINUX__)
-        _sockaddr->rc_bdaddr = BluetoothSocket::inet_addr(str);
+        BluetoothSocket::inet_pton(BluetoothSocket::address_family::bth, str, &_sockaddr->rc_bdaddr);
 #endif
     }
 }

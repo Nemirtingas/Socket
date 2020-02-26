@@ -55,13 +55,17 @@ ipv4_addr::~ipv4_addr()
     delete _sockaddr;
 }
 
-std::string ipv4_addr::to_string() const
+std::string ipv4_addr::to_string(bool with_port) const
 {
-    std::string ip, port;
-    ip = Socket::inet_ntoa(_sockaddr->sin_addr);
-    port = std::to_string(Socket::net_swap(_sockaddr->sin_port));
+    std::string res;
+    Socket::inet_ntop(Socket::address_family::inet, res, &_sockaddr->sin_addr);
+    if (with_port)
+    {
+        res.push_back(':');
+        res += std::to_string(Socket::net_swap(_sockaddr->sin_port));
+    }
 
-    return ip + ':' + port;
+    return res;
 }
 
 void ipv4_addr::from_string(std::string const & str)
@@ -72,20 +76,12 @@ void ipv4_addr::from_string(std::string const & str)
     {
         std::string ip = str.substr(0, pos);
         std::string port = str.substr(pos + 1);
-#if defined(__WINDOWS__)
-        _sockaddr->sin_addr.S_un.S_addr = Socket::inet_addr(ip);
-#elif defined(__LINUX__) || defined(__APPLE__)
-        _sockaddr->sin_addr.s_addr = Socket::inet_addr(ip);
-#endif
+        Socket::inet_pton(Socket::address_family::inet, ip, &_sockaddr->sin_addr);
         set_port(stoi(port));
     }
     else
     {
-#if defined(__WINDOWS__)
-        _sockaddr->sin_addr.S_un.S_addr = Socket::inet_addr(str);
-#elif defined(__LINUX__) || defined(__APPLE__)
-        _sockaddr->sin_addr.s_addr = Socket::inet_addr(str);
-#endif
+        Socket::inet_pton(Socket::address_family::inet, str, &_sockaddr->sin_addr);
     }
 }
 

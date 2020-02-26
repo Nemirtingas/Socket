@@ -38,8 +38,8 @@ namespace PortableAPI
             bth_addr& operator =(bth_addr &&) noexcept;
 
             virtual ~bth_addr();
-            // Returns addr formated like <addr>@<channel>
-            virtual std::string to_string() const;
+            // Returns addr formated like <addr>[@<channel>]
+            virtual std::string to_string(bool with_port = false) const;
             // Pass in a formated std::string like <addr>[@<channel>]
             virtual void from_string(std::string const& str);
             virtual sockaddr& addr();

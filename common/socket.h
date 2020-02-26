@@ -77,29 +77,29 @@
 #include <exception>
 #include <limits>
 
-struct Socket_Endian
-{
-    static bool little()
-    {
-        union {
-            uint32_t i;
-            uint8_t c[4];
-        } check = { 0x12345678 };
-        return check.c[0] == 0x78;
-    }
-
-    static bool big()
-    {
-        union {
-            uint32_t i;
-            uint8_t c[4];
-        } check = { 0x12345678 };
-        return check.c[0] == 0x12;
-    }
-};
-
 namespace PortableAPI
 {
+    struct Socket_Endian
+    {
+        static bool little()
+        {
+            union {
+                uint32_t i;
+                uint8_t c[4];
+            } check = { 0x12345678 };
+            return check.c[0] == 0x78;
+        }
+
+        static bool big()
+        {
+            union {
+                uint32_t i;
+                uint8_t c[4];
+            } check = { 0x12345678 };
+            return check.c[0] == 0x12;
+        }
+    };
+
     class LOCAL_API socket_exception : public std::exception
     {
         std::string mywhat;
@@ -164,8 +164,8 @@ public:\
             uint16_t& tmp = *reinterpret_cast<uint16_t*>(&v);
             if (Socket_Endian::little())
             {
-                tmp = ((tmp & 0x00ff) << 8)
-                    | ((tmp & 0xff00) >> 8);
+                tmp = ((tmp & 0x00ffu) << 8)
+                    | ((tmp & 0xff00u) >> 8);
             }
             return v;
         }
@@ -179,10 +179,10 @@ public:\
             uint32_t& tmp = *reinterpret_cast<uint32_t*>(&v);
             if (Socket_Endian::little())
             {
-                tmp = ((tmp & 0x000000ff) << 24)
-                    | ((tmp & 0x0000ff00) << 8)
-                    | ((tmp & 0x00ff0000) >> 8)
-                    | ((tmp & 0xff000000) >> 24);
+                tmp = ((tmp & 0x000000fful) << 24)
+                    | ((tmp & 0x0000ff00ul) << 8)
+                    | ((tmp & 0x00ff0000ul) >> 8)
+                    | ((tmp & 0xff000000ul) >> 24);
             }
             return v;
         }
@@ -196,14 +196,14 @@ public:\
             uint64_t& tmp = *reinterpret_cast<uint64_t*>(&v);
             if (Socket_Endian::little())
             {
-                tmp = ((tmp & 0x00000000000000ff) << 56)
-                    | ((tmp & 0x000000000000ff00) << 40)
-                    | ((tmp & 0x0000000000ff0000) << 24)
-                    | ((tmp & 0x00000000ff000000) << 8)
-                    | ((tmp & 0x000000ff00000000) >> 8)
-                    | ((tmp & 0x0000ff0000000000) >> 24)
-                    | ((tmp & 0x00ff000000000000) >> 40)
-                    | ((tmp & 0xff00000000000000) >> 56);
+                tmp = ((tmp & 0x00000000000000ffull) << 56)
+                    | ((tmp & 0x000000000000ff00ull) << 40)
+                    | ((tmp & 0x0000000000ff0000ull) << 24)
+                    | ((tmp & 0x00000000ff000000ull) << 8)
+                    | ((tmp & 0x000000ff00000000ull) >> 8)
+                    | ((tmp & 0x0000ff0000000000ull) >> 24)
+                    | ((tmp & 0x00ff000000000000ull) >> 40)
+                    | ((tmp & 0xff00000000000000ull) >> 56);
             }
             return v;
         }
@@ -213,7 +213,7 @@ public:\
     {
     public:
         virtual ~basic_addr();
-        virtual std::string to_string() const = 0;
+        virtual std::string to_string(bool with_port = false) const = 0;
         virtual void from_string(std::string const&) = 0;
         virtual sockaddr& addr() = 0;
         virtual sockaddr const& addr() const = 0;
@@ -449,15 +449,9 @@ public:\
 
         enum class cmd_name : uint32_t
         {
-#if defined(__WINDOWS__)
             fionread = FIONREAD,
-            fionbio = FIONBIO,
+            fionbio  = FIONBIO,
             fioasync = FIOASYNC,
-#elif defined(__LINUX__) || defined(__APPLE__)
-            fionread = FIONREAD,
-            fionbio = FIONBIO,
-            fioasync = FIOASYNC,
-#endif
         };
 
         ////////////////////////////////////////////////////////////////////////////////
@@ -611,19 +605,19 @@ public:\
         ////////////////////////////////////////////////////////////////////////////////
         static int getnameinfo(const sockaddr *_Addr, socklen_t _Addrlen, char *_Host, size_t _Hostlen, char *_Serv, size_t _Servlen, int _Flags);
         ////////////////////////////////////////////////////////////////////////////////
-        // Méthode : inet_addr
-        // Usage   : Transforme l'adresse IPV4 sous forme de chaine en unsigned long (4octets)
-        // paramètres entrants : std::string& addr : addresse forme pointée
-        // paramètres sortants : unsigned long : l'adresse en 4 octets
+        // Méthode : inet_pton
+        // Usage   : Transforme une chaine en adresse
+        // paramètres entrants : Socket::address_family, std::string const&
+        // paramètres sortants : int
         ////////////////////////////////////////////////////////////////////////////////
-        static uint32_t inet_addr(std::string const& addr);
+        static int inet_pton(Socket::address_family family, std::string const& str_addr, void* out_buf);
         ////////////////////////////////////////////////////////////////////////////////
-        // Méthode : inet_ntoa
-        // Usage   : Transforme l'adresse en format chaine
-        // paramètres entrants : in_addr&
-        // paramètres sortants : std::string : l'adresse forme pointée
+        // Méthode : inet_pton
+        // Usage   : Transforme une adresse en chaine
+        // paramètres entrants : Socket::address_family, std::string &, const void*
+        // paramètres sortants : const char*
         ////////////////////////////////////////////////////////////////////////////////
-        static std::string inet_ntoa(in_addr& _In);
+        static const char* inet_ntop(Socket::address_family family, std::string & out_addr, const void* addr);
         ////////////////////////////////////////////////////////////////////////////////
         // Méthode : select
         // Usage   : Fait comme poll mais avec plus de limitations

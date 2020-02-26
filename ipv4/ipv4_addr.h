@@ -41,8 +41,8 @@ namespace PortableAPI
             ipv4_addr& operator =(ipv4_addr &&) noexcept;
 
             virtual ~ipv4_addr();
-            // Returns addr formated like <ip>:<port>
-            virtual std::string to_string() const;
+            // Returns addr formated like <ip>[:<port>]
+            virtual std::string to_string(bool with_port = false) const;
             // Pass in a formated std::string like <ip>[:<port>]
             virtual void from_string(std::string const& str);
             virtual sockaddr& addr();

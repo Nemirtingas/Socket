@@ -198,19 +198,19 @@ public:\
 #endif
 
         ////////////////////////////////////////////////////////////////////////////////
-        // Méthode : inet_addr
-        // Usage   : Transforme l'adresse bluetooth sous forme de chaine en unsigned long (4octets)
-        // paramètres entrants : std::string& addr : addresse forme pointée
-        // paramètres sortants : bdaddr_t : l'adresse en 6 octets
+        // Méthode : inet_pton
+        // Usage   : Transforme une chaine en adresse bluetooth
+        // paramètres entrants : Socket::address_family, std::string const&
+        // paramètres sortants : int
         ////////////////////////////////////////////////////////////////////////////////
-        static bdaddr_t inet_addr(std::string const& addr);
+        static int inet_pton(BluetoothSocket::address_family family, std::string const& str_addr, void* out_buf);
         ////////////////////////////////////////////////////////////////////////////////
-        // Méthode : inet_ntoa
-        // Usage   : Transforme l'adresse en format chaine
-        // paramètres entrants : bdaddr_t const&
-        // paramètres sortants : std::string : l'adresse forme pointée
+        // Méthode : inet_pton
+        // Usage   : Transforme une adresse bluetooth en chaine
+        // paramètres entrants : Socket::address_family, std::string &, const void*
+        // paramètres sortants : const char*
         ////////////////////////////////////////////////////////////////////////////////
-        static std::string inet_ntoa(bdaddr_t const& in);
+        static const char* inet_ntop(BluetoothSocket::address_family family, std::string& out_addr, const void* addr);
         ////////////////////////////////////////////////////////////////////////////////
         // Méthode : scan
         // Usage   : Scan les périphériques bluetooth à proximité

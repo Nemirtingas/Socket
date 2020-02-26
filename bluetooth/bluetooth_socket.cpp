@@ -204,36 +204,48 @@ uuid_t const& Uuid::get_native_uuid() const
 ///////////////////////////////////////////////////////////////////////////////
 // BluetoothSocket Class
 
-bdaddr_t BluetoothSocket::inet_addr(std::string const & addr)
+int BluetoothSocket::inet_pton(BluetoothSocket::address_family family, std::string const& str_addr, void* out_buf)
 {
+    if (family != BluetoothSocket::address_family::bth)
+        return -1;
+
     sockaddr_rc sockaddr;
     socklen_t lg = sizeof(sockaddr_rc);
 
     std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> converter;
-    std::wstring waddr = converter.from_bytes(addr);
+    std::wstring waddr = converter.from_bytes(str_addr);
 
-    WSAStringToAddressW(const_cast<wchar_t*>(waddr.c_str()), static_cast<uint32_t>(BluetoothSocket::address_family::bth), NULL, (LPSOCKADDR)&sockaddr, (socklen_t*)&lg);
-    return sockaddr.btAddr;
+    int res = WSAStringToAddressW(const_cast<wchar_t*>(waddr.c_str()), static_cast<uint32_t>(BluetoothSocket::address_family::bth), nullptr, (LPSOCKADDR)&sockaddr, (socklen_t*)&lg);
+
+    *reinterpret_cast<BTH_ADDR*>(out_buf) = sockaddr.btAddr;
+    return (res ? 0 : 1);
 }
 
-std::string BluetoothSocket::inet_ntoa(bdaddr_t const& in)
+const char* BluetoothSocket::inet_ntop(BluetoothSocket::address_family family, std::string& out_addr, const void* addr)
 {
+    if (family != BluetoothSocket::address_family::bth)
+        return nullptr;
+
     wchar_t wstr[128];
-    wchar_t *wtmp = wstr;
-    unsigned long wstr_len = (sizeof(wstr)/sizeof(*wstr))-1;
+    wchar_t* wtmp = wstr;
+    unsigned long wstr_len = (sizeof(wstr) / sizeof(*wstr)) - 1;
 
-    sockaddr_rc addr;
-    addr.btAddr = in;
-    addr.addressFamily = static_cast<uint32_t>(BluetoothSocket::address_family::bth);
+    sockaddr_rc rcaddr;
+    rcaddr.btAddr = *reinterpret_cast<const BTH_ADDR*>(addr);
+    rcaddr.addressFamily = static_cast<uint32_t>(BluetoothSocket::address_family::bth);
 
-    WSAAddressToStringW((LPSOCKADDR)&addr, sizeof(addr), NULL, wstr, &wstr_len);
+    if (WSAAddressToStringW((LPSOCKADDR)&rcaddr, sizeof(rcaddr), nullptr, wstr, &wstr_len) != 0)
+    {
+        out_addr.clear();
+        return nullptr;
+    }
     // Windows renvoie l'adresse d'une facon chelou :
     // (XX:XX:XX:XX:XX:XX):XX:XX:XX
     // alors on crée une sous-chaine
-    
     std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> converter;
+    out_addr = std::move(converter.to_bytes(wstr+1, wstr+18));
 
-    return converter.to_bytes(wtmp+1, wtmp+18);
+    return out_addr.c_str();
 }
 
 std::list<BluetoothDevice> BluetoothSocket::scan(bool flushCache)
@@ -390,7 +402,8 @@ int BluetoothSocket::scanOpenPortFromUUID(Uuid const& uuid, bdaddr_t const& addr
 
     HANDLE hLookup;
     GUID protocol = RFCOMM_PROTOCOL_UUID;
-    std::string str_addr = BluetoothSocket::inet_ntoa(addr);
+    std::string str_addr;
+    BluetoothSocket::inet_ntop(BluetoothSocket::address_family::bth, str_addr, &addr);
     std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> converter;
     std::wstring addressAsString = converter.from_bytes("(" + str_addr + ")");
     DWORD flags = LUP_FLUSHCACHE | LUP_RETURN_BLOB;
@@ -667,18 +680,22 @@ uuid_t const& Uuid::get_native_uuid() const
 ///////////////////////////////////////////////////////////////////////////////
 // BluetoothSocket Class
 
-bdaddr_t BluetoothSocket::inet_addr(std::string const & addr)
+int BluetoothSocket::inet_pton(BluetoothSocket::address_family family, std::string const& str_addr, void* out_buf)
 {
-    bdaddr_t out;
-    str2ba(addr.c_str(), &out);
-    return out;
+    if (family != BluetoothSocket::address_family::bth)
+        return -1;
+
+    return (str2ba(str_addr.c_str(), reinterpret_cast<bdaddr_t*>(out_buf)) == -1 ? 0 : 1);
 }
 
-std::string BluetoothSocket::inet_ntoa(bdaddr_t const& in)
+const char* BluetoothSocket::inet_ntop(BluetoothSocket::address_family family, std::string& out_addr, const void* addr)
 {
-    char str[32];
-    ba2str(&in, str);
-    return std::string(str);
+    if (family != BluetoothSocket::address_family::bth)
+        return nullptr;
+
+    out_addr.resize(17);
+    int res = ba2str(reinterpret_cast<const bdaddr_t*>(addr), &out_addr[0]);
+    return (res == 17 ? out_addr.c_str() : nullptr);
 }
 
 int BluetoothSocket::scanOpenPortFromUUID(Uuid const& _uuid, bdaddr_t const& addr)
@@ -1027,7 +1044,7 @@ std::list<BluetoothDevice> BluetoothSocket::scan(bool flushCache)
                                     DBusMessageIter variant;
                                     dbus_message_iter_recurse(&DictEntry3, &variant);     
                                     dbus_message_iter_get_basic(&variant, &tmp);
-                                    device.addr = BluetoothSocket::inet_addr(tmp);
+                                    BluetoothSocket::inet_pton(BluetoothSocket::address_family::bth, tmp, &device.addr);
                                     found_device = true;
                                     
                                 }

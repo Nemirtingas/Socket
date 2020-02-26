@@ -31,7 +31,7 @@ basic_addr::~basic_addr()
 Socket::socket_t Socket::accept(Socket::socket_t s, basic_addr &addr)
 {
     Socket::socket_t res;
-    socklen_t len = addr.len();
+    socklen_t len = static_cast<socklen_t>(addr.len());
     if ((res = ::accept(s, &addr.addr(), &len)) == Socket::invalid_socket)
     {
 #if defined(__WINDOWS__)
@@ -318,32 +318,28 @@ Socket::socket_t Socket::socket(Socket::address_family af, Socket::types type, S
     return s;
 }
 
-int Socket::getaddrinfo(const char * _Nodename, const char * _Servicename, const addrinfo * _Hints, addrinfo ** _Result)
+int Socket::getaddrinfo(const char * node, const char * service, const addrinfo * hints, addrinfo ** res)
 {
-    return ::getaddrinfo(_Nodename, _Servicename, _Hints, _Result);
+    return ::getaddrinfo(node, service, hints, res);
 }
 
-int Socket::getnameinfo(const sockaddr * _Addr, socklen_t _Addrlen, char * _Host, size_t _Hostlen, char * _Serv, size_t _Servlen, int _Flags)
+int Socket::getnameinfo(const sockaddr * addr, socklen_t addrlen, char * host, size_t hostlen, char * serv, size_t servlen, int flags)
 {
-    return ::getnameinfo(_Addr, _Addrlen, _Host, _Hostlen, _Serv, _Servlen, _Flags);
+    return ::getnameinfo(addr, addrlen, host, hostlen, serv, servlen, flags);
 }
 
-uint32_t Socket::inet_addr(std::string const& _Naddr)
+int Socket::inet_pton(Socket::address_family family, std::string const& str_addr, void *out_buf)
 {
-    in_addr addr;
-    ::inet_pton(static_cast<int>(Socket::address_family::inet), _Naddr.c_str(), &addr);
-#if defined(__WINDOWS__)
-    return addr.S_un.S_addr;
-#elif defined(__LINUX__) || defined(__APPLE__)
-    return addr.s_addr;
-#endif
+    return ::inet_pton(static_cast<int>(family), str_addr.c_str(), out_buf);
 }
 
-std::string Socket::inet_ntoa(in_addr & _In)
+const char* Socket::inet_ntop(Socket::address_family family, std::string& str_addr, const void* addr)
 {
-    char tmp[16];
-    const char *str = ::inet_ntop(static_cast<int>(Socket::address_family::inet), &_In, tmp, 16);
-    return std::string(str);
+    char buff[1024] = {};
+    const char* res = ::inet_ntop(static_cast<int>(family), addr, buff, sizeof(buff)/sizeof(*buff));
+    str_addr = buff;
+
+    return (res == nullptr ? nullptr : str_addr.c_str());
 }
 
 int Socket::select(int _Nfds, fd_set * _Readfd, fd_set * _Writefd, fd_set * _Exceptfd, timeval * _Timeout)
