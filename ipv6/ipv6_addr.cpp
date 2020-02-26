@@ -19,6 +19,9 @@
 
 using namespace PortableAPI;
 
+constexpr in6_addr ipv6_addr::any_addr;
+constexpr in6_addr ipv6_addr::loopback_addr;
+
 ipv6_addr::ipv6_addr() :
     _sockaddr(new my_sockaddr)
 {

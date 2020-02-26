@@ -30,13 +30,13 @@ namespace PortableAPI
         public:
             using my_sockaddr = sockaddr_in;
 #if defined(__WINDOWS__)
-            constexpr static struct in_addr any_addr       = { 0x00, 0x00, 0x00, 0x00 };
-            constexpr static struct in_addr loopback_addr  = { 0x01, 0x00, 0x00, 0x7f };
-            constexpr static struct in_addr broadcast_addr = { 0xff, 0xff, 0xff, 0xff };
+            constexpr static in_addr any_addr       = { 0x00, 0x00, 0x00, 0x00 };
+            constexpr static in_addr loopback_addr  = { 0x01, 0x00, 0x00, 0x7f };
+            constexpr static in_addr broadcast_addr = { 0xff, 0xff, 0xff, 0xff };
 #elif defined(__LINUX__) || defined(__APPLE__)
-            constexpr static struct in_addr any_addr       = { INADDR_ANY       };
-            constexpr static struct in_addr loopback_addr  = { INADDR_LOOPBACK  };
-            constexpr static struct in_addr broadcast_addr = { INADDR_BROADCAST };
+            constexpr static in_addr any_addr       = { INADDR_ANY       };
+            constexpr static in_addr loopback_addr  = { INADDR_LOOPBACK  };
+            constexpr static in_addr broadcast_addr = { INADDR_BROADCAST };
 #endif
 
         private:

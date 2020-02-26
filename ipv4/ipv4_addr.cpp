@@ -25,6 +25,10 @@
 
 using namespace PortableAPI;
 
+constexpr in_addr ipv4_addr::any_addr;
+constexpr in_addr ipv4_addr::loopback_addr;
+constexpr in_addr ipv4_addr::broadcast_addr;
+
 ipv4_addr::ipv4_addr() :
     _sockaddr(new my_sockaddr)
 {

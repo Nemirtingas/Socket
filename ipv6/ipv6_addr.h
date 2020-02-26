@@ -29,8 +29,8 @@ namespace PortableAPI
     {
         public:
             using my_sockaddr = sockaddr_in6;
-            constexpr static struct in6_addr any_addr      = IN6ADDR_ANY_INIT;
-            constexpr static struct in6_addr loopback_addr = IN6ADDR_LOOPBACK_INIT;
+            constexpr static in6_addr any_addr      = IN6ADDR_ANY_INIT;
+            constexpr static in6_addr loopback_addr = IN6ADDR_LOOPBACK_INIT;
 
         private:
             my_sockaddr *_sockaddr;

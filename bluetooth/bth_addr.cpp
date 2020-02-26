@@ -19,6 +19,8 @@
 
 using namespace PortableAPI;
 
+constexpr bdaddr_t bth_addr::any_addr;
+
 bth_addr::bth_addr() :
     _sockaddr(new my_sockaddr)
 {
