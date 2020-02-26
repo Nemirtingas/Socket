@@ -23,7 +23,9 @@
 #if defined(__WINDOWS__)
     #include <afunix.h>
 #elif defined(__LINUX__) || defined(__APPLE__)
-    #include <sys/un.h>
+    #ifndef UNIX_PATH_MAX
+        #define UNIX_PATH_MAX 108
+    #endif
 #endif
 
 namespace PortableAPI

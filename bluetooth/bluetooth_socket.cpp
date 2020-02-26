@@ -15,16 +15,20 @@
  * along with Socket.  If not, see <https://www.gnu.org/licenses/>
  */
 
+#define INITGUID
+
 #include <Socket/bluetooth/bluetooth_socket.h>
 #include <inttypes.h>  // for SCNx8
 #include <codecvt>
 
-#define __UUID_PRINTF_FORMAT__ \
+#define __UUID128_PRINTF_FORMAT__ \
 "%02" SCNx8 "%02" SCNx8 "%02" SCNx8 "%02" SCNx8 "-"\
 "%02" SCNx8 "%02" SCNx8 "-"\
 "%02" SCNx8 "%02" SCNx8 "-"\
 "%02" SCNx8 "%02" SCNx8 "-"\
 "%02" SCNx8 "%02" SCNx8 "%02" SCNx8 "%02" SCNx8 "%02" SCNx8 "%02" SCNx8
+
+constexpr uint8_t PortableAPI::BluetoothSocket::bth_base_uuid[16];
 
 #if defined(__LINUX__) && !defined(__BLUEZ_4__)
 #include <iomanip>      // for setfill and setw
@@ -66,7 +70,17 @@ private:
 
 using namespace PortableAPI;
 
-bool BluetoothSocket::isValidUUID(std::string const& struuid)
+Uuid::Uuid():
+    _type(Uuid::type::none),
+    _uuid{}
+{}
+
+Uuid::Uuid(uuid_t const& uuid)
+{
+    set_uuid128(uuid);
+}
+
+bool Uuid::isValidUUID(std::string const& struuid)
 {
     // Vérification de la taille et de la présence des séparateurs aux bons endroits
     if(   struuid.length() != 36
@@ -96,6 +110,100 @@ bool BluetoothSocket::isValidUUID(std::string const& struuid)
 
 #if defined(__WINDOWS__)
 
+///////////////////////////////////////////////////////////////////////////////
+// Uuid Class
+
+void Uuid::uuid16_to_uuid128(uint16_t uuid)
+{
+    uuid32_to_uuid128(uuid);
+}
+
+void Uuid::uuid32_to_uuid128(uint32_t uuid)
+{
+    _type = Uuid::type::uuid128;
+    //             Bluetooth Base UUID
+    memcpy(&_uuid, BluetoothSocket::bth_base_uuid, sizeof(BluetoothSocket::bth_base_uuid));
+    _uuid.Data1 = uuid;
+}
+
+void Uuid::uuid128_to_uuid16(uuid_t const& uuid)
+{
+    _type = Uuid::type::uuid16;
+    memset(&_uuid, 0, sizeof(_uuid));
+    _uuid.Data1 = static_cast<uint16_t>(uuid.Data1);
+}
+
+void Uuid::uuid128_to_uuid32(uuid_t const& uuid)
+{
+    _type = Uuid::type::uuid32;
+    memset(&_uuid, 0, sizeof(_uuid));
+    _uuid.Data1 = uuid.Data1;
+}
+
+void Uuid::from_string(std::string const& struuid)
+{
+    // si c'est une uuid
+    if (isValidUUID(struuid))
+    {
+        _type = Uuid::type::uuid128;
+        uint8_t* uuid8 = reinterpret_cast<uint8_t*>(&_uuid);
+
+        sscanf_s(struuid.c_str(), __UUID128_PRINTF_FORMAT__,
+            &uuid8[3], &uuid8[2], &uuid8[1], &uuid8[0],
+            &uuid8[5], &uuid8[4],
+            &uuid8[7], &uuid8[6],
+            &uuid8[8], &uuid8[9],
+            &uuid8[10], &uuid8[11], &uuid8[12], &uuid8[13], &uuid8[14], &uuid8[15]);
+    }
+    else
+    {
+        memset(&_uuid, 0, sizeof(_uuid));
+    }
+}
+
+std::string Uuid::to_string()
+{
+    char str[37] = { 0 };
+    if (_type == Uuid::type::uuid128)
+    {
+        const uint8_t* datas = reinterpret_cast<const uint8_t*>(&_uuid);
+        snprintf(str, 37, __UUID128_PRINTF_FORMAT__,
+            datas[3], datas[2], datas[1], datas[0],
+            datas[5], datas[4],
+            datas[7], datas[6],
+            datas[8], datas[9],
+            datas[10], datas[11], datas[12], datas[13], datas[14], datas[15]);
+    }
+    return std::string(str);
+}
+
+void Uuid::set_uuid128(uuid_t const& uuid)
+{
+    _type = Uuid::type::uuid128;
+    memcpy(&_uuid, &uuid, sizeof(uuid));
+}
+
+bool Uuid::operator ==(Uuid const& other)
+{
+    if (_type != other._type)
+        return false;
+
+    return memcmp(&_uuid, &other._uuid, sizeof(_uuid)) == 0;
+}
+
+bool Uuid::operator !=(Uuid const& other)
+{
+    return !(*this == other);
+}
+
+uuid_t const& Uuid::get_native_uuid() const
+{
+    return _uuid;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// BluetoothSocket Class
+
 bdaddr_t BluetoothSocket::inet_addr(std::string const & addr)
 {
     sockaddr_rc sockaddr;
@@ -108,17 +216,17 @@ bdaddr_t BluetoothSocket::inet_addr(std::string const & addr)
     return sockaddr.btAddr;
 }
 
-std::string BluetoothSocket::inet_ntoa(bdaddr_t & in)
+std::string BluetoothSocket::inet_ntoa(bdaddr_t const& in)
 {
     wchar_t wstr[128];
     wchar_t *wtmp = wstr;
-    unsigned long x = (sizeof(wstr)/sizeof(*wstr))-1;
+    unsigned long wstr_len = (sizeof(wstr)/sizeof(*wstr))-1;
 
     sockaddr_rc addr;
     addr.btAddr = in;
     addr.addressFamily = static_cast<uint32_t>(BluetoothSocket::address_family::bth);
 
-    WSAAddressToStringW((LPSOCKADDR)&addr, sizeof(addr), NULL, wstr, &x);
+    WSAAddressToStringW((LPSOCKADDR)&addr, sizeof(addr), NULL, wstr, &wstr_len);
     // Windows renvoie l'adresse d'une facon chelou :
     // (XX:XX:XX:XX:XX:XX):XX:XX:XX
     // alors on crée une sous-chaine
@@ -126,52 +234,6 @@ std::string BluetoothSocket::inet_ntoa(bdaddr_t & in)
     std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> converter;
 
     return converter.to_bytes(wtmp+1, wtmp+18);
-}
-
-uuid_t BluetoothSocket::str2uuid(std::string const& struuid)
-{
-    uuid_t uuid = { 0 };
-    // si c'est une uuid
-    if (isValidUUID(struuid))
-    {
-        //uint32_t uuid32[16];
-        //uint8_t  uuid8[16];
-        uint8_t *uuid8 = reinterpret_cast<uint8_t*>(&uuid);
-        
-        sscanf_s(struuid.c_str(), __UUID_PRINTF_FORMAT__,
-            &uuid8[3] , &uuid8[2] , &uuid8[1], &uuid8[0],
-            &uuid8[5] , &uuid8[4] ,
-            &uuid8[7] , &uuid8[6] ,
-            &uuid8[8] , &uuid8[9] ,
-            &uuid8[10], &uuid8[11], &uuid8[12], &uuid8[13], &uuid8[14], &uuid8[15]);
-
-        //sscanf_s(struuid.c_str(), "%02X%02X%02X%02X-%02X%02X-%02X%02X-%02X%02X-%02X%02X%02X%02X%02X%02X",
-        //    &uuid32[3] , &uuid32[2] , &uuid32[1], &uuid32[0],
-        //    &uuid32[5] , &uuid32[4] , 
-        //    &uuid32[7] , &uuid32[6] ,
-        //    &uuid32[8] , &uuid32[9] ,
-        //    &uuid32[10], &uuid32[11], &uuid32[12], &uuid32[13], &uuid32[14], &uuid32[15]);
-
-        // transtypage int32 -> int8
-        //for (int i = 0; i < 16; ++i)
-        //s    uuid8[i] = static_cast<unsigned char>(uuid32[i]);
-        // création en type uuid_t
-        //memcpy(&uuid, uuid8, sizeof(uuid_t));
-    }
-    return uuid;
-}
-
-std::string BluetoothSocket::uuid2str( uuid_t const& uuid )
-{
-    char str[37] = {0};
-    const uint8_t *datas = reinterpret_cast<const uint8_t*>(&uuid);
-    snprintf(str, 37, __UUID_PRINTF_FORMAT__,
-        datas[3] , datas[2] , datas[1], datas[0],
-        datas[5] , datas[4] ,
-        datas[7] , datas[6] ,
-        datas[8] , datas[9] ,
-        datas[10], datas[11], datas[12], datas[13], datas[14], datas[15]);
-    return std::string(str);
 }
 
 std::list<BluetoothDevice> BluetoothSocket::scan(bool flushCache)
@@ -257,103 +319,176 @@ std::list<BluetoothDevice> BluetoothSocket::scan(bool flushCache)
     return devices;
 }
 
-// Cette fonction ne fonctionne pas, mais comme y'en a pas besoin, je
-// la ferait plus tard
-int BluetoothSocket::scanOpenPortFromUUID(uuid_t& _UUID, bdaddr_t& _Addr)
+int sdp_get_proto_port(SDP_ELEMENT_DATA& protocol_container, WORD proto_uuid)
 {
-    return -1;
-    /*
-    int iResult = 0, iRet;
-    BLOB blob;
-    SOCKADDR_BTH sa;
-    CSADDR_INFO csai;
-    WSAQUERYSET wsaq1;
-    HANDLE hLookup1;
-    CHAR buf1[5000];
-    DWORD dwSize;
-    LPWSAQUERYSET pwsaResults1;
-    BTHNS_RESTRICTIONBLOB RBlob;
+    int port = -1;
+    // HBLUETOOTH_CONTAINER_ELEMENT is actually just a PBYTE with offset to the next SDP type
+    HBLUETOOTH_CONTAINER_ELEMENT hProtocolContainer = NULL;
+    SDP_ELEMENT_DATA protocol_sequence;
+    SDP_ELEMENT_DATA elem;
 
-
-    // http://msdn.microsoft.com/en-us/library/ms881237.aspx
-    //This structure contains details about a query restriction
-    memset(&RBlob, 0, sizeof(RBlob));
-    RBlob.type = SDP_SERVICE_SEARCH_ATTRIBUTE_REQUEST;
-    RBlob.numRange = 1;
-    RBlob.pRange[0].minAttribute = SDP_ATTRIB_PROTOCOL_DESCRIPTOR_LIST;
-    RBlob.pRange[0].maxAttribute = SDP_ATTRIB_PROTOCOL_DESCRIPTOR_LIST;
-    RBlob.uuids[0].uuidType = SDP_ST_UUID16;
-    RBlob.uuids[0].u.uuid16 = SerialPortServiceClassID_UUID16;
-    // BrowseGroupDescriptorServiceClassID_UUID;
-    //This structure is used for an arbitrary array of bytes
-    blob.cbSize = sizeof(RBlob);
-    blob.pBlobData = (BYTE *)&RBlob;
-    //This structure defines the Bluetooth socket address
-    memset(&sa, 0, sizeof(sa));
-    sa.btAddr = _Addr;
-    sa.addressFamily = AF_BTH;
-    // Do some verification
-    printf("\n  sa.btAddr: %012X\n", sa.btAddr);
-    printf("  GET_NAP(sa.btAddr): %04X\n", GET_NAP(sa.btAddr));
-    printf("  GET_SAP(sa.btAddr): %08X\n", GET_SAP(sa.btAddr));
-    printf("  sa.addressFamily: %d\n", sa.addressFamily);
-    printf("  sa.port: %ul\n", sa.port);
-    memset(&csai, 0, sizeof(csai));
-    csai.RemoteAddr.lpSockaddr = (SOCKADDR *)&sa;
-    csai.RemoteAddr.iSockaddrLength = sizeof(sa);
-    // Do some verification
-    printf("\n  csai.RemoteAddr: %012X\n", csai.RemoteAddr.lpSockaddr);
-    printf("  csai.LocalAddr: %X\n", csai.LocalAddr.lpSockaddr);
-    printf("  csai.iSocketType: %d\n", csai.iSocketType);
-    printf("  csai.iProtocol: %d\n", csai.iProtocol);
-    memset(&wsaq1, 0, sizeof(wsaq1));
-    wsaq1.dwSize = sizeof(wsaq1);
-    // NS_BTH - The Bluetooth namespace. However this 'bastard' namespace identifier
-    // is supported on Windows Vista and later. Can also try NS_NLA
-    // Using NS_BTH failed with 10022 though with #define _WIN32_WINNT 0x0600
-    wsaq1.dwNameSpace = NS_ALL;
-    wsaq1.lpBlob = &blob;
-    wsaq1.lpcsaBuffer = &csai;
-
-    printf("\n  wsaq1.lpcsaBuffer->RemoteAddr: %X" << std::endln", wsaq1.lpcsaBuffer->RemoteAddr);
-
-    iRet = WSALookupServiceBegin(&wsaq1, 0, &hLookup1);
-
-    if (iRet == 0) //ERROR_SUCCESS
+    while (BluetoothSdpGetContainerElementData(protocol_container.data.sequence.value, protocol_container.data.sequence.length, &hProtocolContainer, &protocol_sequence) == ERROR_SUCCESS)
     {
-        printf("BtServiceSearch(): WSALookupServiceBegin() should be OK!\n");
-        çpwsaResults1 = (LPWSAQUERYSET)buf1;
-        dwSize = sizeof(buf1);
-        memset(pwsaResults1, 0, sizeof(WSAQUERYSET));
-        pwsaResults1->dwSize = sizeof(WSAQUERYSET);
-        // But this part using NS_BTH is OK! Retard lor! %@%#&^%(^@^@^$($&$%
-        pwsaResults1->dwNameSpace = NS_BTH;
-        pwsaResults1->lpBlob = NULL;
-
-        iRet = WSALookupServiceNext(hLookup1, 0, &dwSize, pwsaResults1);
-
-        if (iRet == 0) // ERROR_SUCCESS - got the stream
+        HBLUETOOTH_CONTAINER_ELEMENT hProtocolSequence = NULL;
+        int proto_port = -1;
+        uuid_t uuid = { 0 };
+        while (BluetoothSdpGetContainerElementData(protocol_sequence.data.sequence.value, protocol_sequence.data.sequence.length, &hProtocolSequence, &elem) == ERROR_SUCCESS)
         {
-            printf("BtServiceSearch(): WSALookupServiceNext() is OK!\n");
+            switch(elem.type)
+            {
+                case SDP_TYPE_UUID:
+                    switch(elem.specificType)
+                    {
+                        case SDP_ST_UUID16:
+                            uuid.Data1 = elem.data.uuid16;
+                            break;
 
-            printf("\n(The SDP result processing routine should be called...)" << std::endln");
+                        case SDP_ST_UUID32:
+                            uuid.Data1 = elem.data.uuid32;
+                            break;
+
+                        case SDP_ST_UUID128:
+                            uuid = elem.data.uuid128;
+                            break;
+                    }
+                    break;
+
+                case SDP_TYPE_UINT:
+                    switch (elem.specificType)
+                    {
+                        case SDP_ST_UINT8 : proto_port = elem.data.uint8 ; break;
+                        case SDP_ST_UINT16: proto_port = elem.data.uint16; break;
+                    }
+                    break;
+
+                case SDP_TYPE_INT:
+                    switch (elem.specificType)
+                    {
+                        case SDP_ST_INT8 : proto_port = elem.data.int8 ; break;
+                        case SDP_ST_INT16: proto_port = elem.data.int16; break;
+                    }
+                    break;
+            }
         }
-        else
-            printf("BtServiceSearch(): WSALookupServiceNext() failed with error code %ld\n", WSAGetLastError());
-
-        if (WSALookupServiceEnd(hLookup1) == 0)
-            printf("BtServiceSearch(): WSALookupServiceEnd(hLookup1) is OK!\n");
-        else
-            printf("BtServiceSearch(): WSALookupServiceEnd(hLookup1) failed with error code %ld\n", WSAGetLastError());
+        if (uuid.Data1 == proto_uuid)
+        {
+            port = proto_port;
+            break;
+        }
     }
-    else
-        printf("BtServiceSearch(): WSALookupServiceBegin() failed with error code %ld\n", WSAGetLastError());
 
-    return iResult;
-    */
+    return port;
 }
 
-void BluetoothSocket::register_sdp_service(service_t & service, uuid_t uuid, uint8_t port, std::string const&srv_name, std::string const&srv_prov, std::string const&srv_desc)
+int BluetoothSocket::scanOpenPortFromUUID(Uuid const& uuid, bdaddr_t const& addr)
+{
+    int port = -1;
+
+    WSAQUERYSETW* querySet = new WSAQUERYSETW;
+    if (querySet == nullptr)
+        return port;
+
+    HANDLE hLookup;
+    GUID protocol = RFCOMM_PROTOCOL_UUID;
+    std::string str_addr = BluetoothSocket::inet_ntoa(addr);
+    std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> converter;
+    std::wstring addressAsString = converter.from_bytes("(" + str_addr + ")");
+    DWORD flags = LUP_FLUSHCACHE | LUP_RETURN_BLOB;
+    int result;
+
+    memset(querySet, 0, sizeof(*querySet));
+    querySet->dwSize = sizeof(*querySet);
+    querySet->lpServiceClassId = &protocol;
+    querySet->dwNameSpace = NS_BTH;
+    querySet->lpszContext = (LPWSTR)addressAsString.c_str();
+
+    if (WSALookupServiceBeginW(querySet, flags, &hLookup) == ERROR_SUCCESS)
+    {
+        DWORD bufferLength = sizeof(WSAQUERYSETW);
+        WSAQUERYSET* pResults = reinterpret_cast<WSAQUERYSETW*>(new char[bufferLength]);
+        if (pResults != nullptr)
+        {
+            while (1)
+            {
+                result = WSALookupServiceNextW(hLookup, flags, &bufferLength, pResults);
+
+                if (result != ERROR_SUCCESS && WSAGetLastError() == WSAEFAULT && bufferLength > 0)
+                {
+                    delete[] reinterpret_cast<char*>(pResults);
+                    pResults = reinterpret_cast<WSAQUERYSETW*>(new char[bufferLength]);
+                    result = WSALookupServiceNextW(hLookup, flags, &bufferLength, pResults);
+                }
+
+                if (result != ERROR_SUCCESS)
+                    break;
+
+                if (pResults->lpBlob)
+                {
+                    const BLOB* pBlob = (BLOB*)pResults->lpBlob;
+
+                    SDP_ELEMENT_DATA elem;
+
+                    if (BluetoothSdpGetAttributeValue(pBlob->pBlobData, pBlob->cbSize, SDP_ATTRIB_SERVICE_ID, &elem) == ERROR_SUCCESS)
+                    {
+                        if (elem.type == SDP_TYPE_UUID)
+                        {
+                            Uuid sdp_uuid;
+
+                            switch (elem.specificType)
+                            {
+                                case SDP_ST_UUID16 : sdp_uuid.uuid16_to_uuid128(elem.data.uuid16); break;
+                                case SDP_ST_UUID32 : sdp_uuid.uuid32_to_uuid128(elem.data.uuid32); break;
+                                case SDP_ST_UUID128: sdp_uuid.set_uuid128(elem.data.uuid128); break;
+                            }
+
+                            if (sdp_uuid == uuid)
+                            {
+                                SDP_ELEMENT_DATA protocol_container;
+
+                                // Open the decriptor list sequence
+                                if (BluetoothSdpGetAttributeValue(pBlob->pBlobData, pBlob->cbSize, SDP_ATTRIB_PROTOCOL_DESCRIPTOR_LIST, &protocol_container) == ERROR_SUCCESS)
+                                {
+                                    port = sdp_get_proto_port(protocol_container, RFCOMM_PROTOCOL_UUID16);
+                                }
+
+                                // If you need theses, just uncomment these lines & use the values
+                                //if (BluetoothSdpGetAttributeValue(pBlob->pBlobData, pBlob->cbSize, 0x0100, &elem) == ERROR_SUCCESS)
+                                //{
+                                //    if (elem.type == SDP_TYPE_STRING)// Service Name
+                                //    {
+                                //        std::string().assign((char*)elem.data.string.value, elem.data.string.length);
+                                //    }
+                                //}
+                                //if (BluetoothSdpGetAttributeValue(pBlob->pBlobData, pBlob->cbSize, 0x0101, &elem) == ERROR_SUCCESS)
+                                //{
+                                //    if (elem.type == SDP_TYPE_STRING)// Service Provider
+                                //    {
+                                //        std::string().assign((char*)elem.data.string.value, elem.data.string.length);
+                                //    }
+                                //}
+                                //if (BluetoothSdpGetAttributeValue(pBlob->pBlobData, pBlob->cbSize, 0x0102, &elem) == ERROR_SUCCESS)
+                                //{
+                                //    if (elem.type == SDP_TYPE_STRING)// Service Description
+                                //    {
+                                //        std::string().assign((char*)elem.data.string.value, elem.data.string.length);
+                                //    }
+                                //}
+                            }
+                        }
+                    }
+                }
+            }
+
+            delete[] reinterpret_cast<char*>(pResults);
+        }
+        WSALookupServiceEnd(hLookup);
+    }
+
+    delete querySet;
+    return port;
+}
+
+void BluetoothSocket::register_sdp_service(service_t & service, uuid_t const& uuid, uint8_t port, std::string const&srv_name, std::string const&srv_prov, std::string const&srv_desc)
 {
     memset(&service, 0, sizeof(service_t));
     service.dwSize = sizeof(service_t);
@@ -373,25 +508,21 @@ void BluetoothSocket::register_sdp_service(service_t & service, uuid_t uuid, uin
     wstr[wstr.length()] = L'\0';
     service.lpszComment = lpwstr;
 
-    GUID nullguid = { 0 };
-
-    uuid_t* privateuuid = new uuid_t;
-    *privateuuid = uuid;
+    uuid_t* privateuuid = new uuid_t(uuid);
 
     service.lpServiceClassId = privateuuid;
     service.dwNumberOfCsAddrs = 1;
     service.dwNameSpace = NS_BTH;
     // création de l'adresse du serveur
     sockaddr_rc *addr = new sockaddr_rc;
+    memset(addr, 0, sizeof(*addr));
     addr->addressFamily = static_cast<uint16_t>(BluetoothSocket::address_family::bth);
-    addr->btAddr = 0;
     addr->port = port;
-    addr->serviceClassId = nullguid;
     // création des information de service
     CSADDR_INFO *csAddr = new CSADDR_INFO;
     memset(csAddr, 0, sizeof(CSADDR_INFO));
-    csAddr->LocalAddr.iSockaddrLength = sizeof(sockaddr_rc);
-    csAddr->LocalAddr.lpSockaddr = (sockaddr*)addr;
+    csAddr->LocalAddr.iSockaddrLength = sizeof(*addr);
+    csAddr->LocalAddr.lpSockaddr = reinterpret_cast<sockaddr*>(addr);
     csAddr->iSocketType = static_cast<uint32_t>(Socket::types::stream);
     csAddr->iProtocol = static_cast<uint32_t>(BluetoothSocket::protocols::rfcomm);
     service.lpcsaBuffer = csAddr;
@@ -438,6 +569,104 @@ void BluetoothSocket::unregister_sdp_service(service_t &service)
 
 #elif defined(__LINUX__)
 
+///////////////////////////////////////////////////////////////////////////////
+// Uuid Class
+
+void Uuid::uuid16_to_uuid128(uint16_t uuid)
+{
+    uuid32_to_uuid128(uuid);
+}
+
+void Uuid::uuid32_to_uuid128(uint32_t uuid)
+{
+    _type = Uuid::type::uuid128;
+    _uuid.type = SDP_UUID128;
+    //            Bluetooth Base UUID
+    memcpy(&_uuid.value, BluetoothSocket::bth_base_uuid, sizeof(BluetoothSocket::bth_base_uuid));
+    // UUID is always stored big-endian (on Linux)
+    _uuid.value.uuid32 = Socket::net_swap(uuid);
+}
+
+void Uuid::uuid128_to_uuid16(uuid_t const& uuid)
+{
+    _type = Uuid::type::uuid16;
+    memset(&_uuid, 0, sizeof(_uuid));
+    _uuid.type = SDP_UUID16;
+    _uuid.value.uuid16 = uuid.value.uuid16;
+}
+
+void Uuid::uuid128_to_uuid32(uuid_t const& uuid)
+{
+    _type = Uuid::type::uuid32;
+    memset(&_uuid, 0, sizeof(_uuid));
+    _uuid.type = SDP_UUID32;
+    _uuid.value.uuid32 = uuid.value.uuid32;
+}
+
+void Uuid::from_string(std::string const& struuid)
+{
+    // si c'est une uuid
+    if (isValidUUID(struuid))
+    {
+        _type = Uuid::type::uuid128;
+        uint8_t* datas = _uuid.value.uuid128.data;
+        _uuid.type = SDP_UUID128;
+        sscanf(struuid.c_str(), __UUID128_PRINTF_FORMAT__,
+            &datas[0], &datas[1], &datas[2], &datas[3],
+            &datas[4], &datas[5],
+            &datas[6], &datas[7],
+            &datas[8], &datas[9],
+            &datas[10], &datas[11], &datas[12], &datas[13], &datas[14], &datas[15]);
+    }
+    else
+    {
+        memset(&_uuid, 0, sizeof(_uuid));
+    }
+}
+
+std::string Uuid::to_string()
+{
+    char str[37] = { 0 };
+    if (_type == Uuid::type::uuid128)
+    {
+        uint8_t const* datas = _uuid.value.uuid128.data;
+        snprintf(str, 37, __UUID128_PRINTF_FORMAT__,
+            datas[0], datas[1], datas[2], datas[3],
+            datas[4], datas[5],
+            datas[6], datas[7],
+            datas[8], datas[9],
+            datas[10], datas[11], datas[12], datas[13], datas[14], datas[15]);
+    }
+    return std::string(str);
+}
+
+void Uuid::set_uuid128(uuid_t const& uuid)
+{
+    _type = Uuid::type::uuid128;
+    memcpy(&_uuid, &uuid, sizeof(uuid));
+}
+
+bool Uuid::operator ==(Uuid const& other)
+{
+    if (_type != other._type)
+        return false;
+
+    return memcmp(&_uuid, &other._uuid, sizeof(_uuid)) == 0;
+}
+
+bool Uuid::operator !=(Uuid const& other)
+{
+    return !(*this == other);
+}
+
+uuid_t const& Uuid::get_native_uuid() const
+{
+    return _uuid;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// BluetoothSocket Class
+
 bdaddr_t BluetoothSocket::inet_addr(std::string const & addr)
 {
     bdaddr_t out;
@@ -445,69 +674,21 @@ bdaddr_t BluetoothSocket::inet_addr(std::string const & addr)
     return out;
 }
 
-std::string BluetoothSocket::inet_ntoa(bdaddr_t & in)
+std::string BluetoothSocket::inet_ntoa(bdaddr_t const& in)
 {
     char str[32];
     ba2str(&in, str);
     return std::string(str);
 }
 
-uuid_t BluetoothSocket::str2uuid(std::string const&struuid)
-{
-    uuid_t uuid;
-    // si c'est une uuid
-    if (isValidUUID(struuid))
-    {
-        //uint32_t uuid32[16];
-        uint8_t  uuid8[16];
-
-        sscanf(struuid.c_str(), __UUID_PRINTF_FORMAT__,
-            &uuid8[0] , &uuid8[1] , &uuid8[2], &uuid8[3],
-            &uuid8[4] , &uuid8[5] ,
-            &uuid8[6] , &uuid8[7] ,
-            &uuid8[8] , &uuid8[9] ,
-            &uuid8[10], &uuid8[11], &uuid8[12], &uuid8[13], &uuid8[14], &uuid8[15]);
-
-        //sscanf(struuid.c_str(), "%02X%02X%02X%02X-%02X%02X-%02X%02X-%02X%02X-%02X%02X%02X%02X%02X%02X",
-        //    &uuid32[0] , &uuid32[1] , &uuid32[2], &uuid32[3],
-        //    &uuid32[4] , &uuid32[5] ,
-        //    &uuid32[6] , &uuid32[7] ,
-        //    &uuid32[8] , &uuid32[9] ,
-        //    &uuid32[10], &uuid32[11], &uuid32[12], &uuid32[13], &uuid32[14], &uuid32[15]);
-
-        // transtypage int32 -> int8
-        //for (int i = 0; i < 16; ++i)
-        //    uuid8[i] = static_cast<unsigned char>(uuid32[i]);
-
-        // conversion en type uuid_t
-        sdp_uuid128_create(&uuid, &uuid8);
-    }
-    return uuid;
-}
-
-std::string BluetoothSocket::uuid2str( uuid_t const& uuid )
-{
-    char str[37] = {0};
-    if( uuid.type == SDP_UUID128 )
-    {
-        uint8_t const *datas = uuid.value.uuid128.data;
-        snprintf(str, 37, __UUID_PRINTF_FORMAT__,
-            datas[0] , datas[1] , datas[2], datas[3],
-            datas[4] , datas[5] ,
-            datas[6] , datas[7] ,
-            datas[8] , datas[9] ,
-            datas[10], datas[11], datas[12], datas[13], datas[14], datas[15]);
-    }
-    return std::string(str);
-}
-
-int BluetoothSocket::scanOpenPortFromUUID(uuid_t& uuid, bdaddr_t& addr)
+int BluetoothSocket::scanOpenPortFromUUID(Uuid const& _uuid, bdaddr_t const& addr)
 {
     bdaddr_t Any = { { 0 } };
     int port = -1;
     sdp_session_t *session = 0;
     sdp_list_t *response_list, *search_list, *attrid_list;
     uint32_t range = 0x0000FFFF;
+    uuid_t uuid = _uuid.get_native_uuid();
 
     // connexion au sdp de l'appareil à l'adresse bthaddr
     session = sdp_connect(&Any, &addr, 0);
@@ -601,11 +782,11 @@ list<BluetoothDevice> BluetoothSocket::scan(bool flushCache)
         for (int i = 0; i < trouve; ++i)
         {
             // récupère le nom de l'appareil ayant l'adresse bdaddr
-            if (hci_read_remote_name(sock, &(iinfo + i)->bdaddr, 255, nom, 0) < 0)
+            if (hci_read_remote_name(sock, &iinfo[i]->bdaddr, 255, nom, 0) < 0)
                 strcpy(nom, "[inconnu]");
 
             device.name = nom;
-            device.addr = (iinfo + i)->bdaddr;
+            device.addr = iinfo[i]->bdaddr;
 
             devices.push_back(device);
         }
@@ -615,7 +796,7 @@ list<BluetoothDevice> BluetoothSocket::scan(bool flushCache)
     return devices;
 }
 
-void BluetoothSocket::register_sdp_service(service_t & service, uuid_t uuid, uint8_t port, std::string const&srv_name, std::string const&srv_prov, std::string const&srv_desc)
+void BluetoothSocket::register_sdp_service(service_t & service, uuid_t const& uuid, uint8_t port, std::string const&srv_name, std::string const&srv_prov, std::string const&srv_desc)
 {
     bdaddr_t addr_any = { { 0 } };
     bdaddr_t addr_local = { { 0, 0, 0, 0xFF, 0xFF, 0xFF } };
@@ -903,7 +1084,7 @@ std::list<BluetoothDevice> BluetoothSocket::scan(bool flushCache)
     return devices;
 }
 
-void BluetoothSocket::register_sdp_service(service_t & service, uuid_t uuid, uint8_t port, std::string const&srv_name, std::string const& srv_prov, std::string const& srv_desc)
+void BluetoothSocket::register_sdp_service(service_t & service, uuid_t const& uuid, uint8_t port, std::string const&srv_name, std::string const& srv_prov, std::string const& srv_desc)
 {
     BluezDBusSystem& bus = BluezDBusSystem::Inst();
     DBusMessage *msg, *ret;
@@ -914,28 +1095,28 @@ void BluetoothSocket::register_sdp_service(service_t & service, uuid_t uuid, uin
     }
     std::string sdp_session = "/PortableAPI/";
     sdp_session += srv_name;
-    std::string struuid = BluetoothSocket::uuid2str(uuid);
+    std::string struuid = Uuid(uuid).to_string();
     const char* recordkey = "ServiceRecord";
     const char *tmp;
 
     std::stringstream sstr;
     sstr  << "<?xml version=\"1.0\" encoding=\"UTF-8\" ?>"   << std::endl
           << "<record>"                                      << std::endl
-          << "    <attribute id=\"0x0003\">"                 << std::endl
+          << "    <attribute id=\"0x0003\">"                 << std::endl // SDP_ATTRIB_SERVICE_ID
           << "        <uuid value=\"" << struuid << "\" />"  << std::endl
           << "    </attribute>"                              << std::endl 
-          << "    <attribute id=\"0x0004\">"                 << std::endl
+          << "    <attribute id=\"0x0004\">"                 << std::endl // SDP_ATTRIB_PROTOCOL_DESCRIPTOR_LIST
           << "        <sequence>"                            << std::endl
           << "            <sequence>"                        << std::endl
           << "                <uuid value=\"0x0100\" />"     << std::endl
           << "            </sequence>"                       << std::endl
           << "            <sequence>"                        << std::endl
-          << "                <uuid value=\"0x0003\" />"     << std::endl
+          << "                <uuid value=\"0x0003\" />"     << std::endl // RFCOMM_PROTOCOL_UUID16 == 0x0003
           << "                <uint8 value=\"0x" << std::setfill('0') << std::setw(2) << std::hex << static_cast<uint16_t>(port) << std::dec << "\" />" << std::endl
           << "            </sequence>"                       << std::endl
           << "        </sequence>"                           << std::endl
           << "    </attribute>"                              << std::endl
-          << "    <attribute id=\"0x0005\">"                 << std::endl
+          << "    <attribute id=\"0x0005\">"                 << std::endl // SDP_ATTRIB_BROWSE_GROUP_LIST
           << "        <sequence>"                            << std::endl
           << "            <uuid value=\"0x1002\" />"         << std::endl
           << "        </sequence>"                           << std::endl
@@ -1048,12 +1229,12 @@ SDPService::~SDPService()
         delete _service;
 }
 
-void SDPService::registerService(uuid_t uuid, uint8_t port, std::string const&name, std::string const& provider, std::string const& description)
+void SDPService::registerService(Uuid const& uuid, uint8_t port, std::string const&name, std::string const& provider, std::string const& description)
 {
     if (_registered)
         throw error_in_value("Service already registered.");
     
-    BluetoothSocket::register_sdp_service(*_service, uuid, port, name, provider, description);
+    BluetoothSocket::register_sdp_service(*_service, uuid.get_native_uuid(), port, name, provider, description);
 
     _uuid = uuid;
     _name = name;
@@ -1070,7 +1251,7 @@ void SDPService::unregisterService()
 }
 
 bool SDPService::is_registered() const { return _registered; }
-uuid_t const& SDPService::get_uuid() const { return _uuid; }
+Uuid const& SDPService::get_uuid() const { return _uuid; }
 std::string const& SDPService::get_name() const { return _name; }
 std::string const& SDPService::get_description() const { return _description; }
 std::string const& SDPService::get_provider() const { return _provider; }

@@ -38,7 +38,10 @@ typedef std::string service_t;
 #elif defined(__WINDOWS__)
 
 #include <ws2bth.h>
+#include <bluetoothapis.h>
 #include <initguid.h>
+
+#pragma comment(lib, "Bthprops.lib")
 
 typedef GUID uuid_t;
 typedef BTH_ADDR bdaddr_t;
@@ -77,6 +80,84 @@ public:\
         BluetoothDevice& operator=(BluetoothDevice &&) noexcept = default;
     };
 
+    class LOCAL_API Uuid
+    {
+    public:
+        enum class type : uint8_t
+        {
+            none,
+            uuid16,
+            uuid32,
+            uuid128
+        };
+
+    private:
+        Uuid::type _type;
+        uuid_t _uuid;
+
+    public:
+        ////////////////////////////////////////////////////////////////////////////////
+        // Méthode : uuid16_to_uuid128
+        // Usage   : Transforme un uuid16 en uuid128 (base bluetooth)
+        // paramètres entrants : uint16_t
+        // paramètres sortants : aucun
+        ////////////////////////////////////////////////////////////////////////////////
+        void uuid16_to_uuid128(uint16_t uuid);
+        ////////////////////////////////////////////////////////////////////////////////
+        // Méthode : uuid32_to_uuid128
+        // Usage   : Transforme un uuid32 en uuid128 (base bluetooth)
+        // paramètres entrants : uint16_t
+        // paramètres sortants : aucun
+        ////////////////////////////////////////////////////////////////////////////////
+        void uuid32_to_uuid128(uint32_t uuid);
+        ////////////////////////////////////////////////////////////////////////////////
+        // Méthode : uuid128_to_uuid16
+        // Usage   : Transforme un uuid128 en uuid16 (base bluetooth)
+        // paramètres entrants : uuid_t
+        // paramètres sortants : aucun
+        ////////////////////////////////////////////////////////////////////////////////
+        void uuid128_to_uuid16(uuid_t const& uuid);
+        ////////////////////////////////////////////////////////////////////////////////
+        // Méthode : uuid128_to_uuid32
+        // Usage   : Transforme un uuid128 en uuid32 (base bluetooth)
+        // paramètres entrants : uuid_t
+        // paramètres sortants : aucun
+        ////////////////////////////////////////////////////////////////////////////////
+        void uuid128_to_uuid32(uuid_t const& uuid);
+        ////////////////////////////////////////////////////////////////////////////////
+        // Méthode : isValidUUID
+        // Usage   : vérifie si la chaine est bien au format UUID
+        // paramètres entrants : std::string const& struuid
+        // paramètres sortants : bool
+        // UUID must be formatted like : [0-9a-zA-Z]{8}-([0-9a-zA-Z]{4}-){3}-[0-9a-zA-Z]{12}
+        ////////////////////////////////////////////////////////////////////////////////
+        static bool isValidUUID(std::string const& struuid);
+        ////////////////////////////////////////////////////////////////////////////////
+        // Méthode : from_string
+        // Usage   : Transforme une chaine en uuid
+        // paramètres entrants : std::string const& struuid
+        // paramètres sortants : aucun
+        ////////////////////////////////////////////////////////////////////////////////
+        void from_string(std::string const& struuid);
+        ////////////////////////////////////////////////////////////////////////////////
+        // Méthode : to_string
+        // Usage   : Transforme un uuid en chaine
+        // paramètres entrants : aucun
+        // paramètres entrants : std::string
+        ////////////////////////////////////////////////////////////////////////////////
+        std::string to_string();
+
+        void set_uuid128(uuid_t const& uuid);
+
+        bool operator ==(Uuid const& other);
+        bool operator !=(Uuid const& other);
+
+        uuid_t const& get_native_uuid() const;
+
+        Uuid();
+        Uuid(uuid_t const& uuid);
+    };
+
     class LOCAL_API BluetoothSocket : public Socket
     {
     public:
@@ -108,6 +189,14 @@ public:\
 #endif
         };
 
+#if defined(__WINDOWS__)
+        //                                                                                 Here, Windows is Host ordered
+        static constexpr uint8_t bth_base_uuid[16] = { 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x10, 0x80, 0x00, 0x00, 0x80, 0x5F, 0x9B, 0x34, 0xFB };
+#elif defined(__LINUX__)
+        //                                                                                 Here, Linux is big endian
+        static constexpr uint8_t bth_base_uuid[16] = { 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x10, 0x00, 0x80, 0x00, 0x00, 0x80, 0x5F, 0x9B, 0x34, 0xFB };
+#endif
+
         ////////////////////////////////////////////////////////////////////////////////
         // Méthode : inet_addr
         // Usage   : Transforme l'adresse bluetooth sous forme de chaine en unsigned long (4octets)
@@ -118,32 +207,10 @@ public:\
         ////////////////////////////////////////////////////////////////////////////////
         // Méthode : inet_ntoa
         // Usage   : Transforme l'adresse en format chaine
-        // paramètres entrants : bdaddr_t&
+        // paramètres entrants : bdaddr_t const&
         // paramètres sortants : std::string : l'adresse forme pointée
         ////////////////////////////////////////////////////////////////////////////////
-        static std::string inet_ntoa(bdaddr_t& in);
-        ////////////////////////////////////////////////////////////////////////////////
-        // Méthode : isValidUUID
-        // Usage   : vérifie si la chaine est bien au format UUID
-        // paramètres entrants : std::string const& struuid
-        // paramètres sortants : bool
-        // UUID must be formatted like : [0-9a-zA-Z]{8}-([0-9a-zA-Z]{4}-){3}-[0-9a-zA-Z]{12}
-        ////////////////////////////////////////////////////////////////////////////////
-        static bool isValidUUID(std::string const& struuid);
-        ////////////////////////////////////////////////////////////////////////////////
-        // Méthode : str2uuid
-        // Usage   : Transforme une chaine en uuid
-        // paramètres entrants : std::string const& struuid
-        // paramètres sortants : uuid_t
-        ////////////////////////////////////////////////////////////////////////////////
-        static uuid_t str2uuid(std::string const& struuid);
-        ////////////////////////////////////////////////////////////////////////////////
-        // Méthode : uuid2str
-        // Usage   : Transforme un uuid en chaine
-        // paramètres entrants : uuid_t const&
-        // paramètres entrants : std::string
-        ////////////////////////////////////////////////////////////////////////////////
-        static std::string uuid2str( uuid_t const& uuid );
+        static std::string inet_ntoa(bdaddr_t const& in);
         ////////////////////////////////////////////////////////////////////////////////
         // Méthode : scan
         // Usage   : Scan les périphériques bluetooth à proximité
@@ -153,19 +220,19 @@ public:\
         static std::list<BluetoothDevice> scan(bool flushCache = true);
         ////////////////////////////////////////////////////////////////////////////////
         // Méthode : scanOpenPortFromUUID
-        // Usage   : Recherche le canal ouvert du serveur qui a enregistrer l'UUID
-        // paramètres entrants : uuid_t &uuid, bdaddr_t &bthaddr
+        // Usage   : Recherche le canal ouvert du serveur qui a enregistré l'UUID
+        // paramètres entrants : Uuid const&uuid, bdaddr_t const&bthaddr
         // paramètres sortants : int : port
         ////////////////////////////////////////////////////////////////////////////////
-        static int scanOpenPortFromUUID(uuid_t &uuid, bdaddr_t &bthaddr);
+        static int scanOpenPortFromUUID(Uuid const&uuid, bdaddr_t const&bthaddr);
         ////////////////////////////////////////////////////////////////////////////////
         // Méthode : register_sdp_service
         // Usage   : Enregistre le service dans le SDP
-        // paramètres entrants : service_t & service, uuid_t uuid, uint8_t port, std::string const&srv_name, std::string const&srv_prov, std::string const&srv_desc
+        // paramètres entrants : service_t & service, uuid_t const& uuid, uint8_t port, std::string const&srv_name, std::string const&srv_prov, std::string const&srv_desc
         // paramètres sortants : ///////////
         // exceptions : wsa_not_initialised, error_in_value, socket_exception
         ////////////////////////////////////////////////////////////////////////////////
-        static void register_sdp_service(service_t & service, uuid_t uuid, uint8_t port, std::string const&srv_name, std::string const&srv_prov, std::string const&srv_desc);
+        static void register_sdp_service(service_t & service, uuid_t const& uuid, uint8_t port, std::string const&srv_name, std::string const&srv_prov, std::string const&srv_desc);
         ////////////////////////////////////////////////////////////////////////////////
         // Méthode : register_sdp_service
         // Usage   : Arrête le service SDP précédemment enregistré
@@ -182,7 +249,7 @@ public:\
 
         bool _registered;
         service_t *_service;
-        uuid_t _uuid;
+        Uuid _uuid;
         std::string _name;
         std::string _description;
         std::string _provider;
@@ -196,10 +263,10 @@ public:\
         SDPService& operator =(SDPService &&) noexcept;
         ~SDPService();
 
-        void registerService(uuid_t uuid, uint8_t port, std::string const&name, std::string const&prov, std::string const&desc);
+        void registerService(Uuid const& uuid, uint8_t port, std::string const&name, std::string const&prov, std::string const&desc);
         void unregisterService();
         bool is_registered() const;
-        uuid_t const& get_uuid() const;
+        Uuid const& get_uuid() const;
         std::string const& get_name() const;
         std::string const& get_description() const;
         std::string const& get_provider() const;

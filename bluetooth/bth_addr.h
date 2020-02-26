@@ -15,14 +15,14 @@
  * along with Socket.  If not, see <https://www.gnu.org/licenses/>
  */
 
-#ifndef _RFCOMM_ADDR_INCLUDED_
-#define _RFCOMM_ADDR_INCLUDED_
+#ifndef _BTH_ADDR_INCLUDED_
+#define _BTH_ADDR_INCLUDED_
 
 #include <Socket/bluetooth/bluetooth_socket.h>
 
 namespace PortableAPI
 {
-    class LOCAL_API rfcomm_addr : public basic_addr
+    class LOCAL_API bth_addr : public basic_addr
     {
         public:
             typedef sockaddr_rc my_sockaddr;
@@ -31,13 +31,13 @@ namespace PortableAPI
             my_sockaddr *_sockaddr;
 
         public:
-            rfcomm_addr();
-            rfcomm_addr(rfcomm_addr const&);
-            rfcomm_addr(rfcomm_addr &&) noexcept;
-            rfcomm_addr& operator =(rfcomm_addr const&);
-            rfcomm_addr& operator =(rfcomm_addr &&) noexcept;
+            bth_addr();
+            bth_addr(bth_addr const&);
+            bth_addr(bth_addr &&) noexcept;
+            bth_addr& operator =(bth_addr const&);
+            bth_addr& operator =(bth_addr &&) noexcept;
 
-            virtual ~rfcomm_addr();
+            virtual ~bth_addr();
             // Returns addr formated like <addr>@<channel>
             virtual std::string to_string() const;
             // Pass in a formated std::string like <addr>[@<channel>]

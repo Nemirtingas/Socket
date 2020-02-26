@@ -372,6 +372,8 @@ void Socket::SetLastError(int error)
 {
 #if defined(__WINDOWS__)
     WSASetLastError(error);
+#else
+    (void)error;
 #endif
 }
 

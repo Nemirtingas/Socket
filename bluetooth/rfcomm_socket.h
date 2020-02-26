@@ -18,27 +18,31 @@
 #ifndef _RFCOMM_SOCKET_INCLUDED_
 #define _RFCOMM_SOCKET_INCLUDED_
 
-#include <Socket/bluetooth/rfcomm_addr.h>
+#include <Socket/bluetooth/bth_addr.h>
 #include <Socket/common/basic_socket.h>
 
 namespace PortableAPI
 {
     // Connect by uuid:
-    //#if defined(__WINDOWS__)
-    //    server_addr.from_string("00:11:22:33:44:55");
-    //    server_addr.set_channel(0);
-    //    server_addr.get_native_addr().serviceClassId = uuid;
-    //    clisock.connect(server_addr);
-    //#elif defined(__LINUX__)
-    //    server_addr.from_string("00:11:22:33:44:55");
-    //    server_addr.set_channel(BluetoothSocket::scanOpenPortFromUUID(uuid, server_addr.get_ip()));
-    //#endif
+    //PortableAPI::Socket::InitSocket();
+    //
+    //PortableAPI::bth_addr addr;
+    //addr.from_string("00:11:22:33:44:55");
+    //
+    //PortableAPI::Uuid uuid;
+    //uuid.from_string("00112233-4455-6677-8899001122334455");
+    //
+    //PortableAPI::rfcomm_socket rfsock;
+    //addr.set_channel(PortableAPI::BluetoothSocket::scanOpenPortFromUUID(uuid, addr.get_ip()));
+    //rfsock.connect(addr);
 
     // Register SDP service:
     //PortableAPI::Socket::InitSocket();
     //PortableAPI::rfcomm_socket rfsock;
     //PortableAPI::rfcomm_addr addr;
     //PortableAPI::SDPService service;
+    //PortableAPI::Uuid uuid;
+    //uuid.from_string("00112233-4455-6677-8899001122334455");
     //
     //addr.from_string("00:11:22:33:44:55");
     //int port; // Port 0 does bind but is invalid, start at 1
@@ -48,19 +52,16 @@ namespace PortableAPI
     //    try
     //    {
     //        rfsock.bind(addr);
+    //        rfsock.listen();
+    //        service.registerService(uuid, port, "service name", "service provider", "service description");
     //        break;
     //    }
     //    catch (...)
     //    {
     //    }
     //}
-    //if (port != 32)
-    //{
-    //    auto uuid = PortableAPI::BluetoothSocket::str2uuid(_BTHUUID_);
-    //    service.registerService(uuid, port, "test", "toto", "titi");
-    //}
 
-    using rfcomm_socket = connected_socket<rfcomm_addr,
+    using rfcomm_socket = connected_socket<bth_addr,
         static_cast<Socket::address_family>(BluetoothSocket::address_family::bth),
         Socket::types::stream,
         static_cast<Socket::protocols>(BluetoothSocket::protocols::rfcomm)

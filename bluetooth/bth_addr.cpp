@@ -15,11 +15,11 @@
  * along with Socket.  If not, see <https://www.gnu.org/licenses/>
  */
 
-#include <Socket/bluetooth/rfcomm_addr.h>
+#include <Socket/bluetooth/bth_addr.h>
 
 using namespace PortableAPI;
 
-rfcomm_addr::rfcomm_addr() :
+bth_addr::bth_addr() :
     _sockaddr(new my_sockaddr)
 {
     memset(_sockaddr, 0, len());
@@ -30,36 +30,36 @@ rfcomm_addr::rfcomm_addr() :
 #endif
 }
 
-rfcomm_addr::rfcomm_addr(rfcomm_addr const &other) :
+bth_addr::bth_addr(bth_addr const &other) :
     _sockaddr(new my_sockaddr)
 {
     memcpy(_sockaddr, other._sockaddr, len());
 }
 
-rfcomm_addr::rfcomm_addr(rfcomm_addr &&other) noexcept:
+bth_addr::bth_addr(bth_addr &&other) noexcept:
     _sockaddr(nullptr)
 {
     std::swap(_sockaddr, other._sockaddr);
 }
 
-rfcomm_addr & rfcomm_addr::operator=(rfcomm_addr const &other)
+bth_addr & bth_addr::operator=(bth_addr const &other)
 {
     memcpy(_sockaddr, other._sockaddr, len());
     return *this;
 }
 
-rfcomm_addr & rfcomm_addr::operator=(rfcomm_addr &&other) noexcept
+bth_addr & bth_addr::operator=(bth_addr &&other) noexcept
 {
     std::swap(_sockaddr, other._sockaddr);
     return *this;
 }
 
-rfcomm_addr::~rfcomm_addr()
+bth_addr::~bth_addr()
 {
     delete _sockaddr;
 }
 
-std::string rfcomm_addr::to_string() const
+std::string bth_addr::to_string() const
 {
     std::string ip, port;
 #if defined(__WINDOWS__)
@@ -73,7 +73,7 @@ std::string rfcomm_addr::to_string() const
     return ip + '@' + port;
 }
 
-void rfcomm_addr::from_string(std::string const & str)
+void bth_addr::from_string(std::string const & str)
 {
     size_t pos;
 
@@ -98,22 +98,22 @@ void rfcomm_addr::from_string(std::string const & str)
     }
 }
 
-sockaddr & rfcomm_addr::addr()
+sockaddr & bth_addr::addr()
 {
     return *reinterpret_cast<sockaddr*>(_sockaddr);
 }
 
-sockaddr const& rfcomm_addr::addr() const
+sockaddr const& bth_addr::addr() const
 {
     return *reinterpret_cast<sockaddr*>(_sockaddr);
 }
 
-size_t rfcomm_addr::len() const
+size_t bth_addr::len() const
 {
     return sizeof(my_sockaddr);
 }
 
-void rfcomm_addr::set_any_addr()
+void bth_addr::set_any_addr()
 {
 #if defined(__WINDOWS__)
     memset(&_sockaddr->btAddr, 0, sizeof(bdaddr_t));
@@ -122,7 +122,7 @@ void rfcomm_addr::set_any_addr()
 #endif
 }
 
-void rfcomm_addr::set_ip(bdaddr_t const& ip)
+void bth_addr::set_ip(bdaddr_t const& ip)
 {
 #if defined(__WINDOWS__)
     _sockaddr->btAddr = ip;
@@ -131,7 +131,7 @@ void rfcomm_addr::set_ip(bdaddr_t const& ip)
 #endif
 }
 
-void rfcomm_addr::set_channel(uint8_t channel)
+void bth_addr::set_channel(uint8_t channel)
 {
 #if defined(__WINDOWS__)
     _sockaddr->port = channel;
@@ -140,7 +140,7 @@ void rfcomm_addr::set_channel(uint8_t channel)
 #endif
 }
 
-bdaddr_t rfcomm_addr::get_ip() const
+bdaddr_t bth_addr::get_ip() const
 {
 #if defined(__WINDOWS__)
     return _sockaddr->btAddr;
@@ -149,7 +149,7 @@ bdaddr_t rfcomm_addr::get_ip() const
 #endif
 }
 
-uint8_t rfcomm_addr::get_channel() const
+uint8_t bth_addr::get_channel() const
 {
 #if defined(__WINDOWS__)
     return static_cast<uint8_t>(_sockaddr->port);
@@ -158,7 +158,7 @@ uint8_t rfcomm_addr::get_channel() const
 #endif
 }
 
-rfcomm_addr::my_sockaddr& rfcomm_addr::get_native_addr()
+bth_addr::my_sockaddr& bth_addr::get_native_addr()
 {
     return *_sockaddr;
 }
