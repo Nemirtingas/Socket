@@ -17,7 +17,7 @@
 
 #pragma once
 
-#include <Socket/common/socket.h>
+#include <common/socket.h>
 
 #include <memory>
 

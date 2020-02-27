@@ -15,7 +15,7 @@
  * along with Socket.  If not, see <https://www.gnu.org/licenses/>
  */
 
-#include <Socket/bluetooth/bth_addr.h>
+#include <bluetooth/bth_addr.h>
 
 using namespace PortableAPI;
 

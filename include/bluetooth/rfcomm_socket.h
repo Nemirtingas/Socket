@@ -18,8 +18,8 @@
 #ifndef _RFCOMM_SOCKET_INCLUDED_
 #define _RFCOMM_SOCKET_INCLUDED_
 
-#include <Socket/bluetooth/bth_addr.h>
-#include <Socket/common/basic_socket.h>
+#include <bluetooth/bth_addr.h>
+#include <common/basic_socket.h>
 
 namespace PortableAPI
 {

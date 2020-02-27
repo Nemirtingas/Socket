@@ -15,43 +15,50 @@
  * along with Socket.  If not, see <https://www.gnu.org/licenses/>
  */
 
-#ifndef _IPV6_ADDR_INCLUDED_
-#define _IPV6_ADDR_INCLUDED_
+#ifndef _IPV4_ADDR_INCLUDED_
+#define _IPV4_ADDR_INCLUDED_
 
-#include <Socket/common/basic_socket.h>
+#include <common/basic_socket.h>
 
 namespace PortableAPI
 {
     ////////////
-    /// @brief An IPV6 sock_addr object
+    /// @brief An IPV4 sock_addr object
     ////////////
-    class LOCAL_API ipv6_addr : public basic_addr
+    class LOCAL_API ipv4_addr : public basic_addr
     {
         public:
-            using my_sockaddr = sockaddr_in6;
-            constexpr static in6_addr any_addr      = IN6ADDR_ANY_INIT;
-            constexpr static in6_addr loopback_addr = IN6ADDR_LOOPBACK_INIT;
+            using my_sockaddr = sockaddr_in;
+#if defined(__WINDOWS__)
+            constexpr static in_addr any_addr       = { 0x00, 0x00, 0x00, 0x00 };
+            constexpr static in_addr loopback_addr  = { 0x01, 0x00, 0x00, 0x7f };
+            constexpr static in_addr broadcast_addr = { 0xff, 0xff, 0xff, 0xff };
+#elif defined(__LINUX__) || defined(__APPLE__)
+            constexpr static in_addr any_addr       = { INADDR_ANY       };
+            constexpr static in_addr loopback_addr  = { INADDR_LOOPBACK  };
+            constexpr static in_addr broadcast_addr = { INADDR_BROADCAST };
+#endif
 
         private:
             my_sockaddr *_sockaddr;
 
         public:
-            ipv6_addr();
-            ipv6_addr(ipv6_addr const&);
-            ipv6_addr(ipv6_addr &&) noexcept;
-            ipv6_addr& operator =(ipv6_addr const&);
-            ipv6_addr& operator =(ipv6_addr &&) noexcept;
+            ipv4_addr();
+            ipv4_addr(ipv4_addr const&);
+            ipv4_addr(ipv4_addr &&) noexcept;
+            ipv4_addr& operator =(ipv4_addr const&);
+            ipv4_addr& operator =(ipv4_addr &&) noexcept;
 
-            virtual ~ipv6_addr();
+            virtual ~ipv4_addr();
             ////////////
             /// @brief Transforms the address to a human readable string
             /// @param[in] with_port Append the port
-            /// @return Address formated like <ip> or [<ip>]:port
+            /// @return Address formated like <ip>[:<port>]
             ////////////
             virtual std::string to_string(bool with_port = false) const;
             ////////////
             /// @brief Transforms the human readable string into an address
-            /// @param[in] str <ip> or [<ip>]:<port> (brackets needed)
+            /// @param[in] str Pass in a formated string like <ip>[:<port>]
             /// @return 
             ////////////
             virtual void from_string(std::string const& str);
@@ -71,25 +78,36 @@ namespace PortableAPI
             ////////////
             virtual size_t len() const;
             ////////////
-            /// @brief Sets the IPV6 addr
-            /// @param[in]  addr The IPV6 addr
+            /// @brief Sets the IPV4 ip
+            /// @param[in]  addr The IPV4 ip
             /// @return 
             ////////////
-            void set_addr(in6_addr const& addr);
+            void set_ip(uint32_t ip);
             ////////////
-            /// @brief Sets the IPV6 port
-            /// @param[in]  port The IPV6 port
+            /// @brief Sets the IPV4 addr
+            /// @param[in]  addr The IPV4 addr
             /// @return 
             ////////////
-            void set_port(uint16_t);
+            void set_addr(in_addr const& addr);
             ////////////
-            /// @brief Gets the IPV6 addr
-            /// @return The IPV6 addr
+            /// @brief Sets the IPV4 port
+            /// @param[in]  port The IPV4 port
+            /// @return 
             ////////////
-            in6_addr get_addr() const;
+            void set_port(uint16_t port);
             ////////////
-            /// @brief Gets the IPV6 port
-            /// @return The IPV6 port
+            /// @brief Gets the IPV4 ip
+            /// @return The IPV4 ip
+            ////////////
+            uint32_t get_ip() const;
+            ////////////
+            /// @brief Gets the IPV4 addr
+            /// @return The IPV4 addr
+            ////////////
+            in_addr get_addr() const;
+            ////////////
+            /// @brief Gets the IPV4 port
+            /// @return The IPV4 port
             ////////////
             uint16_t get_port() const;
             ////////////

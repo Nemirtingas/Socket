@@ -17,7 +17,7 @@
 
 #define INITGUID
 
-#include <Socket/bluetooth/bluetooth_socket.h>
+#include <bluetooth/bluetooth_socket.h>
 #include <inttypes.h>  // for SCNx8
 #include <codecvt>
 
@@ -423,7 +423,7 @@ int BluetoothSocket::scan_open_port_from_uuid(Uuid const& uuid, bdaddr_t const& 
     if (WSALookupServiceBeginW(querySet, flags, &hLookup) == ERROR_SUCCESS)
     {
         DWORD bufferLength = sizeof(WSAQUERYSETW);
-        WSAQUERYSET* pResults = reinterpret_cast<WSAQUERYSETW*>(new char[bufferLength]);
+        WSAQUERYSETW* pResults = reinterpret_cast<WSAQUERYSETW*>(new char[bufferLength]);
         if (pResults != nullptr)
         {
             while (1)

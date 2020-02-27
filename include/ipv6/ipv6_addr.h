@@ -15,46 +15,43 @@
  * along with Socket.  If not, see <https://www.gnu.org/licenses/>
  */
 
-#ifndef _UNIX_ADDR_INCLUDED_
-#define _UNIX_ADDR_INCLUDED_
+#ifndef _IPV6_ADDR_INCLUDED_
+#define _IPV6_ADDR_INCLUDED_
 
-#include <Socket/common/basic_socket.h>
-
-#if defined(__WINDOWS__)
-    #include <afunix.h>
-#endif
-
-#ifndef UNIX_PATH_MAX
-  #define UNIX_PATH_MAX 108
-#endif
+#include <common/basic_socket.h>
 
 namespace PortableAPI
 {
-    class LOCAL_API unix_addr : public basic_addr
+    ////////////
+    /// @brief An IPV6 sock_addr object
+    ////////////
+    class LOCAL_API ipv6_addr : public basic_addr
     {
         public:
-            using my_sockaddr = sockaddr_un;
+            using my_sockaddr = sockaddr_in6;
+            constexpr static in6_addr any_addr      = IN6ADDR_ANY_INIT;
+            constexpr static in6_addr loopback_addr = IN6ADDR_LOOPBACK_INIT;
 
         private:
             my_sockaddr *_sockaddr;
 
         public:
-            unix_addr();
-            unix_addr(unix_addr const&);
-            unix_addr(unix_addr &&) noexcept;
-            unix_addr& operator =(unix_addr const&);
-            unix_addr& operator =(unix_addr &&) noexcept;
+            ipv6_addr();
+            ipv6_addr(ipv6_addr const&);
+            ipv6_addr(ipv6_addr &&) noexcept;
+            ipv6_addr& operator =(ipv6_addr const&);
+            ipv6_addr& operator =(ipv6_addr &&) noexcept;
 
-            virtual ~unix_addr();
+            virtual ~ipv6_addr();
             ////////////
             /// @brief Transforms the address to a human readable string
             /// @param[in] with_port Append the port
-            /// @return Address formated like <path>
+            /// @return Address formated like <ip> or [<ip>]:port
             ////////////
-            virtual std::string to_string() const;
+            virtual std::string to_string(bool with_port = false) const;
             ////////////
             /// @brief Transforms the human readable string into an address
-            /// @param[in] str Pass in a formated string like <path>
+            /// @param[in] str <ip> or [<ip>]:<port> (brackets needed)
             /// @return 
             ////////////
             virtual void from_string(std::string const& str);
@@ -74,16 +71,27 @@ namespace PortableAPI
             ////////////
             virtual size_t len() const;
             ////////////
-            /// @brief Sets the path
-            /// @param[in]  addr The path
+            /// @brief Sets the IPV6 addr
+            /// @param[in]  addr The IPV6 addr
             /// @return 
             ////////////
-            void set_addr(std::string const& path);
+            void set_addr(in6_addr const& addr);
             ////////////
-            /// @brief Gets the path
-            /// @return The path
+            /// @brief Sets the IPV6 port
+            /// @param[in]  port The IPV6 port
+            /// @return 
             ////////////
-            std::string get_addr() const;
+            void set_port(uint16_t);
+            ////////////
+            /// @brief Gets the IPV6 addr
+            /// @return The IPV6 addr
+            ////////////
+            in6_addr get_addr() const;
+            ////////////
+            /// @brief Gets the IPV6 port
+            /// @return The IPV6 port
+            ////////////
+            uint16_t get_port() const;
             ////////////
             /// @brief Gets the native addr structure
             /// @return Native structure

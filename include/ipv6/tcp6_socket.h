@@ -15,15 +15,14 @@
  * along with Socket.  If not, see <https://www.gnu.org/licenses/>
  */
 
-#ifndef _UDP6_SOCKET_INCLUDED_
-#define _UDP6_SOCKET_INCLUDED_
+#ifndef _TCP6_SOCKET_INCLUDED_
+#define _TCP6_SOCKET_INCLUDED_
 
-#include <Socket/ipv6/ipv6_addr.h>
-#include <Socket/common/basic_socket.h>
+#include <ipv6/ipv6_addr.h>
+#include <common/basic_socket.h>
 
 namespace PortableAPI
 {
-    using udp6_socket = unconnected_socket<ipv6_addr, Socket::address_family::inet6, Socket::types::dgram, Socket::protocols::udp>;
+    using tcp6_socket = connected_socket<ipv6_addr, Socket::address_family::inet6, Socket::types::stream, Socket::protocols::tcp>;
 }
-
 #endif
