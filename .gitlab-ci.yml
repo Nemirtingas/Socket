@@ -116,7 +116,7 @@ deploy:
   artifacts:
     paths:
       - release/
-      - documentation/
+      - public/
       - job_id
   only:
     - master
