@@ -50,6 +50,8 @@ typedef WSAQUERYSETW service_t;
 
 #endif
 
+#ifndef __APPLE__
+
 #include <list>
 
 namespace PortableAPI
@@ -303,3 +305,5 @@ public:\
     };
 }
 #endif
+
+#endif//__APPLE__

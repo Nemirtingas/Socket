@@ -15,7 +15,11 @@
  * along with Socket.  If not, see <https://www.gnu.org/licenses/>
  */
 
+#ifndef __APPLE__
+
+#ifdef __WINDOWS__
 #define INITGUID
+#endif
 
 #include <bluetooth/bluetooth_socket.h>
 #include <inttypes.h>  // for SCNx8
@@ -1280,3 +1284,4 @@ std::string const& SDPService::get_name() const { return _name; }
 std::string const& SDPService::get_description() const { return _description; }
 std::string const& SDPService::get_provider() const { return _provider; }
 
+#endif//__APPLE__

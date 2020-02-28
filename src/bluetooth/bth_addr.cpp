@@ -15,6 +15,7 @@
  * along with Socket.  If not, see <https://www.gnu.org/licenses/>
  */
 
+#ifndef __APPLE__
 #include <bluetooth/bth_addr.h>
 
 using namespace PortableAPI;
@@ -164,3 +165,5 @@ bth_addr::my_sockaddr& bth_addr::get_native_addr()
 {
     return *_sockaddr;
 }
+
+#endif//__APPLE__
