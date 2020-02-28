@@ -95,7 +95,7 @@ documentation:
   script:
     - apk update && apk add doxygen graphviz ttf-ubuntu-font-family
     - doxygen .doxygen
-    - mv documentation public
+    - mv documentation/html public
     - exit 0
 
   artifacts:
