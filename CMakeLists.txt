@@ -210,4 +210,5 @@ INSTALL (
   DIRECTORY ${CMAKE_SOURCE_DIR}/include/
   DESTINATION release/include
   FILES_MATCHING PATTERN "*.h*"
+                 PATTERN "*.inl*"
 )
