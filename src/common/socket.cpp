@@ -15,7 +15,7 @@
  * along with Socket.  If not, see <https://www.gnu.org/licenses/>
  */
 
-#include <Socket/common/socket.h>
+#include <common/socket.h>
 
 using namespace std;
 using namespace PortableAPI;

@@ -15,9 +15,13 @@
  * along with Socket.  If not, see <https://www.gnu.org/licenses/>
  */
 
-#define INITGUID
+#ifndef __APPLE__
 
-#include <Socket/bluetooth/bluetooth_socket.h>
+#ifdef __WINDOWS__
+#define INITGUID
+#endif
+
+#include <bluetooth/bluetooth_socket.h>
 #include <inttypes.h>  // for SCNx8
 #include <codecvt>
 
@@ -423,7 +427,7 @@ int BluetoothSocket::scan_open_port_from_uuid(Uuid const& uuid, bdaddr_t const& 
     if (WSALookupServiceBeginW(querySet, flags, &hLookup) == ERROR_SUCCESS)
     {
         DWORD bufferLength = sizeof(WSAQUERYSETW);
-        WSAQUERYSET* pResults = reinterpret_cast<WSAQUERYSETW*>(new char[bufferLength]);
+        WSAQUERYSETW* pResults = reinterpret_cast<WSAQUERYSETW*>(new char[bufferLength]);
         if (pResults != nullptr)
         {
             while (1)
@@ -1280,3 +1284,4 @@ std::string const& SDPService::get_name() const { return _name; }
 std::string const& SDPService::get_description() const { return _description; }
 std::string const& SDPService::get_provider() const { return _provider; }
 
+#endif//__APPLE__

@@ -15,7 +15,7 @@
  * along with Socket.  If not, see <https://www.gnu.org/licenses/>
  */
 
-#include <Socket/unix/unix_addr.h>
+#include <unix/unix_addr.h>
 
 using namespace PortableAPI;
 

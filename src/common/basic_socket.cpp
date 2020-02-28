@@ -15,7 +15,7 @@
  * along with Socket.  If not, see <https://www.gnu.org/licenses/>
  */
 
-#include <Socket/common/basic_socket.h>
+#include <common/basic_socket.h>
 
 using namespace PortableAPI;
 

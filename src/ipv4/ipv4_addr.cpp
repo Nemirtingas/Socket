@@ -15,7 +15,7 @@
  * along with Socket.  If not, see <https://www.gnu.org/licenses/>
  */
 
-#include <Socket/ipv4/ipv4_addr.h>
+#include <ipv4/ipv4_addr.h>
 
 #ifdef __WINDOWS__
   #ifndef s_addr

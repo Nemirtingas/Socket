@@ -15,7 +15,7 @@
  * along with Socket.  If not, see <https://www.gnu.org/licenses/>
  */
 
-#include <Socket/ipv6/ipv6_addr.h>
+#include <ipv6/ipv6_addr.h>
 
 using namespace PortableAPI;
 

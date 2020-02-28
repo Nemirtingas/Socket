@@ -15,17 +15,18 @@
  * along with Socket.  If not, see <https://www.gnu.org/licenses/>
  */
 
-#ifndef _TCP_SOCKET_INCLUDED_
-#define _TCP_SOCKET_INCLUDED_
+#ifndef _UDP_SOCKET_INCLUDED_
+#define _UDP_SOCKET_INCLUDED_
 
-#include <Socket/ipv4/ipv4_addr.h>
-#include <Socket/common/basic_socket.h>
+#include <ipv4/ipv4_addr.h>
+#include <common/basic_socket.h>
 
 namespace PortableAPI
 {
     ////////////
-    /// @brief Template specialization for ipv4 tcp socket
+    /// @brief Template specialization for ipv4 udp socket
     ////////////
-    using tcp_socket = connected_socket<ipv4_addr, Socket::address_family::inet, Socket::types::stream, Socket::protocols::tcp>;
+    using udp_socket = unconnected_socket<ipv4_addr, Socket::address_family::inet, Socket::types::dgram, Socket::protocols::udp>;
 }
+
 #endif
