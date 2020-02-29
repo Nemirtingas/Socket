@@ -18,7 +18,7 @@
 #ifndef __SOCKET_INCLUDED__
 #define __SOCKET_INCLUDED__
 
-#include <utils/utils.h>
+#include <utils.h>
 
 #if defined(__WINDOWS__)
 
