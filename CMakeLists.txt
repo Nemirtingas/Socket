@@ -173,6 +173,12 @@ target_compile_options(
   $<$<AND:$<CONFIG:Release>,$<BOOL:${MSVC}>>:/MP>
 )
 
+target_compile_definitions(
+  Socket_static
+  PUBLIC
+  SOCKET_EXPORT
+)
+
 ##################
 ## Install rules
 set(CMAKE_INSTALL_PREFIX ${CMAKE_SOURCE_DIR})

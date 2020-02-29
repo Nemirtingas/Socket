@@ -26,7 +26,7 @@ namespace PortableAPI
     ////////////
     /// @brief Basic socket type that could be used in a future poll class
     ////////////
-    class LOCAL_API basic_socket
+    class EXPORT_SOCKET_API basic_socket
     {
         public:
             virtual ~basic_socket() = default;
@@ -132,7 +132,7 @@ namespace PortableAPI
     /// @brief Templated connected_socket class, this uses recv & send.
     ////////////
     template<typename Addr, Socket::address_family family, Socket::types type, Socket::protocols proto>
-    class LOCAL_API connected_socket : public basic_socket
+    class EXPORT_SOCKET_API connected_socket : public basic_socket
     {
         public:
             ////////////
@@ -232,7 +232,7 @@ namespace PortableAPI
     /// @brief Templated unconnected_socket class, this uses recvfrom & sendto.
     ////////////
     template<typename Addr, Socket::address_family family, Socket::types type, Socket::protocols proto>
-    class LOCAL_API unconnected_socket : public basic_socket
+    class EXPORT_SOCKET_API unconnected_socket : public basic_socket
     {
         public:
             ////////////

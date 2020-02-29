@@ -55,7 +55,7 @@ unix_addr::~unix_addr()
     delete _sockaddr;
 }
 
-std::string unix_addr::to_string() const
+std::string unix_addr::to_string(bool with_port) const
 {
     return get_addr();
 }

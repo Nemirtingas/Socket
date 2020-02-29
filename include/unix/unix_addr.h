@@ -30,7 +30,7 @@
 
 namespace PortableAPI
 {
-    class LOCAL_API unix_addr : public basic_addr
+    class EXPORT_SOCKET_API unix_addr : public basic_addr
     {
         public:
             using my_sockaddr = sockaddr_un;
@@ -51,7 +51,7 @@ namespace PortableAPI
             /// @param[in] with_port Append the port
             /// @return Address formated like <path>
             ////////////
-            virtual std::string to_string() const;
+            virtual std::string to_string(bool with_port = false) const;
             ////////////
             /// @brief Transforms the human readable string into an address
             /// @param[in] str Pass in a formated string like <path>

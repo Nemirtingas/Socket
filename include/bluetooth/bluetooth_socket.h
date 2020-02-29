@@ -57,7 +57,7 @@ typedef WSAQUERYSETW service_t;
 namespace PortableAPI
 {
 #define SOCKET_EXCEPTION_CLASS(x) \
-class LOCAL_API x : public socket_exception \
+class EXPORT_SOCKET_API x : public socket_exception \
 {\
 public:\
     x(const char* mywhat):socket_exception(mywhat){}\
@@ -71,7 +71,7 @@ public:\
     ////////////
     /// @brief Class with address and name about a device
     ////////////
-    class LOCAL_API BluetoothDevice
+    class EXPORT_SOCKET_API BluetoothDevice
     {
     public:
         bdaddr_t addr;
@@ -88,7 +88,7 @@ public:\
     ////////////
     /// @brief Utility Class for manipulating uuids
     ////////////
-    class LOCAL_API Uuid
+    class EXPORT_SOCKET_API Uuid
     {
     public:
         enum class type : uint8_t
@@ -185,7 +185,7 @@ public:\
     ////////////
     /// @brief A wrapper class for 'C' network & socket Bluetooth functions
     ////////////
-    class LOCAL_API BluetoothSocket : public Socket
+    class EXPORT_SOCKET_API BluetoothSocket : public Socket
     {
     public:
         /////////////
@@ -275,7 +275,7 @@ public:\
     ////////////
     /// @brief A SDP Record class
     ////////////
-    class LOCAL_API SDPService
+    class EXPORT_SOCKET_API SDPService
     {
         friend class BluetoothSocket;
 

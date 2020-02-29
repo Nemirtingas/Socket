@@ -25,7 +25,7 @@ namespace PortableAPI
     ////////////
     /// @brief A bluetooth sock_addr object
     ////////////
-    class LOCAL_API bth_addr : public basic_addr
+    class EXPORT_SOCKET_API bth_addr : public basic_addr
     {
         public:
             using my_sockaddr = sockaddr_rc;

@@ -25,7 +25,7 @@ namespace PortableAPI
     ////////////
     /// @brief An IPV6 sock_addr object
     ////////////
-    class LOCAL_API ipv6_addr : public basic_addr
+    class EXPORT_SOCKET_API ipv6_addr : public basic_addr
     {
         public:
             using my_sockaddr = sockaddr_in6;
