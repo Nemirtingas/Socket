@@ -17,6 +17,7 @@
 
 #include <common/poll.h>
 #include <common/basic_socket.h>
+#include <algorithm>
 
 using namespace PortableAPI;
 
