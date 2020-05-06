@@ -56,12 +56,12 @@ size_t Poll::get_num_polls() const
 
 void Poll::set_events(basic_socket* sock, Socket::poll_flags flags)
 {
-    _polls[_sockets.at(sock)].revents = static_cast<uint16_t>(flags);
+    _polls[_sockets.at(sock)].events = static_cast<uint16_t>(flags);
 }
 
 void Poll::set_events(int i, Socket::poll_flags flags)
 {
-    _polls[i].revents = static_cast<uint16_t>(flags);
+    _polls[i].events = static_cast<uint16_t>(flags);
 }
 
 Socket::poll_flags Poll::get_revents(basic_socket* sock) const
