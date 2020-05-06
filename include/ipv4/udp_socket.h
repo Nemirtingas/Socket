@@ -18,8 +18,8 @@
 #ifndef _UDP_SOCKET_INCLUDED_
 #define _UDP_SOCKET_INCLUDED_
 
-#include <ipv4/ipv4_addr.h>
-#include <common/basic_socket.h>
+#include "ipv4_addr.h"
+#include "../common/basic_socket.h"
 
 namespace PortableAPI
 {

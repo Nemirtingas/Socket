@@ -17,7 +17,8 @@
 
 #pragma once
 
-#include <common/socket.h>
+#include "socket.h"
+#include "poll.h"
 
 #include <memory>
 

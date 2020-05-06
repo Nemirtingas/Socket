@@ -17,7 +17,6 @@
 
 #include <common/socket.h>
 
-using namespace std;
 using namespace PortableAPI;
 
 socket_exception::socket_exception() :mywhat("Socket exception") {}
@@ -55,7 +54,7 @@ Socket::socket_t Socket::accept(Socket::socket_t s, basic_addr &addr)
 #endif
             case EWOULDBLOCK : throw would_block();
 #endif
-            default               : throw socket_exception("accept exception: " + to_string(error));
+            default               : throw socket_exception("accept exception: " + std::to_string(error));
         }
     }
 
@@ -82,7 +81,7 @@ void Socket::bind(Socket::socket_t s, basic_addr const&addr)
             case EADDRINUSE: throw address_in_use("The given address is already in use.");
             case EINVAL: throw error_in_value("The socket is already bound to an address.");
 #endif
-            default: throw socket_exception("bind exception: " + to_string(error));
+            default: throw socket_exception("bind exception: " + std::to_string(error));
         }
     }
 }
@@ -123,7 +122,7 @@ void Socket::connect(Socket::socket_t s, basic_addr const&addr)
             case ENETUNREACH: throw network_unreachable();
             case EISCONN: throw is_connected();
 #endif
-            default: throw socket_exception("connect exception: " + to_string(error));
+            default: throw socket_exception("connect exception: " + std::to_string(error));
         }
     }
 }
@@ -173,7 +172,7 @@ void Socket::listen(Socket::socket_t s, int waiting_connection)
 #elif defined(__LINUX__) || defined(__APPLE__)
             case EADDRINUSE: throw address_in_use();
 #endif
-            default: throw socket_exception("listen exception: " + to_string(error));
+            default: throw socket_exception("listen exception: " + std::to_string(error));
         }
     }
 }
@@ -205,7 +204,7 @@ size_t Socket::recv(Socket::socket_t s, void* buffer, size_t len, Socket::socket
     #endif
             case EWOULDBLOCK: res = 0; break;
 #endif
-            default: throw socket_exception("recv exception: " + to_string(error));
+            default: throw socket_exception("recv exception: " + std::to_string(error));
         }
     }
     return static_cast<size_t>(res);
@@ -237,7 +236,7 @@ size_t Socket::recvfrom(Socket::socket_t s, basic_addr &addr, void* buffer, size
     #endif
             case EWOULDBLOCK: res = 0; break;
 #endif
-            default: throw socket_exception("recvfrom exception: " + to_string(error));
+            default: throw socket_exception("recvfrom exception: " + std::to_string(error));
         }
     }
     return static_cast<size_t>(res);
@@ -269,7 +268,7 @@ size_t Socket::send(Socket::socket_t s, const void* buffer, size_t len, Socket::
     #endif
             case EWOULDBLOCK: res = 0; break;
 #endif
-            default: throw socket_exception("send exception: " + to_string(error));
+            default: throw socket_exception("send exception: " + std::to_string(error));
         }
     }
     return res;
@@ -294,7 +293,7 @@ size_t Socket::sendto(Socket::socket_t s, basic_addr const&addr, const void* buf
 #elif defined(__LINUX__) || defined(__APPLE__)
             case ENETUNREACH: throw network_unreachable();
 #endif
-            default: throw socket_exception("sendto exception: " + to_string(error));
+            default: throw socket_exception("sendto exception: " + std::to_string(error));
         }
     }
     return res;
@@ -322,7 +321,7 @@ Socket::socket_t Socket::socket(Socket::address_family af, Socket::types type, S
             case WSAENETDOWN: throw wsa_net_down();
 #elif defined(__LINUX__) || defined(__APPLE__)
 #endif
-            default: throw socket_exception("listen exception: " + to_string(error));
+            default: throw socket_exception("listen exception: " + std::to_string(error));
         }
     }
     return s;

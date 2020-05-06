@@ -18,7 +18,7 @@
 #ifndef __BLUETOOTH_SOCKET_INCLUDED__
 #define __BLUETOOTH_SOCKET_INCLUDED__
 
-#include <common/socket.h>
+#include "../common/socket.h"
 
 #if defined(__LINUX__)
 

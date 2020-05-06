@@ -18,7 +18,7 @@
 #ifndef _BTH_ADDR_INCLUDED_
 #define _BTH_ADDR_INCLUDED_
 
-#include <bluetooth/bluetooth_socket.h>
+#include "bluetooth_socket.h"
 
 namespace PortableAPI
 {

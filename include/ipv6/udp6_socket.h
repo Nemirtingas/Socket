@@ -18,8 +18,8 @@
 #ifndef _UDP6_SOCKET_INCLUDED_
 #define _UDP6_SOCKET_INCLUDED_
 
-#include <ipv6/ipv6_addr.h>
-#include <common/basic_socket.h>
+#include "ipv6_addr.h"
+#include "../common/basic_socket.h"
 
 namespace PortableAPI
 {

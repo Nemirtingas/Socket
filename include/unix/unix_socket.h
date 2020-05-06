@@ -18,8 +18,8 @@
 #ifndef _UNIX_SOCKET_INCLUDED_
 #define _UNIX_SOCKET_INCLUDED_
 
-#include <unix/unix_addr.h>
-#include <common/basic_socket.h>
+#include "unix_addr.h"
+#include "../common/basic_socket.h"
 
 namespace PortableAPI
 {

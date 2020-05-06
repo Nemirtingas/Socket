@@ -600,6 +600,7 @@ public:\
         ////////////
         enum class poll_flags
         {
+            none = 0,
             rdnorm = POLLRDNORM,
             rdband = POLLRDBAND,
             in = POLLIN,
@@ -854,5 +855,8 @@ inline std::ostream& operator<<(std::ostream &os, PortableAPI::basic_addr const&
 }
 
 UTILS_ENABLE_BITMASK_OPERATORS(PortableAPI::Socket::socket_flags);
+UTILS_ENABLE_BITMASK_OPERATORS(PortableAPI::Socket::poll_flags);
+
+
 
 #endif

@@ -18,7 +18,7 @@
 #ifndef _UNIX_ADDR_INCLUDED_
 #define _UNIX_ADDR_INCLUDED_
 
-#include <common/basic_socket.h>
+#include "../common/basic_socket.h"
 
 #if defined(__WINDOWS__)
     #include <afunix.h>
