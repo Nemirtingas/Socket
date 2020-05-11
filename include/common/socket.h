@@ -611,6 +611,8 @@ public:\
             err = POLLERR,
             hup = POLLHUP,
             nval = POLLNVAL,
+            in_hup = in|hup,
+            out_hup = out|hup,
         };
 #endif
 
