@@ -23,31 +23,52 @@ using namespace PortableAPI;
 
 void Poll::add_socket(basic_socket* sock)
 {
-    _sockets[sock] = _polls.size();
+    auto it = _sockets.find(sock);
+    if (it == _sockets.end())
+    {
+        _sockets[sock] = _polls.size();
 
-    pollfd pollinfos = {};
-    pollinfos.fd = sock->get_native_socket();
-    _polls.emplace_back(pollinfos);
+        pollfd pollinfos = {};
+        pollinfos.fd = sock->get_native_socket();
+        _polls.emplace_back(pollinfos);
+    }
 }
 
 void Poll::remove_socket(basic_socket* sock)
 {
     auto it = _sockets.find(sock);
-    auto pollit = _polls.begin();
-    std::advance(pollit, it->second);
-    _polls.erase(pollit);
-    _sockets.erase(it);
+    if (it != _sockets.end())
+    {
+        auto pollit = _polls.begin();
+        int i = it->second;
+        std::advance(pollit, it->second);
+        _polls.erase(pollit);
+        _sockets.erase(it);
+        for (auto& sock : _sockets)
+        {
+            if (sock.second >= i)
+                --sock.second;
+        }
+    }
 }
 
 void Poll::remove_socket(int i)
 {
-    auto it = _polls.begin();
-    std::advance(it, i);
-    _sockets.erase(std::find_if(_sockets.begin(), _sockets.end(), [i](std::pair<basic_socket const*, int> p)
+    if (i < _polls.size())
     {
-        return p.second == i;
-    }));
-    _polls.erase(it);
+        auto it = _polls.begin();
+        std::advance(it, i);
+        _sockets.erase(std::find_if(_sockets.begin(), _sockets.end(), [i](std::pair<basic_socket const*, int> p)
+        {
+            return p.second == i;
+        }));
+        _polls.erase(it);
+        for (auto& sock : _sockets)
+        {
+            if (sock.second >= i)
+                --sock.second;
+        }
+    }
 }
 
 size_t Poll::get_num_polls() const
