@@ -28,7 +28,7 @@ namespace PortableAPI
     ////////////
     class Poll
     {
-        std::map<basic_socket*, int> _sockets;
+        std::map<Socket::socket_t, int> _sockets;
         std::vector<pollfd> _polls;
 
     public:
@@ -37,13 +37,13 @@ namespace PortableAPI
         /// @param[in] sock The socket to add
         /// @return 
         ////////////
-        void add_socket(basic_socket *sock);
+        void add_socket(basic_socket const& sock);
         ////////////
         /// @brief Removes a socket from the poll
         /// @param[in] sock The socket to remove
         /// @return 
         ////////////
-        void remove_socket(basic_socket *sock);
+        void remove_socket(basic_socket const& ock);
         ////////////
         /// @brief Removes a socket from the poll
         /// @param[in] i The socket index to remove, better check with get_num_polls before.
@@ -61,7 +61,7 @@ namespace PortableAPI
         /// @param[in] flags new event flags
         /// @return 
         ////////////
-        void set_events(basic_socket* sock, Socket::poll_flags flags);
+        void set_events(basic_socket const& sock, Socket::poll_flags flags);
         ////////////
         /// @brief Set a poll event for the socket
         /// @param[in] i The socket index to change the flags to, better check with get_num_polls before.
@@ -74,7 +74,7 @@ namespace PortableAPI
         /// @param[in] sock The socket to get the flags from
         /// @return The poll revents flags
         ////////////
-        Socket::poll_flags get_revents(basic_socket* sock) const;
+        Socket::poll_flags get_revents(basic_socket const& sock) const;
         ////////////
         /// @brief Get a poll revents for the socket
         /// @param[in] sock The socket index to get the flags from, better check with get_num_polls before.

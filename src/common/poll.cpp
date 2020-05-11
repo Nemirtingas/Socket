@@ -21,22 +21,23 @@
 
 using namespace PortableAPI;
 
-void Poll::add_socket(basic_socket* sock)
+void Poll::add_socket(basic_socket const& sock)
 {
-    auto it = _sockets.find(sock);
+    Socket::socket_t native_sock = sock.get_native_socket();
+    auto it = _sockets.find(native_sock);
     if (it == _sockets.end())
     {
-        _sockets[sock] = _polls.size();
+        _sockets[native_sock] = _polls.size();
 
         pollfd pollinfos = {};
-        pollinfos.fd = sock->get_native_socket();
+        pollinfos.fd = native_sock;
         _polls.emplace_back(pollinfos);
     }
 }
 
-void Poll::remove_socket(basic_socket* sock)
+void Poll::remove_socket(basic_socket const& sock)
 {
-    auto it = _sockets.find(sock);
+    auto it = _sockets.find(sock.get_native_socket());
     if (it != _sockets.end())
     {
         auto pollit = _polls.begin();
@@ -58,7 +59,7 @@ void Poll::remove_socket(int i)
     {
         auto it = _polls.begin();
         std::advance(it, i);
-        _sockets.erase(std::find_if(_sockets.begin(), _sockets.end(), [i](std::pair<basic_socket const*, int> p)
+        _sockets.erase(std::find_if(_sockets.begin(), _sockets.end(), [i](std::pair<Socket::socket_t const, int> p)
         {
             return p.second == i;
         }));
@@ -76,9 +77,9 @@ size_t Poll::get_num_polls() const
     return _polls.size();
 }
 
-void Poll::set_events(basic_socket* sock, Socket::poll_flags flags)
+void Poll::set_events(basic_socket const& sock, Socket::poll_flags flags)
 {
-    _polls[_sockets.at(sock)].events = static_cast<uint16_t>(flags);
+    _polls[_sockets.at(sock.get_native_socket())].events = static_cast<uint16_t>(flags);
 }
 
 void Poll::set_events(int i, Socket::poll_flags flags)
@@ -86,9 +87,9 @@ void Poll::set_events(int i, Socket::poll_flags flags)
     _polls[i].events = static_cast<uint16_t>(flags);
 }
 
-Socket::poll_flags Poll::get_revents(basic_socket* sock) const
+Socket::poll_flags Poll::get_revents(basic_socket const& sock) const
 {
-    return static_cast<Socket::poll_flags>(_polls[_sockets.at(sock)].revents);
+    return static_cast<Socket::poll_flags>(_polls[_sockets.at(sock.get_native_socket())].revents);
 }
 
 Socket::poll_flags Poll::get_revents(int i) const
