@@ -197,8 +197,8 @@ size_t Socket::recv(Socket::socket_t s, void* buffer, size_t len, Socket::socket
             case WSAENOTCONN: throw not_connected();
             case WSAEWOULDBLOCK: res = 0; break;
 #elif defined(__LINUX__) || defined(__APPLE__)
-            case ENOTCONN: throw not_connected("The socket is not connected.");
-            case ECONNRESET: throw connection_reset("Connection reset by peer.");
+            case ENOTCONN: throw not_connected();
+            case ECONNRESET: throw connection_reset();
     #if EAGAIN != EWOULDBLOCK
             case EAGAIN:
     #endif
@@ -258,11 +258,11 @@ size_t Socket::send(Socket::socket_t s, const void* buffer, size_t len, Socket::
 #if defined(__WINDOWS__)
             case WSANOTINITIALISED: throw wsa_not_initialised();
             case WSAENETDOWN: throw wsa_net_down();
-            case WSAENOTCONN: throw not_connected("The socket is not connected.");
+            case WSAENOTCONN: throw not_connected();
             case WSAEWOULDBLOCK: res = 0; break;
-            case WSAECONNABORTED: throw connection_reset("Connection reset by peer.");
+            case WSAECONNABORTED: throw connection_reset();
 #elif defined(__LINUX__) || defined(__APPLE__)
-            case ENOTCONN: throw not_connected("The socket is not connected.");
+            case ENOTCONN: throw not_connected();
     #if EAGAIN != EWOULDBLOCK
             case EAGAIN:
     #endif
