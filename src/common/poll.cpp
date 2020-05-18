@@ -41,7 +41,7 @@ void Poll::remove_socket(basic_socket const& sock)
     if (it != _sockets.end())
     {
         auto pollit = _polls.begin();
-        int i = it->second;
+        size_t i = it->second;
         std::advance(pollit, it->second);
         _polls.erase(pollit);
         _sockets.erase(it);
@@ -53,7 +53,7 @@ void Poll::remove_socket(basic_socket const& sock)
     }
 }
 
-void Poll::remove_socket(int i)
+void Poll::remove_socket(size_t i)
 {
     if (i < _polls.size())
     {
@@ -82,7 +82,7 @@ void Poll::set_events(basic_socket const& sock, Socket::poll_flags flags)
     _polls[_sockets.at(sock.get_native_socket())].events = static_cast<uint16_t>(flags);
 }
 
-void Poll::set_events(int i, Socket::poll_flags flags)
+void Poll::set_events(size_t i, Socket::poll_flags flags)
 {
     _polls[i].events = static_cast<uint16_t>(flags);
 }
@@ -92,7 +92,7 @@ Socket::poll_flags Poll::get_revents(basic_socket const& sock) const
     return static_cast<Socket::poll_flags>(_polls[_sockets.at(sock.get_native_socket())].revents);
 }
 
-Socket::poll_flags Poll::get_revents(int i) const
+Socket::poll_flags Poll::get_revents(size_t i) const
 {
     return static_cast<Socket::poll_flags>(_polls[i].revents);
 }

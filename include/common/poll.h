@@ -28,7 +28,7 @@ namespace PortableAPI
     ////////////
     class Poll
     {
-        std::map<Socket::socket_t, int> _sockets;
+        std::map<Socket::socket_t, size_t> _sockets;
         std::vector<pollfd> _polls;
 
     public:
@@ -49,7 +49,7 @@ namespace PortableAPI
         /// @param[in] i The socket index to remove, better check with get_num_polls before.
         /// @return 
         ////////////
-        void remove_socket(int i);
+        void remove_socket(size_t i);
         ////////////
         /// @brief Get the number of sockets currently in the poll
         /// @return Number of sockets in the poll
@@ -68,7 +68,7 @@ namespace PortableAPI
         /// @param[in] flags new event flags
         /// @return 
         ////////////
-        void set_events(int i, Socket::poll_flags flags);
+        void set_events(size_t i, Socket::poll_flags flags);
         ////////////
         /// @brief Get a poll revents for the socket
         /// @param[in] sock The socket to get the flags from
@@ -80,7 +80,7 @@ namespace PortableAPI
         /// @param[in] sock The socket index to get the flags from, better check with get_num_polls before.
         /// @return The poll revents flags
         ////////////
-        Socket::poll_flags get_revents(int i) const;
+        Socket::poll_flags get_revents(size_t i) const;
         ////////////
         /// @brief Start the socket poll
         /// @param[in] timeout_ms <0, block, 0 returns now, >0 The time in milliseconds to wait.
