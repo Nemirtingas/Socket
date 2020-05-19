@@ -115,12 +115,20 @@ void Socket::connect(Socket::socket_t s, basic_addr const&addr)
             case WSAENETUNREACH: case WSAEHOSTUNREACH: throw network_unreachable();
             case WSAETIMEDOUT: throw connection_timeout();
             case WSAEISCONN: throw is_connected();
+            case WSAEWOULDBLOCK: throw would_block();
+            case WSAEINPROGRESS: throw in_progress();
 #elif defined(__LINUX__) || defined(__APPLE__)
             case EINVAL: throw error_in_value("Address is not available.");
             case EADDRINUSE: throw address_in_use("Local address is already in use.");
             case ECONNREFUSED:  throw connection_refused();
             case ENETUNREACH: throw network_unreachable();
             case EISCONN: throw is_connected();
+            case EINVAL: throw error_in_value("The listen function was not invoked prior to accept.");
+            case EINPROGRESS: throw in_progress();
+    #if EAGAIN != EWOULDBLOCK
+            case EAGAIN:
+    #endif
+            case EWOULDBLOCK: throw would_block();
 #endif
             default: throw socket_exception("connect exception: " + std::to_string(error));
         }
@@ -195,15 +203,17 @@ size_t Socket::recv(Socket::socket_t s, void* buffer, size_t len, Socket::socket
             case WSANOTINITIALISED: throw wsa_not_initialised();
             case WSAENETDOWN: throw wsa_net_down();
             case WSAENOTCONN: throw not_connected();
+            case WSAECONNABORTED: throw connection_abort();
             case WSAEWOULDBLOCK: res = 0; break;
 #elif defined(__LINUX__) || defined(__APPLE__)
             case ENOTCONN: throw not_connected();
             case ECONNRESET: throw connection_reset();
+            case ECONNABORTED: throw connection_abort();
     #if EAGAIN != EWOULDBLOCK
             case EAGAIN:
     #endif
             case EWOULDBLOCK: res = 0; break;
-#endif
+    #endif
             default: throw socket_exception("recv exception: " + std::to_string(error));
         }
     }
@@ -376,7 +386,7 @@ void Socket::InitSocket(uint32_t version)
     {
         case WSASYSNOTREADY: throw(wsa_sys_not_ready());
         case WSAVERNOTSUPPORTED: throw(wsa_version_not_supported());
-        case WSAEINPROGRESS: throw(wsa_in_progress());
+        case WSAEINPROGRESS: throw(in_progress());
         case WSAEPROCLIM: throw(wsa_proclim());
         case WSAEFAULT: throw(wsa_fault());
         case 0: break;

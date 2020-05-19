@@ -164,7 +164,6 @@ public:\
     SOCKET_EXCEPTION_CLASS(wsa_net_down, "The network subsystem has failed.");                                               // WSAENETDOWN
     SOCKET_EXCEPTION_CLASS(wsa_sys_not_ready, "The underlying network subsystem is not ready for network communication.");   // WSASYSNOTREADY
     SOCKET_EXCEPTION_CLASS(wsa_version_not_supported, "The version of Windows Sockets support requested is not provided by this particular Windows Sockets implementation."); // WSAVERNOTSUPPORTED
-    SOCKET_EXCEPTION_CLASS(wsa_in_progress, "A blocking Windows Sockets 1.1 operation is in progress.");                     // WSAEINPROGRESS
     SOCKET_EXCEPTION_CLASS(wsa_proclim, "A limit on the number of tasks supported by the Windows Sockets implementation has been reached."); // WSAEPROCLIM
     SOCKET_EXCEPTION_CLASS(wsa_fault, "The lpWSAData parameter is not a valid pointer.");                                    // WSAEFAULT
 
@@ -172,12 +171,14 @@ public:\
     SOCKET_EXCEPTION_CLASS(address_in_use, "Another socket is already listening on the same port.");      // EADDRINUSE   - WSAEADDRINUSE
     SOCKET_EXCEPTION_CLASS(connection_refused, "No-one listening on the remote address.");                // ECONNREFUSED - WSAECONNREFUSED
     SOCKET_EXCEPTION_CLASS(connection_reset, "Connection reset by peer.");                                // ECONNRESET   - WSAECONNRESET
+    SOCKET_EXCEPTION_CLASS(connection_abort, "Software caused connection abort.");                        // ECONNABORT   - WSAECONNABORT
     SOCKET_EXCEPTION_CLASS(connection_timeout, "A connection attempt failed because the connected party did not properly respond after a period of time.");  //              - WSAETIMEDOUT
     SOCKET_EXCEPTION_CLASS(error_in_value, "Error in value");                                             // EINVAL       - WSAEINVAL
     SOCKET_EXCEPTION_CLASS(is_connected, "A connect request was made on an already-connected socket.");   // EISCONN      - WSAEISCONN
     SOCKET_EXCEPTION_CLASS(network_unreachable, "Network is unreachable.");                               // ENETUNREACH  - WSAENETUNREACH
     SOCKET_EXCEPTION_CLASS(not_connected, "The socket is not connected.");                                // ENOTCONN     - WSAENOTCONN
     SOCKET_EXCEPTION_CLASS(would_block, "The operation would block");                                     // EWOULDBLOCK  - WSAEWOULDBLOCK
+    SOCKET_EXCEPTION_CLASS(in_progress, "A blocking operation is in progress.");                          // EINPROGRESS  - WSAEINPROGRESS
 
 #undef SOCKET_EXCEPTION_CLASS
 
