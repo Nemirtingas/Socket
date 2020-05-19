@@ -123,7 +123,6 @@ void Socket::connect(Socket::socket_t s, basic_addr const&addr)
             case ECONNREFUSED:  throw connection_refused();
             case ENETUNREACH: throw network_unreachable();
             case EISCONN: throw is_connected();
-            case EINVAL: throw error_in_value("The listen function was not invoked prior to accept.");
             case EINPROGRESS: throw in_progress();
     #if EAGAIN != EWOULDBLOCK
             case EAGAIN:
