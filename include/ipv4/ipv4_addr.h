@@ -31,12 +31,12 @@ namespace PortableAPI
             using my_sockaddr = sockaddr_in;
 #if defined(__WINDOWS__)
             constexpr static in_addr any_addr       = { 0x00, 0x00, 0x00, 0x00 };
-            constexpr static in_addr loopback_addr  = { 0x01, 0x00, 0x00, 0x7f };
+            constexpr static in_addr loopback_addr  = { 0x7f, 0x00, 0x00, 0x01 };
             constexpr static in_addr broadcast_addr = { 0xff, 0xff, 0xff, 0xff };
 #elif defined(__LINUX__) || defined(__APPLE__)
-            constexpr static in_addr any_addr       = { INADDR_ANY       };
-            constexpr static in_addr loopback_addr  = { INADDR_LOOPBACK  };
-            constexpr static in_addr broadcast_addr = { INADDR_BROADCAST };
+            constexpr static in_addr any_addr       = { 0x00000000 };
+            constexpr static in_addr loopback_addr  = { 0x0100007f };
+            constexpr static in_addr broadcast_addr = { 0xffffffff };
 #endif
 
         private:
@@ -78,13 +78,13 @@ namespace PortableAPI
             ////////////
             virtual size_t len() const;
             ////////////
-            /// @brief Sets the IPV4 ip
+            /// @brief Sets the IPV4 ip, will be network ordered
             /// @param[in]  addr The IPV4 ip
             /// @return 
             ////////////
             void set_ip(uint32_t ip);
             ////////////
-            /// @brief Sets the IPV4 addr
+            /// @brief Sets the IPV4 addr, it will not be re-ordered
             /// @param[in]  addr The IPV4 addr
             /// @return 
             ////////////

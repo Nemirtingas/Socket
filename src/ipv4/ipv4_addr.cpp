@@ -117,7 +117,7 @@ void ipv4_addr::set_ip(uint32_t ip)
 
 void ipv4_addr::set_addr(in_addr const& addr)
 {
-    set_ip(addr.s_addr);
+    _sockaddr->sin_addr = addr;
 }
 
 void ipv4_addr::set_port(uint16_t port)
