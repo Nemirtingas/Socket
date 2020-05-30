@@ -37,8 +37,16 @@ template<typename Addr, Socket::address_family family, Socket::types type, Socke
 inline void connected_socket<Addr, family, type, proto>::connect(myaddr_t const& addr)
 {
     myaddr_t new_addr(addr);
-    Socket::connect(*_sock, new_addr);
-    _addr = std::move(new_addr);
+    try
+    {
+        Socket::connect(*_sock, new_addr);
+        _addr = std::move(new_addr);
+    }
+    catch (would_block &e)
+    {
+        _addr = std::move(new_addr);
+        throw;
+    }
 }
 
 template<typename Addr, Socket::address_family family, Socket::types type, Socket::protocols proto>
