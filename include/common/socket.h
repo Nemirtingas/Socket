@@ -754,6 +754,12 @@ public:\
         ////////////
         static int getaddrinfo(const char* node, const char* service, const addrinfo *hints, addrinfo **res);
         ////////////
+        /// @brief Wrapper for 'C' freeaddrinfo function.
+        /// @param[in]  infos   A pointer to an addrinfo structure previously allocated with getaddrinfo.
+        /// @return 
+        ////////////
+        static void freeaddrinfo(addrinfo* infos);
+        ////////////
         /// @brief Wrapper for 'C' getnameinfo function.
         /// @param[in]  addr    A pointer to a socket address structure that contains the address and port number of the socket.
         ///                     For IPv4, the sa parameter points to a sockaddr_in structure. For IPv6, the sa parameter points to a sockaddr_in6 structure.

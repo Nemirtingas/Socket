@@ -341,6 +341,11 @@ int Socket::getaddrinfo(const char * node, const char * service, const addrinfo 
     return ::getaddrinfo(node, service, hints, res);
 }
 
+void Socket::freeaddrinfo(addrinfo* infos)
+{
+    ::freeaddrinfo(infos);
+}
+
 int Socket::getnameinfo(const sockaddr * addr, socklen_t addrlen, char * host, size_t hostlen, char * serv, size_t servlen, int flags)
 {
     return ::getnameinfo(addr, addrlen, host, hostlen, serv, servlen, flags);
