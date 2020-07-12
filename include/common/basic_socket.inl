@@ -62,7 +62,7 @@ template<typename Addr, Socket::address_family family, Socket::types type, Socke
 inline void connected_socket<Addr, family, type, proto>::bind(myaddr_t const& addr)
 {
     Socket::bind(*_sock, addr);
-    _addr = addr;
+    _addr = std::move(addr);
 }
 
 template<typename Addr, Socket::address_family family, Socket::types type, Socket::protocols proto>
@@ -102,6 +102,7 @@ template<typename Addr, Socket::address_family family, Socket::types type, Socke
 void unconnected_socket<Addr, family, type, proto>::bind(myaddr_t const& addr)
 {
     Socket::bind(*_sock, addr);
+    _addr = std::move(addr);
 }
 
 template<typename Addr, Socket::address_family family, Socket::types type, Socket::protocols proto>
