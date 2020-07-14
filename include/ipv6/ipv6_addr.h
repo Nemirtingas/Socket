@@ -71,7 +71,13 @@ namespace PortableAPI
             ////////////
             virtual size_t len() const;
             ////////////
-            /// @brief Sets the IPV6 addr
+            /// @brief Sets the IPV6 addr, will be network ordered
+            /// @param[in]  addr The IPV6 addr
+            /// @return 
+            ////////////
+            void set_ip(in6_addr const& addr);
+            ////////////
+            /// @brief Sets the IPV6 addr, it will not be re-ordered
             /// @param[in]  addr The IPV6 addr
             /// @return 
             ////////////
@@ -82,6 +88,11 @@ namespace PortableAPI
             /// @return 
             ////////////
             void set_port(uint16_t);
+            ////////////
+            /// @brief Gets the IPV6 ip
+            /// @return The IPV6 ip
+            ////////////
+            in6_addr get_ip() const;
             ////////////
             /// @brief Gets the IPV6 addr
             /// @return The IPV6 addr

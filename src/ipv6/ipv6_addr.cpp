@@ -122,14 +122,24 @@ size_t ipv6_addr::len() const
     return sizeof(sockaddr_in);
 }
 
-void ipv6_addr::set_addr(in6_addr const& addr)
+void ipv6_addr::set_ip(in6_addr const& addr)
 {
     _sockaddr->sin6_addr = Socket::net_swap(addr);
+}
+
+void ipv6_addr::set_addr(in6_addr const& addr)
+{
+    _sockaddr->sin6_addr = addr;
 }
 
 void ipv6_addr::set_port(uint16_t port)
 {
     _sockaddr->sin6_port = Socket::net_swap(port);
+}
+
+in6_addr ipv6_addr::get_ip() const
+{
+    return _sockaddr->sin6_addr;
 }
 
 in6_addr ipv6_addr::get_addr() const
