@@ -214,10 +214,10 @@ uuid_t const& Uuid::get_native_uuid() const
 ///////////////////////////////////////////////////////////////////////////////
 // BluetoothSocket Class
 
-void BluetoothSocket::inet_pton(BluetoothSocket::address_family family, std::string const& str_addr, void* out_buf)
+int BluetoothSocket::inet_pton(BluetoothSocket::address_family family, std::string const& str_addr, void* out_buf)
 {
     if (family != BluetoothSocket::address_family::bth)
-        throw error_in_value("Error in family, cannot parse addr");
+        return 0;
 
     sockaddr_rc sockaddr;
     socklen_t lg = sizeof(sockaddr_rc);
@@ -225,11 +225,11 @@ void BluetoothSocket::inet_pton(BluetoothSocket::address_family family, std::str
     std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> converter;
     std::wstring waddr = converter.from_bytes(str_addr);
 
-    if(WSAStringToAddressW(const_cast<wchar_t*>(waddr.c_str()), static_cast<uint32_t>(BluetoothSocket::address_family::bth), nullptr, (LPSOCKADDR)&sockaddr, (socklen_t*)&lg))
-        throw error_in_value("Error in value, cannot parse addr");
-
+    if (WSAStringToAddressW(const_cast<wchar_t*>(waddr.c_str()), static_cast<uint32_t>(BluetoothSocket::address_family::bth), nullptr, (LPSOCKADDR)&sockaddr, (socklen_t*)&lg))
+        return 0;
 
     *reinterpret_cast<BTH_ADDR*>(out_buf) = sockaddr.btAddr;
+    return 1;
 }
 
 void BluetoothSocket::inet_ntop(BluetoothSocket::address_family family, const void* addr, std::string& str_addr)
@@ -689,13 +689,15 @@ uuid_t const& Uuid::get_native_uuid() const
 ///////////////////////////////////////////////////////////////////////////////
 // BluetoothSocket Class
 
-void BluetoothSocket::inet_pton(BluetoothSocket::address_family family, std::string const& str_addr, void* out_buf)
+int BluetoothSocket::inet_pton(BluetoothSocket::address_family family, std::string const& str_addr, void* out_buf)
 {
     if (family != BluetoothSocket::address_family::bth)
-        throw error_in_value("Error in family, cannot parse addr");
+        return 0;
 
-    if(str2ba(str_addr.c_str(), reinterpret_cast<bdaddr_t*>(out_buf)) == -1)
-        throw error_in_value("Error in value, cannot parse addr");
+    if (str2ba(str_addr.c_str(), reinterpret_cast<bdaddr_t*>(out_buf)) == -1)
+        return 0;
+
+    return 1;
 }
 
 void BluetoothSocket::inet_ntop(BluetoothSocket::address_family family, const void* addr, std::string& str_addr)
