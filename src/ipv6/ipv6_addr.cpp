@@ -65,46 +65,66 @@ std::string ipv6_addr::to_string(bool with_port) const
     if (with_port)
     {
         res.insert(res.begin(), '[');
-        res.append("]:");
+        res += "]:";
         res += std::to_string(Socket::net_swap(_sockaddr->sin6_port));
     }
 
     return res;
 }
 
-bool ipv6_addr::from_string(std::string const & str)
+bool ipv6_addr::from_string(std::string const& str)
 {
-    if (str[0] != '[')
+    addrinfo* info = nullptr;
+    addrinfo hints = {};
+    hints.ai_family = (int)PortableAPI::Socket::address_family::inet6;
+    hints.ai_socktype = SOCK_STREAM;
+    hints.ai_flags = AI_NUMERICHOST | AI_NUMERICSERV;
+
+    size_t sep_pos = 0;
+    std::string ip;
+    int sep_count = 0;
+    for (int i = 0; i < str.length(); ++i)
+    {
+        if (str[i] == ':')
+        {
+            sep_pos = i;
+            ++sep_count;
+        }
+    }
+    if (sep_count == 8)
+    {
+        ip = std::move(std::string(str.begin(), str.begin() + sep_pos));
+    }
+    else
+    {
+        ip = str;
+    }
+
+    if (PortableAPI::Socket::getaddrinfo(ip.c_str(), nullptr, &hints, &info) != 0)
+    {
+        if (info != nullptr)
+            PortableAPI::Socket::freeaddrinfo(info);
+
         return false;
+    }
+
+    my_sockaddr* maddr = (my_sockaddr*)info->ai_addr;
+    set_addr(maddr->sin6_addr);
 
     size_t pos = str.find(']');
-    size_t pos_port = str.rfind(':');
-    if (pos == std::string::npos)
-    {
-        return false;
-    }
-
-    if (pos_port > pos)
-        pos = pos_port;
-    else
-        pos = std::string::npos;
-
+    std::string port("0");
     if (pos != std::string::npos)
     {
-        std::string ip = str.substr(1, pos - 2);
-        std::string port = str.substr(pos + 1);
-        if (Socket::inet_pton(Socket::address_family::inet6, ip, &_sockaddr->sin6_addr) != 1)
-            return false;
-
-        set_port(stoi(port));
+        port = std::move(std::string(str.begin() + pos + 2, str.end()));
     }
-    else
+    else if(sep_count == 8)
     {
-        std::string ip = str.substr(1, pos - 2);
-        if (Socket::inet_pton(Socket::address_family::inet6, ip, &_sockaddr->sin6_addr) != 1)
-            return false;
+        port = std::move(std::string(str.begin() + sep_pos + 1, str.end()));
     }
+    set_port(std::stoi(port));
 
+    if (info != nullptr)
+        PortableAPI::Socket::freeaddrinfo(info);
     return true;
 }
 

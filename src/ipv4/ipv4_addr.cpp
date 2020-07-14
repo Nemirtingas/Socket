@@ -84,11 +84,15 @@ bool ipv4_addr::from_string(std::string const & str)
 
     if (pos != std::string::npos)
     {
-        std::string ip = str.substr(0, pos);
-        std::string port = str.substr(pos + 1);
+        std::string tmp(str);
+        tmp[pos] = 0;
+        const char* ip = tmp.c_str();
+        const char* port = &tmp[pos + 1];
+
         if (Socket::inet_pton(Socket::address_family::inet, ip, &_sockaddr->sin_addr) != 1)
             return false;
-        set_port(stoi(port));
+
+        set_port(strtoul(port, nullptr, 10));
     }
     else
     {
