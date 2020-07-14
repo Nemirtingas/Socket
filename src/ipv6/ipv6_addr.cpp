@@ -91,16 +91,17 @@ bool ipv6_addr::from_string(std::string const & str)
 
     if (pos != std::string::npos)
     {
-        std::string ip = str.substr(0, pos);
+        std::string ip = str.substr(1, pos - 2);
         std::string port = str.substr(pos + 1);
-        if (Socket::inet_pton(Socket::address_family::inet, ip, &_sockaddr->sin6_addr) != 1)
+        if (Socket::inet_pton(Socket::address_family::inet6, ip, &_sockaddr->sin6_addr) != 1)
             return false;
 
         set_port(stoi(port));
     }
     else
     {
-        if (Socket::inet_pton(Socket::address_family::inet, str, &_sockaddr->sin6_addr) != 1)
+        std::string ip = str.substr(1, pos - 2);
+        if (Socket::inet_pton(Socket::address_family::inet6, ip, &_sockaddr->sin6_addr) != 1)
             return false;
     }
 
@@ -139,12 +140,12 @@ void ipv6_addr::set_port(uint16_t port)
 
 in6_addr ipv6_addr::get_ip() const
 {
-    return _sockaddr->sin6_addr;
+    return Socket::net_swap(_sockaddr->sin6_addr);
 }
 
 in6_addr ipv6_addr::get_addr() const
 {
-    return Socket::net_swap(_sockaddr->sin6_addr);
+    return _sockaddr->sin6_addr;
 }
 
 uint16_t ipv6_addr::get_port() const
