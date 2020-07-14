@@ -55,9 +55,9 @@ namespace PortableAPI
             ////////////
             /// @brief Transforms the human readable string into an address
             /// @param[in] str Pass in a formated string like <path>
-            /// @return 
+            /// @return false if failed to parse, true if succeeded to parse
             ////////////
-            virtual void from_string(std::string const& str);
+            virtual bool from_string(std::string const& str);
             ////////////
             /// @brief Gets the generic sockaddr ref
             /// @return The sockaddr ref
