@@ -351,9 +351,9 @@ int Socket::getnameinfo(const sockaddr * addr, socklen_t addrlen, char * host, s
     return ::getnameinfo(addr, addrlen, host, hostlen, serv, servlen, flags);
 }
 
-void Socket::inet_pton(Socket::address_family family, std::string const& str_addr, void *out_buf)
+int Socket::inet_pton(Socket::address_family family, std::string const& str_addr, void *out_buf)
 {
-    ::inet_pton(static_cast<int>(family), str_addr.c_str(), out_buf);
+    return ::inet_pton(static_cast<int>(family), str_addr.c_str(), out_buf);
 }
 
 void Socket::inet_ntop(Socket::address_family family, const void* addr, std::string& str_addr)

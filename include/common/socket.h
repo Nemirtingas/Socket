@@ -777,9 +777,9 @@ public:\
         /// @param[in]  family   The address family.
         /// @param[in]  str_addr A string that contains the text representation of the address to convert to numeric binary form.
         /// @param[out] out_buf  A pointer to a buffer in which to store the numeric binary representation of the address. The address is returned in network byte order.
-        /// @return 
+        /// @return 1 on success
         ////////////
-        static void inet_pton(Socket::address_family family, std::string const& str_addr, void* out_buf);
+        static int inet_pton(Socket::address_family family, std::string const& str_addr, void* out_buf);
         ////////////
         /// @brief Wrapper for 'C' inet_pton function. Transforms a binary representation to a human readable string
         /// @param[in]  family   The address family.
