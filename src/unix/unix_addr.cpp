@@ -60,9 +60,10 @@ std::string unix_addr::to_string(bool with_port) const
     return get_addr();
 }
 
-void unix_addr::from_string(std::string const & str)
+bool unix_addr::from_string(std::string const & str)
 {
     set_addr(str);
+    return true;
 }
 
 sockaddr & unix_addr::addr()
