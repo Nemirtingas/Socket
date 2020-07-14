@@ -78,7 +78,7 @@ std::string ipv4_addr::to_string(bool with_port) const
     return res;
 }
 
-void ipv4_addr::from_string(std::string const & str)
+bool ipv4_addr::from_string(std::string const & str)
 {
     size_t pos = str.find(':');
 
@@ -86,13 +86,17 @@ void ipv4_addr::from_string(std::string const & str)
     {
         std::string ip = str.substr(0, pos);
         std::string port = str.substr(pos + 1);
-        Socket::inet_pton(Socket::address_family::inet, ip, &_sockaddr->sin_addr);
+        if (Socket::inet_pton(Socket::address_family::inet, ip, &_sockaddr->sin_addr) != 1)
+            return false;
         set_port(stoi(port));
     }
     else
     {
-        Socket::inet_pton(Socket::address_family::inet, str, &_sockaddr->sin_addr);
+        if (Socket::inet_pton(Socket::address_family::inet, str, &_sockaddr->sin_addr) != 1)
+            return false;
     }
+
+    return true;
 }
 
 sockaddr & ipv4_addr::addr()

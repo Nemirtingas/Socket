@@ -85,7 +85,7 @@ std::string bth_addr::to_string(bool with_port) const
     return res;
 }
 
-void bth_addr::from_string(std::string const & str)
+bool bth_addr::from_string(std::string const & str)
 {
     size_t pos = str.find('@');
 
@@ -94,20 +94,26 @@ void bth_addr::from_string(std::string const & str)
         std::string ip = str.substr(0, pos);
         std::string channel = str.substr(pos + 1);
 #if defined(__WINDOWS__)
-        BluetoothSocket::inet_pton(BluetoothSocket::address_family::bth, ip, &_sockaddr->btAddr);
+        if (BluetoothSocket::inet_pton(BluetoothSocket::address_family::bth, ip, &_sockaddr->btAddr) != 1)
+            return false;
 #elif defined(__LINUX__)
-        BluetoothSocket::inet_pton(BluetoothSocket::address_family::bth, ip, &_sockaddr->rc_bdaddr);
+        if (BluetoothSocket::inet_pton(BluetoothSocket::address_family::bth, ip, &_sockaddr->rc_bdaddr) != 1)
+            return false;
 #endif
         set_channel(stoi(channel));
     }
     else
     {
 #if defined(__WINDOWS__)
-        BluetoothSocket::inet_pton(BluetoothSocket::address_family::bth, str, &_sockaddr->btAddr);
+        if (BluetoothSocket::inet_pton(BluetoothSocket::address_family::bth, str, &_sockaddr->btAddr) != 1)
+            return false;
 #elif defined(__LINUX__)
-        BluetoothSocket::inet_pton(BluetoothSocket::address_family::bth, str, &_sockaddr->rc_bdaddr);
+        if (BluetoothSocket::inet_pton(BluetoothSocket::address_family::bth, str, &_sockaddr->rc_bdaddr) != 1)
+            return false;
 #endif
     }
+
+    return true;
 }
 
 sockaddr & bth_addr::addr()

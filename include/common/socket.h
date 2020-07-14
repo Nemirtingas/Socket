@@ -315,9 +315,9 @@ public:\
         ////////////
         /// @brief Transforms the human readable string into an address
         /// @param[in] str The string representation, see specialization for more informations
-        /// @return 
+        /// @return false failed to parse, true succeeded to parse
         ////////////
-        virtual void from_string(std::string const& str) = 0;
+        virtual bool from_string(std::string const& str) = 0;
         ////////////
         /// @brief Gets the generic sockaddr ref
         /// @return The sockaddr ref
