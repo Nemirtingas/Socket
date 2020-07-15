@@ -120,7 +120,7 @@ bool ipv6_addr::from_string(std::string const& str)
         try
         {
             int port = std::stoi(str_port);
-            if (port > 0 && port <= 65535)
+            if (port >= 0 && port <= 65535)
             {
                 set_addr(maddr->sin6_addr);
                 set_port(port);
