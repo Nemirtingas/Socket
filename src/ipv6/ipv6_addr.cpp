@@ -74,6 +74,7 @@ std::string ipv6_addr::to_string(bool with_port) const
 
 bool ipv6_addr::from_string(std::string const& str)
 {
+    bool success = false;
     addrinfo* info = nullptr;
     addrinfo hints = {};
     hints.ai_family = (int)PortableAPI::Socket::address_family::inet6;
@@ -100,32 +101,41 @@ bool ipv6_addr::from_string(std::string const& str)
         ip = str;
     }
 
-    if (PortableAPI::Socket::getaddrinfo(ip.c_str(), nullptr, &hints, &info) != 0)
+    if (PortableAPI::Socket::getaddrinfo(ip.c_str(), nullptr, &hints, &info) == 0)
     {
-        if (info != nullptr)
-            PortableAPI::Socket::freeaddrinfo(info);
+        my_sockaddr* maddr = (my_sockaddr*)info->ai_addr;
 
-        return false;
-    }
+        size_t pos = str.find(']');
+        std::string str_port("0");
 
-    my_sockaddr* maddr = (my_sockaddr*)info->ai_addr;
-    set_addr(maddr->sin6_addr);
+        if (pos != std::string::npos)
+        {
+            str_port = std::move(std::string(str.begin() + pos + 2, str.end()));
+        }
+        else if (sep_count == 8)
+        {
+            str_port = std::move(std::string(str.begin() + sep_pos + 1, str.end()));
+        }
 
-    size_t pos = str.find(']');
-    std::string port("0");
-    if (pos != std::string::npos)
-    {
-        port = std::move(std::string(str.begin() + pos + 2, str.end()));
+        try
+        {
+            int port = std::stoi(str_port);
+            if (port > 0 && port <= 65535)
+            {
+                set_addr(maddr->sin6_addr);
+                set_port(port);
+
+                success = true;
+            }
+        }
+        catch(...)
+        { }
     }
-    else if(sep_count == 8)
-    {
-        port = std::move(std::string(str.begin() + sep_pos + 1, str.end()));
-    }
-    set_port(std::stoi(port));
 
     if (info != nullptr)
         PortableAPI::Socket::freeaddrinfo(info);
-    return true;
+
+    return success;
 }
 
 sockaddr & ipv6_addr::addr()
