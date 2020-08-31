@@ -66,7 +66,7 @@ std::string ipv6_addr::to_string(bool with_port) const
     {
         res.insert(res.begin(), '[');
         res += "]:";
-        res += std::to_string(Socket::net_swap(_sockaddr->sin6_port));
+        res += std::to_string(utils::Endian::net_swap(_sockaddr->sin6_port));
     }
 
     return res;
@@ -155,7 +155,7 @@ size_t ipv6_addr::len() const
 
 void ipv6_addr::set_ip(in6_addr const& addr)
 {
-    _sockaddr->sin6_addr = Socket::net_swap(addr);
+    _sockaddr->sin6_addr = utils::Endian::net_swap(addr);
 }
 
 void ipv6_addr::set_addr(in6_addr const& addr)
@@ -165,12 +165,12 @@ void ipv6_addr::set_addr(in6_addr const& addr)
 
 void ipv6_addr::set_port(uint16_t port)
 {
-    _sockaddr->sin6_port = Socket::net_swap(port);
+    _sockaddr->sin6_port = utils::Endian::net_swap(port);
 }
 
 in6_addr ipv6_addr::get_ip() const
 {
-    return Socket::net_swap(_sockaddr->sin6_addr);
+    return utils::Endian::net_swap(_sockaddr->sin6_addr);
 }
 
 in6_addr ipv6_addr::get_addr() const
@@ -180,7 +180,7 @@ in6_addr ipv6_addr::get_addr() const
 
 uint16_t ipv6_addr::get_port() const
 {
-    return Socket::net_swap(_sockaddr->sin6_port);
+    return utils::Endian::net_swap(_sockaddr->sin6_port);
 }
 
 ipv6_addr::my_sockaddr& ipv6_addr::get_native_addr()

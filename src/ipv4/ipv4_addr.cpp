@@ -72,7 +72,7 @@ std::string ipv4_addr::to_string(bool with_port) const
     if (with_port)
     {
         res.push_back(':');
-        res += std::to_string(Socket::net_swap(_sockaddr->sin_port));
+        res += std::to_string(utils::Endian::net_swap(_sockaddr->sin_port));
     }
 
     return res;
@@ -120,7 +120,7 @@ size_t ipv4_addr::len() const
 
 void ipv4_addr::set_ip(uint32_t ip)
 {
-    _sockaddr->sin_addr.s_addr = Socket::net_swap(ip);
+    _sockaddr->sin_addr.s_addr = utils::Endian::net_swap(ip);
 }
 
 void ipv4_addr::set_addr(in_addr const& addr)
@@ -130,24 +130,24 @@ void ipv4_addr::set_addr(in_addr const& addr)
 
 void ipv4_addr::set_port(uint16_t port)
 {
-    _sockaddr->sin_port = Socket::net_swap(port);
+    _sockaddr->sin_port = utils::Endian::net_swap(port);
 }
 
 uint32_t ipv4_addr::get_ip() const
 {
-    return Socket::net_swap(_sockaddr->sin_addr.s_addr);
+    return utils::Endian::net_swap(_sockaddr->sin_addr.s_addr);
 }
 
 in_addr ipv4_addr::get_addr() const
 {
     in_addr res;
-    res.s_addr = Socket::net_swap(_sockaddr->sin_addr.s_addr);
+    res.s_addr = utils::Endian::net_swap(_sockaddr->sin_addr.s_addr);
     return res;
 }
 
 uint16_t ipv4_addr::get_port() const
 {
-    return Socket::net_swap(_sockaddr->sin_port);
+    return utils::Endian::net_swap(_sockaddr->sin_port);
 }
 
 ipv4_addr::my_sockaddr& ipv4_addr::get_native_addr()

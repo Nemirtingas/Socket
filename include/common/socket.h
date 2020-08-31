@@ -94,36 +94,6 @@
 namespace PortableAPI
 {
     ////////////
-    /// @brief A class to detect endianness
-    ////////////
-    struct Socket_Endian
-    {
-        ////////////
-        /// @brief Is the current system little endian
-        ////////////
-        static bool little()
-        {
-            union {
-                uint32_t i;
-                uint8_t c[4];
-            } check = { 0x12345678 };
-            return check.c[0] == 0x78;
-        }
-
-        ////////////
-        /// @brief Is the current system big endian
-        ////////////
-        static bool big()
-        {
-            union {
-                uint32_t i;
-                uint8_t c[4];
-            } check = { 0x12345678 };
-            return check.c[0] == 0x12;
-        }
-    };
-
-    ////////////
     /// @brief Base socket exception class
     ////////////
     class EXPORT_SOCKET_API socket_exception : public std::exception
@@ -181,120 +151,6 @@ public:\
     SOCKET_EXCEPTION_CLASS(in_progress, "A blocking operation is in progress.");                          // EINPROGRESS  - WSAEINPROGRESS
 
 #undef SOCKET_EXCEPTION_CLASS
-
-    ////////////
-    /// @brief Generic byte swaping class
-    ////////////
-    template<typename T, size_t byte_count>
-    struct ByteSwapImpl
-    {
-        ////////////
-        /// @brief The operator that does the swap
-        /// @param[in] v Template parameter to byte_swap
-        /// @return Swaped value
-        ////////////
-        inline T operator()(T v)
-        {// Generic byte swapping (allows odd numbers)
-            uint8_t* tmp = reinterpret_cast<uint8_t*>(&v);
-            if (Socket_Endian::little())
-            {
-                for (int i = 0; i < (byte_count / 2); ++i)
-                    std::swap(tmp[i], tmp[byte_count - 1 - i]);
-            }
-            return v;
-        }
-    };
-
-    ////////////
-    /// @brief Optimized Specialization for 1 bytes types that swap bytes
-    ////////////
-    template<typename T>
-    struct ByteSwapImpl<T, 1>
-    {
-        ////////////
-        /// @brief The operator that does the swap
-        /// @param[in] v Template parameter to byte_swap
-        /// @return Swaped value
-        ////////////
-        inline T operator()(T v) { return v; }
-    };
-
-    ////////////
-    /// @brief Optimized Specialization for 2 bytes types that swap bytes
-    ////////////
-    template<typename T>
-    struct ByteSwapImpl<T, 2>
-    {
-        ////////////
-        /// @brief The operator that does the swap
-        /// @param[in] v Template parameter to byte_swap
-        /// @return Swaped value
-        ////////////
-        inline T operator()(T v)
-        {
-            uint16_t& tmp = *reinterpret_cast<uint16_t*>(&v);
-            if (Socket_Endian::little())
-            {
-                tmp = ((tmp & 0x00ffu) << 8)
-                    | ((tmp & 0xff00u) >> 8);
-            }
-            return v;
-        }
-    };
-
-    ////////////
-    /// @brief Optimized Specialization for 4 bytes types that swap bytes
-    ////////////
-    template<typename T>
-    struct ByteSwapImpl<T, 4>
-    {
-        ////////////
-        /// @brief The operator that does the swap
-        /// @param[in] v Template parameter to byte_swap
-        /// @return Swaped value
-        ////////////
-        inline T operator()(T v)
-        {
-            uint32_t& tmp = *reinterpret_cast<uint32_t*>(&v);
-            if (Socket_Endian::little())
-            {
-                tmp = ((tmp & 0x000000fful) << 24)
-                    | ((tmp & 0x0000ff00ul) << 8)
-                    | ((tmp & 0x00ff0000ul) >> 8)
-                    | ((tmp & 0xff000000ul) >> 24);
-            }
-            return v;
-        }
-    };
-
-    ////////////
-    /// @brief Optimized Specialization for 8 bytes types that swap bytes
-    ////////////
-    template<typename T>
-    struct ByteSwapImpl<T, 8>
-    {
-        ////////////
-        /// @brief The operator that does the swap
-        /// @param[in] v Template parameter to byte_swap
-        /// @return Swaped value
-        ////////////
-        inline T operator()(T v)
-        {
-            uint64_t& tmp = *reinterpret_cast<uint64_t*>(&v);
-            if (Socket_Endian::little())
-            {
-                tmp = ((tmp & 0x00000000000000ffull) << 56)
-                    | ((tmp & 0x000000000000ff00ull) << 40)
-                    | ((tmp & 0x0000000000ff0000ull) << 24)
-                    | ((tmp & 0x00000000ff000000ull) << 8)
-                    | ((tmp & 0x000000ff00000000ull) >> 8)
-                    | ((tmp & 0x0000ff0000000000ull) >> 24)
-                    | ((tmp & 0x00ff000000000000ull) >> 40)
-                    | ((tmp & 0xff00000000000000ull) >> 56);
-            }
-            return v;
-        }
-    };
 
     ////////////
     /// @brief An abstract class to represent a Network Address, like a sock_addr*
@@ -832,17 +688,6 @@ public:\
         /// @return 
         ////////////
         ~Socket();
-
-        ////////////
-        /// @brief helper function for network ordered data (has no effect on big endian OSes)
-        /// @param [in] v The data to byte-swap
-        /// @return The byte-swapped datas
-        ////////////
-        template<typename T>
-        static inline T net_swap(T v)
-        {
-            return ByteSwapImpl<T, sizeof(T)>()(v);
-        }
 
         private:
             ////////////
