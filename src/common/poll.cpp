@@ -101,3 +101,9 @@ int Poll::poll(int timeout_ms)
 {
     return Socket::poll(_polls.data(), _polls.size(), timeout_ms);
 }
+
+void Poll::clear()
+{
+    _polls.clear();
+    _sockets.clear();
+}

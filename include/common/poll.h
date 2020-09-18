@@ -87,5 +87,10 @@ namespace PortableAPI
         /// @return The number of sockets that have revents
         ////////////
         int poll(int timeout_ms);
+        ////////////
+        /// @brief Clear the pool of its sockets
+        /// @return 
+        ////////////
+        void clear();
     };
 }
