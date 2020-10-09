@@ -141,7 +141,7 @@ uint32_t ipv4_addr::get_ip() const
 in_addr ipv4_addr::get_addr() const
 {
     in_addr res;
-    res.s_addr = utils::Endian::net_swap(_sockaddr->sin_addr.s_addr);
+    res.s_addr = _sockaddr->sin_addr.s_addr;
     return res;
 }
 

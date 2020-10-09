@@ -155,7 +155,7 @@ size_t ipv6_addr::len() const
 
 void ipv6_addr::set_ip(in6_addr const& addr)
 {
-    _sockaddr->sin6_addr = utils::Endian::net_swap(addr);
+    _sockaddr->sin6_addr = addr;
 }
 
 void ipv6_addr::set_addr(in6_addr const& addr)
@@ -170,7 +170,7 @@ void ipv6_addr::set_port(uint16_t port)
 
 in6_addr ipv6_addr::get_ip() const
 {
-    return utils::Endian::net_swap(_sockaddr->sin6_addr);
+    return _sockaddr->sin6_addr;
 }
 
 in6_addr ipv6_addr::get_addr() const
