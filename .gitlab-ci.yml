@@ -1,5 +1,6 @@
 stages:
   - build
+  - test
   - documentation
   - deploy
   - pages
@@ -87,6 +88,30 @@ build:macosx:
     paths:
       - release/
     expire_in: 1 day
+
+test:linux:
+  stage: test
+  image: ubuntu:18.04
+  dependencies:
+    - build:linux
+  needs:
+    - build:linux
+
+test:windows:
+  stage: test
+  image: nemirtingas/windowscross:msvc2019
+  dependencies:
+    - build:windows
+  needs:
+    - build:windows
+
+test:macosx:
+  stage: test
+  image: nemirtingas/osxcross:SDK10.13
+  dependencies:
+    - build:macosx
+  needs:
+    - build:macosx
 
 documentation:
   image: alpine:3.6
