@@ -130,7 +130,7 @@ public:\
         void uuid128_to_uuid32(uuid_t const& uuid);
         ////////////
         /// @brief Checks if the string is a valid uuid
-        ///        Must be formated like to: 01234567-89AB-CDEF-0123-456789ABCDEF
+        ///        Must be formated like so: 01234567-89AB-CDEF-0123-456789ABCDEF
         /// @param[in] struuid A string representation of an UUID
         /// @return Is valid
         ////////////

@@ -15,7 +15,7 @@
  * along with Socket.  If not, see <https://www.gnu.org/licenses/>
  */
 
-#include <common/socket.h>
+#include "socket/common/socket.h"
 
 using namespace PortableAPI;
 
@@ -370,12 +370,12 @@ int Socket::select(int nfds, fd_set* readfd, fd_set* writefd, fd_set* exceptfd, 
 }
 
 #if(_WIN32_WINNT >= 0x0600)
-int Socket::poll(pollfd* fds, unsigned long nfds, int timeout)
+int Socket::poll(pollfd* fds, size_t nfds, int timeout)
 {
     return WSAPoll(fds, nfds, timeout);
 }
 #elif defined(__LINUX__) || defined(__APPLE__)
-int Socket::poll(pollfd* fds, unsigned long nfds, int timeout)
+int Socket::poll(pollfd* fds, size_t nfds, int timeout)
 {
     return ::poll(fds, nfds, timeout);
 }

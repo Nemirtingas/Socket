@@ -39,56 +39,61 @@ namespace PortableAPI
             my_sockaddr *_sockaddr;
 
         public:
-            unix_addr();
-            unix_addr(unix_addr const&);
-            unix_addr(unix_addr &&) noexcept;
-            unix_addr& operator =(unix_addr const&);
-            unix_addr& operator =(unix_addr &&) noexcept;
-
-            virtual ~unix_addr();
+            inline unix_addr() : _sockaddr(new my_sockaddr()) { _sockaddr->sun_family = static_cast<uint16_t>(Socket::address_family::unix); }
+            inline unix_addr(unix_addr const& other) : _sockaddr(new my_sockaddr) { memcpy(_sockaddr, other._sockaddr, len()); }
+            inline unix_addr(unix_addr && other) noexcept : _sockaddr(nullptr) { std::swap(_sockaddr, other._sockaddr); }
+            inline unix_addr& operator =(unix_addr const& other) { memcpy(_sockaddr, other._sockaddr, len()); return *this; }
+            inline unix_addr& operator =(unix_addr&& other) noexcept { std::swap(_sockaddr, other._sockaddr); return *this; }
+                
+            inline virtual ~unix_addr() { delete _sockaddr; }
             ////////////
             /// @brief Transforms the address to a human readable string
             /// @param[in] with_port Append the port
             /// @return Address formated like <path>
             ////////////
-            virtual std::string to_string(bool with_port = false) const;
+            inline virtual std::string to_string(bool with_port = false) const { return get_addr(); }
             ////////////
             /// @brief Transforms the human readable string into an address
             /// @param[in] str Pass in a formated string like <path>
             /// @return false if failed to parse, true if succeeded to parse
             ////////////
-            virtual bool from_string(std::string const& str);
+            inline virtual bool from_string(std::string const& str) { set_addr(str); return true; }
             ////////////
             /// @brief Gets the generic sockaddr ref
             /// @return The sockaddr ref
             ////////////
-            virtual sockaddr& addr();
+            inline virtual sockaddr& addr() { return *reinterpret_cast<sockaddr*>(_sockaddr); }
             ////////////
             /// @brief Gets the generic const sockaddr ref
             /// @return The const sockaddr ref
             ////////////
-            virtual sockaddr const& addr() const;
+            inline virtual sockaddr const& addr() const { return *reinterpret_cast<sockaddr*>(_sockaddr); }
             ////////////
             /// @brief Get the sockaddr size
             /// @return sockaddr size
             ////////////
-            virtual size_t len() const;
+            inline virtual size_t len() const { return sizeof(my_sockaddr); }
             ////////////
             /// @brief Sets the path
             /// @param[in]  addr The path
             /// @return 
             ////////////
-            void set_addr(std::string const& path);
+            inline void set_addr(std::string const& path)
+            {
+                addr.copy(_sockaddr->sun_path, UNIX_PATH_MAX);
+                auto i = (addr.length() >= UNIX_PATH_MAX ? (UNIX_PATH_MAX - 1) : addr.length());
+                _sockaddr->sun_path[i] = '\0';
+            }
             ////////////
             /// @brief Gets the path
             /// @return The path
             ////////////
-            std::string get_addr() const;
+            inline std::string get_addr() const { return std::string{ _sockaddr->sun_path }; }
             ////////////
             /// @brief Gets the native addr structure
             /// @return Native structure
             ////////////
-            my_sockaddr& get_native_addr();
+            inline my_sockaddr& get_native_addr() { return *_sockaddr; }
     };
 }
 #endif

@@ -663,7 +663,7 @@ public:\
         /// @param[in]     timeout <0, block, 0 returns now, >0 The time in milliseconds to wait.
         /// @return <0 error, 0 no socket queried, >0 number of member in fds for which revents field is non-zero
         ////////////
-        static int poll(pollfd *fds, unsigned long nfds, int timeout);
+        static int poll(pollfd *fds, size_t nfds, int timeout);
 #endif
 
         ////////////

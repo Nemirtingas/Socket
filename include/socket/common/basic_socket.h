@@ -18,7 +18,6 @@
 #pragma once
 
 #include "socket.h"
-#include "poll.h"
 
 #include <memory>
 
@@ -29,6 +28,23 @@ namespace PortableAPI
     ////////////
     class EXPORT_SOCKET_API basic_socket
     {
+        class LOCAL_API SocketDeleter
+        {
+        public:
+            void operator()(Socket::socket_t* s)
+            {
+                if (s != nullptr)
+                {
+                    if (*s != Socket::invalid_socket)
+                    {
+                        Socket::shutdown(*s, Socket::shutdown_flags::both);
+                        Socket::closeSocket(*s);
+                    }
+                    delete s;
+                }
+            }
+        };
+
         public:
             virtual ~basic_socket() = default;
 
@@ -38,7 +54,19 @@ namespace PortableAPI
             /// @param[in]  arg The cmd argument
             /// @return 
             ////////////
-            void ioctlsocket(Socket::cmd_name cmd, unsigned long* arg);
+            void ioctlsocket(Socket::cmd_name cmd, unsigned long* arg)
+            {
+                auto res = Socket::ioctlsocket(*_sock, cmd, arg);
+                if (res)
+                {
+                #if defined(__WINDOWS__)
+                    int error = WSAGetLastError();
+                #elif defined(__LINUX__) || defined(__APPLE__)
+                    int error = errno;
+                #endif
+                    throw socket_exception("ioctlsocket exception " + std::to_string(error));
+                }
+            }
             ////////////
             /// @brief Sets socket options. Can throw exception depending on error
             /// @param[in]  level   Socket level
@@ -47,7 +75,19 @@ namespace PortableAPI
             /// @param[in]  optlen  optval size
             /// @return 
             ////////////
-            void setsockopt(Socket::level level, Socket::option_name optname, const void* optval, socklen_t optlen);
+            void setsockopt(Socket::level level, Socket::option_name optname, const void* optval, socklen_t optlen)
+            {
+                auto res = Socket::setsockopt(*_sock, level, optname, optval, optlen);
+                if (res)
+                {
+                #if defined(__WINDOWS__)
+                    int error = WSAGetLastError();
+                #elif defined(__LINUX__) || defined(__APPLE__)
+                    int error = errno;
+                #endif
+                    throw socket_exception("setsockopt exception " + std::to_string(error));
+                }
+            }
             ////////////
             /// @brief Gets socket options. Can throw exception depending on error
             /// @param[in]  level   Socket level
@@ -56,36 +96,56 @@ namespace PortableAPI
             /// @param[in]  optlen  optval size
             /// @return 
             ////////////
-            void getsockopt(Socket::level level, Socket::option_name optname, void* optval, socklen_t* optlen);
+            void getsockopt(Socket::level level, Socket::option_name optname, void* optval, socklen_t* optlen)
+            {
+                auto res = Socket::getsockopt(*_sock, level, optname, optval, optlen);
+                if (res)
+                {
+                #if defined(__WINDOWS__)
+                    int error = WSAGetLastError();
+                #elif defined(__LINUX__) || defined(__APPLE__)
+                    int error = errno;
+                #endif
+                    throw socket_exception("getsockopt exception " + std::to_string(error));
+                }
+            }
             ////////////
             /// @brief Shutdowns in read and/or write a socket. Can throw exception depending on error
             /// @param[in]  how The mode(s) to shutdown, default to both (in & out)
             /// @return 
             ////////////
-            void shutdown(Socket::shutdown_flags how = Socket::shutdown_flags::both);
+            inline void shutdown(Socket::shutdown_flags how = Socket::shutdown_flags::both)
+            {
+                if (Socket::shutdown(*_sock, how))
+                    throw socket_exception("shutdown exception");
+            }
             ////////////
             /// @brief Closes a socket
             /// @return 
             ////////////
-            void close();
+            inline void close() { Socket::closeSocket(*_sock); }
             ////////////
             /// @brief Sets non-blocking a socket. Can throw exception depending on error
             /// @param[in]  non_blocking defaults to true
             /// @return 
             ////////////
-            void set_nonblocking(bool non_blocking = true);
+            inline void set_nonblocking(bool non_blocking = true)
+            {
+                unsigned long mode = (non_blocking ? 1 : 0);
+                ioctlsocket(Socket::cmd_name::fionbio, &mode);
+            }
             ////////////
             /// @brief Gets the native socket
             /// @return The native socket (can be used in standard C network functions like recv)
             ////////////
-            Socket::socket_t get_native_socket() const;
+            inline Socket::socket_t get_native_socket() const { return *_sock; }
         protected:
             std::shared_ptr<Socket::socket_t> _sock; ///< The socket value used for various network functions
             ////////////
             /// @brief Is the current object valid ?  Closed or not allocated.
             /// @return Is valid
             ////////////
-            bool isvalid() const;
+            inline bool isvalid() const { return (_sock.get() != nullptr && *_sock != Socket::invalid_socket); }
             ////////////
             /// @brief 
             ////////////
@@ -103,7 +163,7 @@ namespace PortableAPI
             /// @param[in]  s The native socket
             /// @return 
             ////////////
-            basic_socket(Socket::socket_t s);
+            basic_socket(Socket::socket_t s) : _sock(new Socket::socket_t(s), SocketDeleter()) {}
             ////////////
             /// @brief 
             ////////////
@@ -111,7 +171,7 @@ namespace PortableAPI
             ////////////
             /// @brief 
             ////////////
-            basic_socket& operator =(basic_socket &&)     = default;
+            basic_socket& operator =(basic_socket &&) = default;
 
             ////////////
             /// @brief Creates a new socket for the current object. Can throw exception depending on error
@@ -120,13 +180,13 @@ namespace PortableAPI
             /// @param[in]  proto The socket protocol family
             /// @return 
             ////////////
-            void socket(Socket::address_family af, Socket::types type, Socket::protocols proto);
+            inline void socket(Socket::address_family af, Socket::types type, Socket::protocols proto) { _sock.reset(new Socket::socket_t(Socket::socket(af, type, proto)), SocketDeleter()); }
             ////////////
             /// @brief Resets the internal native socket value
             /// @param[in]  s The new native socket value
             /// @return 
             ////////////
-            void reset_socket(Socket::socket_t s);
+            inline void reset_socket(Socket::socket_t s) { _sock.reset(new Socket::socket_t(s), SocketDeleter()); }
     };
 
     ////////////

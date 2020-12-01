@@ -42,7 +42,7 @@ inline void connected_socket<Addr, family, type, proto>::connect(myaddr_t const&
         Socket::connect(*_sock, new_addr);
         _addr = std::move(new_addr);
     }
-    catch (would_block &e)
+    catch (would_block&)
     {
         _addr = std::move(new_addr);
         throw;

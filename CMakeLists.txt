@@ -79,10 +79,8 @@ set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
-option(IPV4_SUPPORT      "Support IPV4 socket"      ON)
-option(IPV6_SUPPORT      "Support IPV6 socket"      OFF)
-option(UNIX_SUPPORT      "Support Unix socket"      OFF)
 option(BLUETOOTH_SUPPORT "Support Bluetooth socket" OFF)
+option(BUILD_STATIC "Build static or shared library" ON)
 
 file(
   GLOB
@@ -90,30 +88,6 @@ file(
   src/common/*.cpp
 )
 
-if(${IPV4_SUPPORT})
-  file(
-    GLOB
-    Socket_sources
-    ${Socket_sources}
-    src/ipv4/*.cpp
-  )
-endif()
-if(${IPV6_SUPPORT})
-  file(
-    GLOB
-    Socket_sources
-    ${Socket_sources}
-    src/ipv6/*.cpp
-  )
-endif()
-if(${UNIX_SUPPORT})
-  file(
-    GLOB
-    Socket_sources
-    ${Socket_sources}
-    src/unix/*.cpp
-  )
-endif()
 if(${BLUETOOTH_SUPPORT})
   file(
     GLOB
@@ -126,14 +100,22 @@ endif()
 ########################################
 ## socket(.a|.lib)
 
-add_library(
-  Socket_static
-  STATIC
-  ${Socket_sources}
-)
+if(${BUILD_STATIC})
+  add_library(
+    Socket
+    STATIC
+    ${Socket_sources}
+  )
+else()
+  add_library(
+    Socket
+    SHARED
+    ${Socket_sources}
+  )
+endif()
 
 target_link_libraries(
-  Socket_static
+  Socket
 
   # Winsocks
   $<$<BOOL:${WIN32}>:ws2_32>
@@ -146,7 +128,7 @@ target_link_libraries(
 )
 
 target_include_directories(
-  Socket_static
+  Socket
   PRIVATE
   ${CMAKE_CURRENT_SOURCE_DIR}/include
   ${CMAKE_CURRENT_SOURCE_DIR}/utils/include
@@ -161,7 +143,7 @@ target_include_directories(
 #)
 
 target_compile_options(
-  Socket_static
+  Socket
   PUBLIC
   
   $<$<BOOL:${UNIX}>:-fPIC -fpermissive -fvisibility=hidden -Wl,--exclude-libs,ALL>
@@ -174,7 +156,7 @@ target_compile_options(
 )
 
 target_compile_definitions(
-  Socket_static
+  Socket
   PUBLIC
   SOCKET_EXPORT
 )
@@ -205,7 +187,7 @@ elseif(UNIX)
 endif()
 
 install(
-  TARGETS Socket_static
+  TARGETS Socket
   ARCHIVE DESTINATION release/${OUT_DIR}
   LIBRARY DESTINATION release/${OUT_DIR}
   RUNTIME DESTINATION release/${OUT_DIR}
