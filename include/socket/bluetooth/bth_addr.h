@@ -29,11 +29,6 @@ namespace PortableAPI
     {
         public:
             using my_sockaddr = sockaddr_rc;
-#if defined(__WINDOWS__)
-            constexpr static bdaddr_t any_addr{ 0ull };
-#elif defined(__LINUX__)
-            constexpr static bdaddr_t any_addr{ 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 };
-#endif
 
         private:
             my_sockaddr *_sockaddr;
@@ -50,7 +45,7 @@ namespace PortableAPI
             inline bth_addr(bth_addr const& other) : _sockaddr(new my_sockaddr) { memcpy(_sockaddr, other._sockaddr, len()); }
             inline bth_addr(bth_addr && other) noexcept : _sockaddr(nullptr) { std::swap(_sockaddr, other._sockaddr); }
             inline bth_addr& operator =(bth_addr const& other){ memcpy(_sockaddr, other._sockaddr, len());  return *this; }
-            inline bth_addr& operator =(bth_addr && other) noexcept { std::swap(_sockaddr, other._sockaddr); return *this }
+            inline bth_addr& operator =(bth_addr&& other) noexcept { std::swap(_sockaddr, other._sockaddr); return *this; }
 
             inline virtual ~bth_addr() { delete _sockaddr; }
             ////////////
@@ -184,9 +179,18 @@ namespace PortableAPI
             /// @brief Gets the native addr structure
             /// @return Native structure
             ////////////
-            inline my_sockaddr& get_native_addr()
+            inline my_sockaddr& get_native_addr() { return *_sockaddr; }
+            ////////////
+            /// @brief Sets the current addr to any
+            /// @return 
+            ////////////
+            inline void set_any_addr()
             {
-                return *_sockaddr;
+#if defined(__WINDOWS__)
+                _sockaddr->btAddr = { 0 };
+#elif defined(__LINUX__)
+                _sockaddr->rc_bdaddr = { 0 };
+#endif
             }
     };
 }

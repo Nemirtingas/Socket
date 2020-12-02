@@ -55,7 +55,7 @@ elseif(APPLE)
     message(FATAL_ERROR "Arch unknown")
   endif()
   #add_compile_options("-stdlib=libc++")
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++14 -stdlib=libc++")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -stdlib=libc++")
 
 elseif(UNIX)
   if(X64)
@@ -81,6 +81,7 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 
 option(BLUETOOTH_SUPPORT "Support Bluetooth socket" OFF)
 option(BUILD_STATIC "Build static or shared library" ON)
+option(BUILD_TESTS "Build tests app" OFF)
 
 file(
   GLOB
@@ -144,7 +145,7 @@ target_include_directories(
 
 target_compile_options(
   Socket
-  PUBLIC
+  PRIVATE
   
   $<$<BOOL:${UNIX}>:-fPIC -fpermissive -fvisibility=hidden -Wl,--exclude-libs,ALL>
   $<$<AND:$<BOOL:${UNIX}>,$<BOOL:${X86}>>:-m32>
@@ -157,9 +158,53 @@ target_compile_options(
 
 target_compile_definitions(
   Socket
-  PUBLIC
+  PRIVATE
   SOCKET_EXPORT
 )
+
+if(${BUILD_TESTS})
+  add_executable(
+    ipv4_tests
+    tests/ipv4_tests.cpp
+  )
+
+  target_include_directories(
+    ipv4_tests
+    PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/include
+    ${CMAKE_CURRENT_SOURCE_DIR}/utils/include
+    $<$<AND:$<BOOL:${UNIX}>,$<NOT:$<BOOL:${APPLE}>>,$<BOOL:${BLUETOOTH_SUPPORT}>>:/usr/include/dbus-1.0>
+    $<$<AND:$<BOOL:X64>,$<BOOL:${UNIX}>,$<NOT:$<BOOL:${APPLE}>>,$<BOOL:${BLUETOOTH_SUPPORT}>>:/usr/lib/x86_64-linux-gnu/dbus-1.0/include>
+    $<$<AND:$<BOOL:X86>,$<BOOL:${UNIX}>,$<NOT:$<BOOL:${APPLE}>>,$<BOOL:${BLUETOOTH_SUPPORT}>>:/usr/lib/i386-linux-gnu/dbus-1.0/include>
+  )
+
+  target_link_libraries(
+    ipv4_tests
+    Socket
+  
+    # Winsocks
+    $<$<BOOL:${WIN32}>:ws2_32>
+    # Windows Bluetooth
+    $<$<AND:$<BOOL:${WIN32}>,$<BOOL:${BLUETOOTH_SUPPORT}>>:bthprops>
+   
+    # Linux Bluetooth
+    $<$<AND:$<BOOL:${UNIX}>,$<NOT:$<BOOL:${APPLE}>>,$<BOOL:${BLUETOOTH_SUPPORT}>>:bluetooth>
+    $<$<AND:$<BOOL:${UNIX}>,$<NOT:$<BOOL:${APPLE}>>,$<BOOL:${BLUETOOTH_SUPPORT}>>:dbus-1>
+  )
+
+  target_compile_options(
+    ipv4_tests
+    PRIVATE
+  
+    $<$<BOOL:${UNIX}>:-fpermissive -fvisibility=hidden -Wl,--exclude-libs,ALL>
+    $<$<AND:$<BOOL:${UNIX}>,$<BOOL:${X86}>>:-m32>
+    $<$<AND:$<BOOL:${UNIX}>,$<BOOL:${X64}>>:-m64>
+  
+    $<$<AND:$<CONFIG:>,$<BOOL:${MSVC}>>:/MP>
+    $<$<AND:$<CONFIG:Debug>,$<BOOL:${MSVC}>>:/MP>
+    $<$<AND:$<CONFIG:Release>,$<BOOL:${MSVC}>>:/MP>
+  )
+endif()
 
 ##################
 ## Install rules

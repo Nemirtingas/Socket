@@ -1,6 +1,5 @@
 stages:
   - build
-  - test
   - documentation
   - deploy
   - pages
@@ -16,20 +15,22 @@ build:linux:
   before_script:
     - dpkg --add-architecture i386
     - apt update
-    - apt -y install gcc g++ gcc-multilib g++-multilib build-essential cmake git libbluetooth-dev libbluetooth3 libdbus-1-dev:i386 libdbus-1-dev
+    - apt -y install gcc g++ gcc-multilib g++-multilib build-essential cmake git libdbus-1-dev:i386 libdbus-1-dev
 
   script:
     - JOBS=$(($(LANG=C lscpu | awk '/^CPU\(s\):/{ print $2 }')*2))
     - test -z "${JOBS}" && JOBS=2
-    - git clone https://gitlab.com/Nemirtingas/utils
-    - echo "Building steamapi with ${JOBS} jobs"
+    - echo "Building socket with ${JOBS} jobs"
     - mkdir linux32 && cd linux32
-    - cmake -G "Unix Makefiles" -DX86=ON -DIPV4_SUPPORT=ON -DIPV6_SUPPORT=ON -DUNIX_SUPPORT=ON -DBLUETOOTH_SUPPORT=ON ..
-    - make -j${JOBS} && make install || exit 1
+    - apt -y install libbluetooth-dev:i386 libbluetooth3:i386
+    - cmake -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=Release -DX86=ON -DBUILD_TESTS=ON -DBLUETOOTH_SUPPORT=ON ..
+    - make -j${JOBS} && make install && ./ipv4_tests || exit 1
     - cd ..
+    - sleep 60
     - mkdir linux64 && cd linux64
-    - cmake -G "Unix Makefiles" -DX64=ON -DIPV4_SUPPORT=ON -DIPV6_SUPPORT=ON -DUNIX_SUPPORT=ON -DBLUETOOTH_SUPPORT=ON ..
-    - make -j${JOBS} && make install || exit 1
+    - apt -y install libbluetooth-dev libbluetooth3
+    - cmake -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=Release -DX64=ON -DBUILD_TESTS=ON -DBLUETOOTH_SUPPORT=ON ..
+    - make -j${JOBS} && make install && ./ipv4_tests || exit 1
     - cd ..
     - exit 0
 
@@ -45,16 +46,15 @@ build:windows:
   script:
     - JOBS=$(($(LANG=C lscpu | awk '/^CPU\(s\):/{ print $2 }')*2))
     - test -z "${JOBS}" && JOBS=2
-    - git clone https://gitlab.com/Nemirtingas/utils
-    - echo "Building steamapi with ${JOBS} jobs"
+    - echo "Building socket with ${JOBS} jobs"
     - export HOST_ARCH="x86"
     - mkdir win32 && cd win32
-    - cmake -G "Unix Makefiles" -DX86=ON -DIPV4_SUPPORT=ON -DIPV6_SUPPORT=ON -DUNIX_SUPPORT=ON -DBLUETOOTH_SUPPORT=ON ..
+    - cmake -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=Release -DX86=ON -DBUILD_TESTS=ON -DBLUETOOTH_SUPPORT=ON ..
     - make -j${JOBS} && make install || exit 1
     - cd ..
     - export HOST_ARCH="x64"
     - mkdir win64 && cd win64
-    - cmake -G "Unix Makefiles" -DX64=ON -DIPV4_SUPPORT=ON -DIPV6_SUPPORT=ON -DUNIX_SUPPORT=ON -DBLUETOOTH_SUPPORT=ON ..
+    - cmake -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=Release -DX64=ON -DBUILD_TESTS=ON -DBLUETOOTH_SUPPORT=ON ..
     - make -j${JOBS} && make install || exit 1
     - cd ..
     - exit 0
@@ -71,16 +71,15 @@ build:macosx:
   script:
     - JOBS=$(($(LANG=C lscpu | awk '/^CPU\(s\):/{ print $2 }')*2))
     - test -z "${JOBS}" && JOBS=2
-    - git clone https://gitlab.com/Nemirtingas/utils
-    - echo "Building steamapi with ${JOBS} jobs"
+    - echo "Building socket with ${JOBS} jobs"
     - export OSXCROSS_HOST="i386-apple-${OSXCROSS_TARGET}"
     - mkdir macosx32 && cd macosx32
-    - cmake -G "Unix Makefiles" -DX64=ON -DIPV4_SUPPORT=ON -DIPV6_SUPPORT=ON -DUNIX_SUPPORT=ON -DBLUETOOTH_SUPPORT=ON ..
+    - cmake -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=Release -DX64=ON -DBUILD_TESTS=ON -DBLUETOOTH_SUPPORT=ON ..
     - make -j${JOBS} && make install || exit 1
     - cd ..
     - export OSXCROSS_HOST="x86_64-apple-${OSXCROSS_TARGET}"
     - mkdir macosx64 && cd macosx64
-    - cmake -G "Unix Makefiles" -DX64=ON -DIPV4_SUPPORT=ON -DIPV6_SUPPORT=ON -DUNIX_SUPPORT=ON -DBLUETOOTH_SUPPORT=ON ..
+    - cmake -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=Release -DX64=ON -DBUILD_TESTS=ON -DBLUETOOTH_SUPPORT=ON ..
     - make -j${JOBS} && make install || exit 1
     - cd ..
 
@@ -88,30 +87,6 @@ build:macosx:
     paths:
       - release/
     expire_in: 1 day
-
-test:linux:
-  stage: test
-  image: ubuntu:18.04
-  dependencies:
-    - build:linux
-  needs:
-    - build:linux
-
-test:windows:
-  stage: test
-  image: nemirtingas/windowscross:msvc2019
-  dependencies:
-    - build:windows
-  needs:
-    - build:windows
-
-test:macosx:
-  stage: test
-  image: nemirtingas/osxcross:SDK10.13
-  dependencies:
-    - build:macosx
-  needs:
-    - build:macosx
 
 documentation:
   image: alpine:3.6

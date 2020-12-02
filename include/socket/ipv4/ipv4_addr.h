@@ -35,15 +35,6 @@ namespace PortableAPI
     {
         public:
             using my_sockaddr = sockaddr_in;
-#if defined(__WINDOWS__)
-            constexpr static in_addr any_addr      { 0x00, 0x00, 0x00, 0x00 };
-            constexpr static in_addr loopback_addr { 0x7f, 0x00, 0x00, 0x01 };
-            constexpr static in_addr broadcast_addr{ 0xff, 0xff, 0xff, 0xff };
-#elif defined(__LINUX__) || defined(__APPLE__)
-            constexpr static in_addr any_addr      { 0x00000000 };
-            constexpr static in_addr loopback_addr { 0x0100007f };
-            constexpr static in_addr broadcast_addr{ 0xffffffff };
-#endif
 
         private:
             my_sockaddr *_sockaddr;
@@ -51,7 +42,7 @@ namespace PortableAPI
         public:
             inline ipv4_addr() : _sockaddr(new my_sockaddr()) { _sockaddr->sin_family = static_cast<uint16_t>(Socket::address_family::inet); }
             inline ipv4_addr(ipv4_addr const& other) : _sockaddr(new my_sockaddr) { memcpy(_sockaddr, other._sockaddr, len()); }
-            inline ipv4_addr(ipv4_addr && other) noexcept { std::swap(_sockaddr, other._sockaddr); }
+            inline ipv4_addr(ipv4_addr && other) noexcept : _sockaddr(nullptr) { std::swap(_sockaddr, other._sockaddr); }
             inline ipv4_addr& operator =(ipv4_addr const& other) { memcpy(_sockaddr, other._sockaddr, len()); return *this; }
             inline ipv4_addr& operator =(ipv4_addr&& other) noexcept { std::swap(_sockaddr, other._sockaddr); return *this; }
 
@@ -155,6 +146,21 @@ namespace PortableAPI
             /// @return Native structure
             ////////////
             inline my_sockaddr& get_native_addr(){ return *_sockaddr; }
+            ////////////
+            /// @brief Sets the current addr to any
+            /// @return 
+            ////////////
+            inline void set_any_addr() { _sockaddr->sin_addr.s_addr = INADDR_ANY; }
+            ////////////
+            /// @brief Sets the current addr to loopback
+            /// @return 
+            ////////////
+            inline void set_loopback_addr() { _sockaddr->sin_addr.s_addr = utils::Endian::net_swap(INADDR_LOOPBACK); }
+            ////////////
+            /// @brief Sets the current addr to broadcast
+            /// @return 
+            ////////////
+            inline void set_broadcast_addr() { _sockaddr->sin_addr.s_addr = INADDR_BROADCAST; }
     };
 }
 #endif

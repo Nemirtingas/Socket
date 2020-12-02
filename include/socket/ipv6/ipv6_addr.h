@@ -29,8 +29,6 @@ namespace PortableAPI
     {
         public:
             using my_sockaddr = sockaddr_in6;
-            constexpr static in6_addr any_addr     { IN6ADDR_ANY_INIT };
-            constexpr static in6_addr loopback_addr{ IN6ADDR_LOOPBACK_INIT };
 
         private:
             my_sockaddr *_sockaddr;
@@ -77,7 +75,7 @@ namespace PortableAPI
                 size_t sep_pos = 0;
                 std::string ip;
                 int sep_count = 0;
-                for (int i = 0; i < str.length(); ++i)
+                for (size_t i = 0; i < str.length(); ++i)
                 {
                     if (str[i] == ':')
                     {
@@ -184,6 +182,16 @@ namespace PortableAPI
             /// @return Native structure
             ////////////
             my_sockaddr& get_native_addr() { return *_sockaddr; }
+            ////////////
+            /// @brief Sets the current addr to any
+            /// @return 
+            ////////////
+            inline void set_any_addr() { _sockaddr->sin6_addr = IN6ADDR_ANY_INIT; }
+            ////////////
+            /// @brief Sets the current addr to loopback
+            /// @return 
+            ////////////
+            inline void set_loopback_addr() { _sockaddr->sin6_addr = IN6ADDR_LOOPBACK_INIT; }
     };
 }
 #endif

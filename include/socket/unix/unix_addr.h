@@ -30,6 +30,9 @@
 
 namespace PortableAPI
 {
+	////////////
+    /// @brief An UNIX sock_addr object
+    ////////////
     class EXPORT_SOCKET_API unix_addr : public basic_addr
     {
         public:
@@ -80,8 +83,8 @@ namespace PortableAPI
             ////////////
             inline void set_addr(std::string const& path)
             {
-                addr.copy(_sockaddr->sun_path, UNIX_PATH_MAX);
-                auto i = (addr.length() >= UNIX_PATH_MAX ? (UNIX_PATH_MAX - 1) : addr.length());
+                path.copy(_sockaddr->sun_path, UNIX_PATH_MAX);
+                auto i = (path.length() >= UNIX_PATH_MAX ? (UNIX_PATH_MAX - 1) : path.length());
                 _sockaddr->sun_path[i] = '\0';
             }
             ////////////

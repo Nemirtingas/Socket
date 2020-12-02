@@ -21,7 +21,7 @@
 #define INITGUID
 #endif
 
-#include <bluetooth/bluetooth_socket.h>
+#include <socket/bluetooth/bluetooth_socket.h>
 #include <inttypes.h>  // for SCNx8
 #include <codecvt>
 
@@ -92,7 +92,7 @@ Uuid::Uuid(uuid_t const& uuid)
 
 bool Uuid::is_valid_uuid(std::string const& struuid)
 {
-    // Vérification de la taille et de la présence des séparateurs aux bons endroits
+    // Vï¿½rification de la taille et de la prï¿½sence des sï¿½parateurs aux bons endroits
     if(   struuid.length() != 36
         || struuid[8] != '-' || struuid[13] != '-'
         || struuid[18] != '-' || struuid[23] != '-' )
@@ -106,7 +106,7 @@ bool Uuid::is_valid_uuid(std::string const& struuid)
         // Si i n'est pas sur un '-'
         if (i != 8 && i != 13 && i != 18 && i != 23)
         {
-            // si le caractère n'est pas entre 0-9 et A-Z
+            // si le caractï¿½re n'est pas entre 0-9 et A-Z
             if (((*ptr < '0') || (*ptr > '9')) &&
                 ((*ptr < 'A') || (*ptr > 'F')) &&
                 ((*ptr < 'a') || (*ptr > 'f')))
@@ -252,7 +252,7 @@ void BluetoothSocket::inet_ntop(BluetoothSocket::address_family family, const vo
     }
     // Windows renvoie l'adresse d'une facon chelou :
     // (XX:XX:XX:XX:XX:XX):XX:XX:XX
-    // alors on crée une sous-chaine
+    // alors on crï¿½e une sous-chaine
     std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> converter;
     str_addr = std::move(converter.to_bytes(wstr+1, wstr+18));
 }
@@ -276,14 +276,14 @@ std::list<BluetoothDevice> BluetoothSocket::scan(bool flushCache)
     int flags = LUP_CONTAINERS;
     if (flushCache)
         flags |= LUP_FLUSHCACHE;
-    // Démarrage de la recherche de service
+    // Dï¿½marrage de la recherche de service
     if (WSALookupServiceBeginW(&wsaq, flags, &hLookup))
     {
         switch (WSAGetLastError())
         {
             case WSANOTINITIALISED: throw wsa_not_initialised("A successful WSAStartup call must occur before using this function.");
             case WSAEINVAL: throw error_in_value("One or more parameters were missing or invalid for this provider.");
-            // Pas de problème avec la recherche mais il n'y a pas de périphériques visibles.
+            // Pas de problï¿½me avec la recherche mais il n'y a pas de pï¿½riphï¿½riques visibles.
             case WSASERVICE_NOT_FOUND: return devices;
             default: throw socket_exception("scan exception.");
         }
@@ -296,7 +296,7 @@ std::list<BluetoothDevice> BluetoothSocket::scan(bool flushCache)
     pwsaResults->dwNameSpace = NS_BTH;
     pwsaResults->lpBlob = NULL;
 
-    // Récupération de l'appareil
+    // Rï¿½cupï¿½ration de l'appareil
     while(!WSALookupServiceNextW(hLookup, LUP_RETURN_NAME | LUP_RETURN_ADDR, &dwSize, pwsaResults))
     {
         if (pwsaResults->dwNumberOfCsAddrs != 1)
@@ -334,7 +334,7 @@ std::list<BluetoothDevice> BluetoothSocket::scan(bool flushCache)
             throw socket_exception("scan exception: " + std::to_string(err));
     }
 
-    // Libérer les ressources de recherche
+    // Libï¿½rer les ressources de recherche
     WSALookupServiceEnd(hLookup);
 
     return devices;
@@ -535,12 +535,12 @@ void BluetoothSocket::register_sdp_service(service_t & service, uuid_t const& uu
     service.lpServiceClassId = privateuuid;
     service.dwNumberOfCsAddrs = 1;
     service.dwNameSpace = NS_BTH;
-    // création de l'adresse du serveur
+    // crï¿½ation de l'adresse du serveur
     sockaddr_rc *addr = new sockaddr_rc;
     memset(addr, 0, sizeof(*addr));
     addr->addressFamily = static_cast<uint16_t>(BluetoothSocket::address_family::bth);
     addr->port = port;
-    // création des information de service
+    // crï¿½ation des information de service
     CSADDR_INFO *csAddr = new CSADDR_INFO;
     memset(csAddr, 0, sizeof(CSADDR_INFO));
     csAddr->LocalAddr.iSockaddrLength = sizeof(*addr);
@@ -606,7 +606,7 @@ void Uuid::uuid32_to_uuid128(uint32_t uuid)
     //            Bluetooth Base UUID
     memcpy(&_uuid.value, BluetoothSocket::bth_base_uuid, sizeof(BluetoothSocket::bth_base_uuid));
     // UUID is always stored big-endian (on Linux)
-    _uuid.value.uuid32 = Socket::net_swap(uuid);
+    _uuid.value.uuid32 = utils::Endian::net_swap(uuid);
 }
 
 void Uuid::uuid128_to_uuid16(uuid_t const& uuid)
@@ -720,14 +720,14 @@ int BluetoothSocket::scan_open_port_from_uuid(Uuid const& _uuid, bdaddr_t const&
     uint32_t range = 0x0000FFFF;
     uuid_t uuid = _uuid.get_native_uuid();
 
-    // connexion au sdp de l'appareil à l'adresse bthaddr
+    // connexion au sdp de l'appareil ï¿½ l'adresse bthaddr
     session = sdp_connect(&Any, &addr, 0);
-    // si on s'est connecté
+    // si on s'est connectï¿½
     if (session)
     {
-        // création des données uuid
+        // crï¿½ation des donnï¿½es uuid
         search_list = sdp_list_append(0, &uuid);
-        // création des données de plage
+        // crï¿½ation des donnï¿½es de plage
         attrid_list = sdp_list_append(0, &range);
         // recherche du service
         if (!sdp_service_search_attr_req(session, search_list, SDP_ATTR_REQ_RANGE, attrid_list, &response_list))
@@ -737,21 +737,21 @@ int BluetoothSocket::scan_open_port_from_uuid(Uuid const& _uuid, bdaddr_t const&
             // pour tout les services
             for (; r; r = r->next)
             {
-                // récupération de l'enregistrement du service
+                // rï¿½cupï¿½ration de l'enregistrement du service
                 sdp_record_t *rec = (sdp_record_t*)r->data;
-                // récupération des protocols
+                // rï¿½cupï¿½ration des protocols
                 if (sdp_get_access_protos(rec, &proto_list) == 0)
                 {
-                    // récupération du canal ouvert
+                    // rï¿½cupï¿½ration du canal ouvert
                     port = sdp_get_proto_port(proto_list, RFCOMM_UUID);
-                    // libération des données
+                    // libï¿½ration des donnï¿½es
                     sdp_list_free(proto_list, 0);
                 }
-                // libération des données du service
+                // libï¿½ration des donnï¿½es du service
                 sdp_record_free(rec);
             }
         }
-        // libération des données de recherches
+        // libï¿½ration des donnï¿½es de recherches
         sdp_list_free(response_list, 0);
         sdp_list_free(search_list, 0);
         sdp_list_free(attrid_list, 0);
@@ -772,9 +772,9 @@ list<BluetoothDevice> BluetoothSocket::scan(bool flushCache)
     BluetoothDevice device;
     list<BluetoothDevice> devices;
 
-    // NULL permet de récupérer le 1er dispositif Bluetooth libre
-    // Nous pourrions spécifier 0 pour le 1er dispositif, mais si il y a plusieurs
-    // dispositifs, il se pourrait qu'il ai un Identifiant différent tel que 1
+    // NULL permet de rï¿½cupï¿½rer le 1er dispositif Bluetooth libre
+    // Nous pourrions spï¿½cifier 0 pour le 1er dispositif, mais si il y a plusieurs
+    // dispositifs, il se pourrait qu'il ai un Identifiant diffï¿½rent tel que 1
     // retourne l'ID du dispositif bluetooth libre
     dev_id = hci_get_route(NULL);
     if (dev_id < 0)
@@ -793,25 +793,25 @@ list<BluetoothDevice> BluetoothSocket::scan(bool flushCache)
     iinfo = new inquiry_info[255];
 
     // Fonction hci_inquiry
-    // Usage : active la découverte Bluetooth et récupère le nombre d'appareils actuellement visible en Bluetooth
+    // Usage : active la dï¿½couverte Bluetooth et rï¿½cupï¿½re le nombre d'appareils actuellement visible en Bluetooth
 
     // int hci_inquiry(int dev_id, int len, int max_rsp, const uint8_t *lap, inquiry_info **ii, long flags);
-    // dev_id : dispositif trouvé grâce à hci_get_route, si dev_id = -1, la fonction recherchera toute seule
+    // dev_id : dispositif trouvï¿½ grï¿½ce ï¿½ hci_get_route, si dev_id = -1, la fonction recherchera toute seule
     // un dispositif.
-    // len     : 1.28 * len = nombre de secondes de la découverte, la norme prévoit 5 à 15 secondes de découverte
+    // len     : 1.28 * len = nombre de secondes de la dï¿½couverte, la norme prï¿½voit 5 ï¿½ 15 secondes de dï¿½couverte
     //             1.28 * 8 = 10.24s, qui est ~ la moyenne
-    // max_rsp: nb d'appareils maxi (également la taille de ii)
-    // lap     : nombre de fois que la découverte recommence si il y a une erreur???
-    // ii      : structure de requête
-    // flags  : IREQ_CACHE_FLUSH = vide le buffer des anciennes découvertes, permet de remettre à jour les
-    // appareils actuellement présent.
-    // Retourne le nombre d'appareils trouvés.
+    // max_rsp: nb d'appareils maxi (ï¿½galement la taille de ii)
+    // lap     : nombre de fois que la dï¿½couverte recommence si il y a une erreur???
+    // ii      : structure de requï¿½te
+    // flags  : IREQ_CACHE_FLUSH = vide le buffer des anciennes dï¿½couvertes, permet de remettre ï¿½ jour les
+    // appareils actuellement prï¿½sent.
+    // Retourne le nombre d'appareils trouvï¿½s.
     trouve = hci_inquiry(dev_id, 8, 255, NULL, &iinfo, flushCache ? IREQ_CACHE_FLUSH : 0);
     if (trouve > 0)
     {
         for (int i = 0; i < trouve; ++i)
         {
-            // récupère le nom de l'appareil ayant l'adresse bdaddr
+            // rï¿½cupï¿½re le nom de l'appareil ayant l'adresse bdaddr
             if (hci_read_remote_name(sock, &iinfo[i]->bdaddr, 255, nom, 0) < 0)
                 strcpy(nom, "[inconnu]");
 
@@ -832,14 +832,14 @@ void BluetoothSocket::register_sdp_service(service_t & service, uuid_t const& uu
     bdaddr_t addr_local = { { 0, 0, 0, 0xFF, 0xFF, 0xFF } };
     bool r = false;
 
-    // démarrer une connexion avec le sdp
+    // dï¿½marrer une connexion avec le sdp
     service = sdp_connect(&addr_any, &addr_local, SDP_RETRY_IF_BUSY);
     if (service == 0)
         throw sdp_service_exception("Can't connect to local SDP server.");
 
     // les UUID du service
     uuid_t root_uuid, l2cap_uuid, rfcomm_uuid;
-    // les listes de données nécessaire à l'enregistrement du service
+    // les listes de donnï¿½es nï¿½cessaire ï¿½ l'enregistrement du service
     sdp_list_t *l2cap_list = 0,
         *rfcomm_list = 0,
         *root_list = 0,
@@ -853,34 +853,34 @@ void BluetoothSocket::register_sdp_service(service_t & service, uuid_t const& uu
     // affecter l'uuid du service
     sdp_set_service_id(record, uuid);
 
-    // créer l'uuid permettant de rechercher le service
+    // crï¿½er l'uuid permettant de rechercher le service
     sdp_uuid16_create(&root_uuid, PUBLIC_BROWSE_GROUP);
     // affectation de l'uuid
     root_list = sdp_list_append(0, &root_uuid);
     // mettre l'enregistrement du service visible par tous
     sdp_set_browse_groups(record, root_list);
 
-    // création de l'uuid L2CAP
+    // crï¿½ation de l'uuid L2CAP
     sdp_uuid16_create(&l2cap_uuid, L2CAP_UUID);
-    // créer les informations L2CAP de l'uuid
+    // crï¿½er les informations L2CAP de l'uuid
     l2cap_list = sdp_list_append(0, &l2cap_uuid);
-    // créer les informations du protocol L2CAP pour le service
+    // crï¿½er les informations du protocol L2CAP pour le service
     proto_list = sdp_list_append(0, l2cap_list);
 
-    // créer l'uuid RFCOMM
+    // crï¿½er l'uuid RFCOMM
     sdp_uuid16_create(&rfcomm_uuid, RFCOMM_UUID);
-    // créer l'information du canal du service RFCOMM
+    // crï¿½er l'information du canal du service RFCOMM
     channel = sdp_data_alloc(SDP_UINT8, &port);
-    // créer les informations de l'uuid du RFCOMM
+    // crï¿½er les informations de l'uuid du RFCOMM
     rfcomm_list = sdp_list_append(0, &rfcomm_uuid);
     // ajouter les information du canal ouvert pour le RFCOMM
     sdp_list_append(rfcomm_list, channel);
-    // ajout des informations RFCOMM à la liste
+    // ajout des informations RFCOMM ï¿½ la liste
     sdp_list_append(proto_list, rfcomm_list);
 
-    // créer les informations d'accès du service
+    // crï¿½er les informations d'accï¿½s du service
     access_proto_list = sdp_list_append(0, proto_list);
-    // mettre à jour les informations des protocol de l'enregistrement du service
+    // mettre ï¿½ jour les informations des protocol de l'enregistrement du service
     sdp_set_access_protos(record, access_proto_list);
     // concactenner toutes les informations du service
     sdp_set_info_attr(record, srv_name.c_str(), srv_prov.c_str(), srv_desc.c_str());
@@ -889,7 +889,7 @@ void BluetoothSocket::register_sdp_service(service_t & service, uuid_t const& uu
     if (sdp_record_register(service, record, 0))
         r = true;
 
-    // libération des données
+    // libï¿½ration des donnï¿½es
     sdp_data_free(channel);
     sdp_list_free(l2cap_list, 0);
     sdp_list_free(rfcomm_list, 0);
@@ -941,7 +941,7 @@ std::list<BluetoothDevice> BluetoothSocket::scan(bool flushCache)
     for( int type; (type = dbus_message_iter_get_arg_type (&iter)) != DBUS_TYPE_INVALID; dbus_message_iter_next (&iter))
     {
         DBusMessageIter Dict1;
-        // On récupère la valeur du tableau (par exemple a[0], a[1], etc...)
+        // On rï¿½cupï¿½re la valeur du tableau (par exemple a[0], a[1], etc...)
         dbus_message_iter_recurse(&iter, &Dict1);
         // Pour chaque valeur du tableau
         for( int type; (type = dbus_message_iter_get_arg_type(&Dict1)) != DBUS_TYPE_INVALID; dbus_message_iter_next(&Dict1) )
@@ -949,11 +949,11 @@ std::list<BluetoothDevice> BluetoothSocket::scan(bool flushCache)
             DBusMessageIter DictEntry1;
             // On rentre dans le dictionnaire
             dbus_message_iter_recurse(&Dict1, &DictEntry1);
-            // Pour chaque entrée du dictionnaire (à un object_path on associe un tableau)
+            // Pour chaque entrï¿½e du dictionnaire (ï¿½ un object_path on associe un tableau)
             // Par exemple o["toto"], o["/org/bluez/hci0"], etc...)
             for( int type; (type = dbus_message_iter_get_arg_type(&DictEntry1)) != DBUS_TYPE_INVALID; dbus_message_iter_next(&DictEntry1) )
             {
-                // On récupère la clé du dictionnaire
+                // On rï¿½cupï¿½re la clï¿½ du dictionnaire
                 dbus_message_iter_get_basic(&DictEntry1, &tmp);
                 dbus_message_iter_next(&DictEntry1);
                 DBusMessageIter Dict2;
@@ -964,10 +964,10 @@ std::list<BluetoothDevice> BluetoothSocket::scan(bool flushCache)
                     DBusMessageIter DictEntry2;
                     // On rentre dans le dictionnaire
                     dbus_message_iter_recurse(&Dict2, &DictEntry2);
-                    // Pour chaque entrée du dictionnaire (à une string on associe un tableau)
+                    // Pour chaque entrï¿½e du dictionnaire (ï¿½ une string on associe un tableau)
                     for( int type; (type = dbus_message_iter_get_arg_type(&DictEntry2)) != DBUS_TYPE_INVALID; dbus_message_iter_next(&DictEntry2) )
                     {
-                        // On récupère la clé du dictionnaire
+                        // On rï¿½cupï¿½re la clï¿½ du dictionnaire
                         dbus_message_iter_get_basic(&DictEntry2, &tmp2);
                         dbus_message_iter_next(&DictEntry2);
                         if( !strcmp(tmp2, "org.bluez.Adapter1") )
@@ -1005,7 +1005,7 @@ std::list<BluetoothDevice> BluetoothSocket::scan(bool flushCache)
     for( int type; (type = dbus_message_iter_get_arg_type (&iter)) != DBUS_TYPE_INVALID; dbus_message_iter_next (&iter))
     {
         DBusMessageIter Dict1;
-        // On récupère la valeur du tableau (par exemple a[0], a[1], etc...)
+        // On rï¿½cupï¿½re la valeur du tableau (par exemple a[0], a[1], etc...)
         dbus_message_iter_recurse(&iter, &Dict1);
         // Pour chaque valeur du tableau
         for( int type; (type = dbus_message_iter_get_arg_type(&Dict1)) != DBUS_TYPE_INVALID; dbus_message_iter_next(&Dict1) )
@@ -1013,11 +1013,11 @@ std::list<BluetoothDevice> BluetoothSocket::scan(bool flushCache)
             DBusMessageIter DictEntry1;
             // On rentre dans le dictionnaire
             dbus_message_iter_recurse(&Dict1, &DictEntry1);
-            // Pour chaque entrée du dictionnaire (à un object_path on associe un tableau)
+            // Pour chaque entrï¿½e du dictionnaire (ï¿½ un object_path on associe un tableau)
             // Par exemple o["toto"], o["/org/bluez/hci0"], etc...)
             for( int type; (type = dbus_message_iter_get_arg_type(&DictEntry1)) != DBUS_TYPE_INVALID; dbus_message_iter_next(&DictEntry1) )
             {
-                // On récupère la clé du dictionnaire
+                // On rï¿½cupï¿½re la clï¿½ du dictionnaire
                 dbus_message_iter_get_basic(&DictEntry1, &tmp);
                 dbus_message_iter_next(&DictEntry1);
                 DBusMessageIter Dict2;
@@ -1028,10 +1028,10 @@ std::list<BluetoothDevice> BluetoothSocket::scan(bool flushCache)
                     DBusMessageIter DictEntry2;
                     // On rentre dans le dictionnaire
                     dbus_message_iter_recurse(&Dict2, &DictEntry2);
-                    // Pour chaque entrée du dictionnaire (à une string on associe un tableau)
+                    // Pour chaque entrï¿½e du dictionnaire (ï¿½ une string on associe un tableau)
                     for( int type; (type = dbus_message_iter_get_arg_type(&DictEntry2)) != DBUS_TYPE_INVALID; dbus_message_iter_next(&DictEntry2) )
                     {
-                        // On récupère la clé du dictionnaire
+                        // On rï¿½cupï¿½re la clï¿½ du dictionnaire
                         dbus_message_iter_get_basic(&DictEntry2, &tmp2);
                         dbus_message_iter_next(&DictEntry2);
                         DBusMessageIter Dict3;
@@ -1162,33 +1162,33 @@ void BluetoothSocket::register_sdp_service(service_t & service, uuid_t const& uu
           << "    </attribute>"                              << std::endl
           << "</record>";
     std::string sdprecord(sstr.str());
-    // Création des paramètres de la fonction pour dbus
+    // Crï¿½ation des paramï¿½tres de la fonction pour dbus
     dbus_message_iter_init_append(msg, &iter);
-    // On ajoute aux paramètres le nom du service
+    // On ajoute aux paramï¿½tres le nom du service
     tmp = sdp_session.c_str();
     dbus_message_iter_append_basic(&iter, DBUS_TYPE_OBJECT_PATH, &tmp);
-    // On ajoute aux paramètres l'uuid du service
+    // On ajoute aux paramï¿½tres l'uuid du service
     tmp = struuid.c_str();
     dbus_message_iter_append_basic(&iter, DBUS_TYPE_STRING, &tmp);
-    // On créé un tableau de dictionnaires pour les autres paramètres
+    // On crï¿½ï¿½ un tableau de dictionnaires pour les autres paramï¿½tres
     dbus_message_iter_open_container(&iter, DBUS_TYPE_ARRAY,
         DBUS_DICT_ENTRY_BEGIN_CHAR_AS_STRING
             DBUS_TYPE_STRING_AS_STRING
             DBUS_TYPE_VARIANT_AS_STRING
         DBUS_DICT_ENTRY_END_CHAR_AS_STRING,
         &dict);
-    // On créé une entrée dans le dictionnaire
+    // On crï¿½ï¿½ une entrï¿½e dans le dictionnaire
     dbus_message_iter_open_container(&dict, DBUS_TYPE_DICT_ENTRY, 0, &entry);
-    // On affecte la valeur de la clé du dictionnaire
+    // On affecte la valeur de la clï¿½ du dictionnaire
     dbus_message_iter_append_basic(&entry, DBUS_TYPE_STRING, &recordkey);
-    // On créé un variant de type string
+    // On crï¿½ï¿½ un variant de type string
     dbus_message_iter_open_container(&entry, DBUS_TYPE_VARIANT, DBUS_TYPE_STRING_AS_STRING, &variant);
     // On affecte la valeur du variant
     tmp = sdprecord.c_str();
     dbus_message_iter_append_basic(&variant, DBUS_TYPE_STRING, &tmp);
     // On ferme le variant
     dbus_message_iter_close_container(&entry, &variant);
-    // On ferme l'entrée du dictionnaire
+    // On ferme l'entrï¿½e du dictionnaire
     dbus_message_iter_close_container(&dict, &entry);
     // On ferme le tableau de dictionnaires
     dbus_message_iter_close_container(&iter, &dict);
@@ -1211,9 +1211,9 @@ void BluetoothSocket::unregister_sdp_service(service_t &service)
     {
         throw sdp_service_exception("New method call error (" + std::string(bus.message()) + ')');
     } 
-    // Création des paramètres de la fonction pour dbus
+    // Crï¿½ation des paramï¿½tres de la fonction pour dbus
     dbus_message_iter_init_append(msg, &iter);
-    // On ajoute aux paramètres le nom du service
+    // On ajoute aux paramï¿½tres le nom du service
     dbus_message_iter_append_basic(&iter, DBUS_TYPE_OBJECT_PATH, &tmp);
     if( (ret = dbus_connection_send_with_reply_and_block(bus, msg, DBUS_TIMEOUT_INFINITE, bus)) == nullptr )
     {
