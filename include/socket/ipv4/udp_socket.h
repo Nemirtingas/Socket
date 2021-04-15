@@ -1,4 +1,4 @@
-/* Copyright (C) 2019-2020 Nemirtingas
+/* Copyright (C) Nemirtingas
  * This file is part of Socket.
  *
  * Socket is free software: you can redistribute it and/or modify
