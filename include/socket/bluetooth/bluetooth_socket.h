@@ -20,7 +20,7 @@
 
 #include "../common/socket.h"
 
-#if defined(__LINUX__)
+#if defined(UTILS_OS_LINUX)
 
 #include <bluetooth/bluetooth.h>
 #include <bluetooth/hci.h>
@@ -35,7 +35,7 @@ typedef sdp_session_t* service_t;
 typedef std::string service_t;
 #endif
 
-#elif defined(__WINDOWS__)
+#elif defined(UTILS_OS_WINDOWS)
 
 #include <ws2bth.h>
 #include <bluetoothapis.h>
@@ -50,7 +50,7 @@ typedef WSAQUERYSETW service_t;
 
 #endif
 
-#ifndef __APPLE__
+#if defined(UTILS_OS_WINDOWS) || defined(UTILS_OS_LINUX)
 
 #include <list>
 
@@ -193,9 +193,9 @@ public:\
         ////////////
         enum class address_family
         {
-#if defined(__WINDOWS__)
+#if defined(UTILS_OS_WINDOWS)
             bth = AF_BTH,
-#elif defined(__LINUX__)
+#elif defined(UTILS_OS_LINUX)
             bth = AF_BLUETOOTH,
 #endif
         };
@@ -205,19 +205,19 @@ public:\
         ////////////
         enum class protocols
         {
-#if defined(__WINDOWS__)
+#if defined(UTILS_OS_WINDOWS)
             rfcomm = BTHPROTO_RFCOMM,
             l2cap = BTHPROTO_L2CAP,
-#elif defined(__LINUX__)
+#elif defined(UTILS_OS_LINUX)
             rfcomm = BTPROTO_RFCOMM,
             l2cap = BTPROTO_L2CAP,
 #endif
         };
 
-#if defined(__WINDOWS__)
+#if defined(UTILS_OS_WINDOWS)
         //                                                                                 Here, Windows is Host ordered
         static constexpr uint8_t bth_base_uuid[16] = { 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x10, 0x80, 0x00, 0x00, 0x80, 0x5F, 0x9B, 0x34, 0xFB };
-#elif defined(__LINUX__)
+#elif defined(UTILS_OS_LINUX)
         //                                                                                 Here, Linux is big endian
         static constexpr uint8_t bth_base_uuid[16] = { 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x10, 0x00, 0x80, 0x00, 0x00, 0x80, 0x5F, 0x9B, 0x34, 0xFB };
 #endif
@@ -306,4 +306,4 @@ public:\
 }
 #endif
 
-#endif//__APPLE__
+#endif//__BLUETOOTH_SOCKET_INCLUDED__

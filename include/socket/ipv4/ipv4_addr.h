@@ -20,7 +20,7 @@
 
 #include "../common/basic_socket.h"
 
-#ifdef __WINDOWS__
+#ifdef UTILS_OS_WINDOWS
   #ifndef s_addr
     #define s_addr S_un.S_addr
   #endif

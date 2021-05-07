@@ -33,20 +33,20 @@ Socket::socket_t Socket::accept(Socket::socket_t s, basic_addr &addr)
     socklen_t len = static_cast<socklen_t>(addr.len());
     if ((res = ::accept(s, &addr.addr(), &len)) == Socket::invalid_socket)
     {
-#if defined(__WINDOWS__)
+#if defined(UTILS_OS_WINDOWS)
         int32_t error = WSAGetLastError();
-#elif defined(__LINUX__) || defined(__APPLE__)
+#elif defined(UTILS_OS_LINUX) || defined(UTILS_OS_APPLE)
         int32_t error = errno;
 #endif
         switch (error)
         {
-#if defined(__WINDOWS__)
+#if defined(UTILS_OS_WINDOWS)
             case WSANOTINITIALISED: throw wsa_not_initialised();
             case WSAECONNRESET    : throw connection_reset();
             case WSAEINVAL        : throw error_in_value("The listen function was not invoked prior to accept.");
             case WSAENETDOWN      : throw wsa_net_down();
             case WSAEWOULDBLOCK   : throw would_block();
-#elif defined(__LINUX__) || defined(__APPLE__)
+#elif defined(UTILS_OS_LINUX) || defined(UTILS_OS_APPLE)
             case ECONNABORTED : throw connection_reset();
             case EINVAL       : throw error_in_value("The listen function was not invoked prior to accept.");
 #if EAGAIN != EWOULDBLOCK
@@ -65,19 +65,19 @@ void Socket::bind(Socket::socket_t s, basic_addr const&addr)
 {
     if (::bind(s, &addr.addr(), addr.len()) == -1)
     {
-#if defined(__WINDOWS__)
+#if defined(UTILS_OS_WINDOWS)
         int32_t error = WSAGetLastError();
-#elif defined(__LINUX__) || defined(__APPLE__)
+#elif defined(UTILS_OS_LINUX) || defined(UTILS_OS_APPLE)
         int32_t error = errno;
 #endif
         switch (error)
         {
-#if defined(__WINDOWS__)
+#if defined(UTILS_OS_WINDOWS)
             case WSANOTINITIALISED: throw wsa_not_initialised();
             case WSAENETDOWN: throw wsa_net_down();
             case WSAEADDRINUSE: throw address_in_use("The given address is already in use.");
             case WSAEINVAL: throw error_in_value("The socket is already bound to an address.");
-#elif defined(__LINUX__) || defined(__APPLE__)
+#elif defined(UTILS_OS_LINUX) || defined(UTILS_OS_APPLE)
             case EADDRINUSE: throw address_in_use("The given address is already in use.");
             case EINVAL: throw error_in_value("The socket is already bound to an address.");
 #endif
@@ -88,9 +88,9 @@ void Socket::bind(Socket::socket_t s, basic_addr const&addr)
 
 void Socket::closeSocket(Socket::socket_t s)
 {
-#if defined(__WINDOWS__)
+#if defined(UTILS_OS_WINDOWS)
     ::closesocket(s);
-#elif defined(__LINUX__) || defined(__APPLE__)
+#elif defined(UTILS_OS_LINUX) || defined(UTILS_OS_APPLE)
     ::close(s);
 #endif
 }
@@ -99,14 +99,14 @@ void Socket::connect(Socket::socket_t s, basic_addr const&addr)
 {
     if (::connect(s, &addr.addr(), addr.len()) == -1)
     {
-#if defined(__WINDOWS__)
+#if defined(UTILS_OS_WINDOWS)
         int32_t error = WSAGetLastError();
-#elif defined(__LINUX__) || defined(__APPLE__)
+#elif defined(UTILS_OS_LINUX) || defined(UTILS_OS_APPLE)
         int32_t error = errno;
 #endif
         switch (error)
         {
-#if defined(__WINDOWS__)
+#if defined(UTILS_OS_WINDOWS)
             case WSANOTINITIALISED: throw wsa_not_initialised();
             case WSAENETDOWN: throw wsa_net_down();
             case WSAEADDRINUSE: throw address_in_use("Local address is already in use.");
@@ -117,7 +117,7 @@ void Socket::connect(Socket::socket_t s, basic_addr const&addr)
             case WSAEISCONN: throw is_connected();
             case WSAEWOULDBLOCK: throw would_block();
             case WSAEINPROGRESS: throw in_progress();
-#elif defined(__LINUX__) || defined(__APPLE__)
+#elif defined(UTILS_OS_LINUX) || defined(UTILS_OS_APPLE)
             case EINVAL: throw error_in_value("Address is not available.");
             case EADDRINUSE: throw address_in_use("Local address is already in use.");
             case ECONNREFUSED:  throw connection_refused();
@@ -136,27 +136,27 @@ void Socket::connect(Socket::socket_t s, basic_addr const&addr)
 
 int Socket::ioctlsocket(Socket::socket_t s, Socket::cmd_name cmd, unsigned long * arg)
 {
-#if defined(__WINDOWS__)
+#if defined(UTILS_OS_WINDOWS)
     return ::ioctlsocket(s, static_cast<long>(cmd), arg);
-#elif defined(__LINUX__) || defined(__APPLE__)
+#elif defined(UTILS_OS_LINUX) || defined(UTILS_OS_APPLE)
     return ::ioctl(s, static_cast<long>(cmd), arg);
 #endif
 }
 
 int Socket::setsockopt(Socket::socket_t s, Socket::level level, Socket::option_name optname, const void* optval, socklen_t optlen)
 {
-#if defined(__WINDOWS__)
+#if defined(UTILS_OS_WINDOWS)
     return ::setsockopt(s, static_cast<int>(level), static_cast<int>(optname), reinterpret_cast<const char*>(optval), optlen);
-#elif defined(__LINUX__) || defined(__APPLE__)
+#elif defined(UTILS_OS_LINUX) || defined(UTILS_OS_APPLE)
     return ::setsockopt(s, static_cast<int>(level), static_cast<int>(optname), optval, static_cast<socklen_t>(optlen));
 #endif
 }
 
 int Socket::getsockopt(Socket::socket_t s, Socket::level level, Socket::option_name optname, void* optval, socklen_t* optlen)
 {
-#if defined(__WINDOWS__)
+#if defined(UTILS_OS_WINDOWS)
     return ::getsockopt(s, static_cast<int>(level), static_cast<int>(optname), reinterpret_cast<char*>(optval), optlen);
-#elif defined(__LINUX__) || defined(__APPLE__)
+#elif defined(UTILS_OS_LINUX) || defined(UTILS_OS_APPLE)
     return ::getsockopt(s, static_cast<int>(level), static_cast<int>(optname), optval, optlen);
 #endif
 }
@@ -165,18 +165,18 @@ void Socket::listen(Socket::socket_t s, int waiting_connection)
 {
     if (::listen(s, waiting_connection) == -1)
     {
-#if defined(__WINDOWS__)
+#if defined(UTILS_OS_WINDOWS)
         int32_t error = WSAGetLastError();
-#elif defined(__LINUX__) || defined(__APPLE__)
+#elif defined(UTILS_OS_LINUX) || defined(UTILS_OS_APPLE)
         int32_t error = errno;
 #endif
         switch (error)
         {
-#if defined(__WINDOWS__)
+#if defined(UTILS_OS_WINDOWS)
             case WSANOTINITIALISED: throw wsa_not_initialised();
             case WSAENETDOWN: throw wsa_net_down();
             case WSAEADDRINUSE: throw address_in_use();
-#elif defined(__LINUX__) || defined(__APPLE__)
+#elif defined(UTILS_OS_LINUX) || defined(UTILS_OS_APPLE)
             case EADDRINUSE: throw address_in_use();
 #endif
             default: throw socket_exception("listen exception: " + std::to_string(error));
@@ -191,20 +191,20 @@ size_t Socket::recv(Socket::socket_t s, void* buffer, size_t len, Socket::socket
         throw connection_reset();
     else if( res == -1 )
     {
-#if defined(__WINDOWS__)
+#if defined(UTILS_OS_WINDOWS)
         int32_t error = WSAGetLastError();
-#elif defined(__LINUX__) || defined(__APPLE__)
+#elif defined(UTILS_OS_LINUX) || defined(UTILS_OS_APPLE)
         int32_t error = errno;
 #endif
         switch (error)
         {
-#if defined(__WINDOWS__)
+#if defined(UTILS_OS_WINDOWS)
             case WSANOTINITIALISED: throw wsa_not_initialised();
             case WSAENETDOWN: throw wsa_net_down();
             case WSAENOTCONN: throw not_connected();
             case WSAECONNABORTED: throw connection_abort();
             case WSAEWOULDBLOCK: res = 0; break;
-#elif defined(__LINUX__) || defined(__APPLE__)
+#elif defined(UTILS_OS_LINUX) || defined(UTILS_OS_APPLE)
             case ENOTCONN: throw not_connected();
             case ECONNRESET: throw connection_reset();
             case ECONNABORTED: throw connection_abort();
@@ -225,20 +225,20 @@ size_t Socket::recvfrom(Socket::socket_t s, basic_addr &addr, void* buffer, size
     int res = ::recvfrom(s, reinterpret_cast<char*>(buffer), len, static_cast<int32_t>(flags), &addr.addr(), &slen);
     if (res == -1)
     {
-#if defined(__WINDOWS__)
+#if defined(UTILS_OS_WINDOWS)
         int32_t error = WSAGetLastError();
-#elif defined(__LINUX__) || defined(__APPLE__)
+#elif defined(UTILS_OS_LINUX) || defined(UTILS_OS_APPLE)
         int32_t error = errno;
 #endif
         switch (error)
         {
-#if defined(__WINDOWS__)
+#if defined(UTILS_OS_WINDOWS)
             case WSANOTINITIALISED: throw wsa_not_initialised();
             case WSAENETDOWN: throw wsa_net_down();
             case WSAEINVAL: throw error_in_value("The socket is not bound to an address.");
             case WSAEWOULDBLOCK: res = 0; break;
             case WSAECONNRESET: throw connection_reset();
-#elif defined(__LINUX__) || defined(__APPLE__)
+#elif defined(UTILS_OS_LINUX) || defined(UTILS_OS_APPLE)
             case EINVAL: throw error_in_value("The socket is not bound to an address.");
     #if EAGAIN != EWOULDBLOCK
             case EAGAIN:
@@ -257,20 +257,20 @@ size_t Socket::send(Socket::socket_t s, const void* buffer, size_t len, Socket::
 
     if (res == -1)
     {
-#if defined(__WINDOWS__)
+#if defined(UTILS_OS_WINDOWS)
         int32_t error = WSAGetLastError();
-#elif defined(__LINUX__) || defined(__APPLE__)
+#elif defined(UTILS_OS_LINUX) || defined(UTILS_OS_APPLE)
         int32_t error = errno;
 #endif
         switch (error)
         {
-#if defined(__WINDOWS__)
+#if defined(UTILS_OS_WINDOWS)
             case WSANOTINITIALISED: throw wsa_not_initialised();
             case WSAENETDOWN: throw wsa_net_down();
             case WSAENOTCONN: throw not_connected();
             case WSAEWOULDBLOCK: res = 0; break;
             case WSAECONNABORTED: throw connection_reset();
-#elif defined(__LINUX__) || defined(__APPLE__)
+#elif defined(UTILS_OS_LINUX) || defined(UTILS_OS_APPLE)
             case ENOTCONN: throw not_connected();
     #if EAGAIN != EWOULDBLOCK
             case EAGAIN:
@@ -288,18 +288,18 @@ size_t Socket::sendto(Socket::socket_t s, basic_addr const&addr, const void* buf
     int res = ::sendto(s, reinterpret_cast<const char*>(buffer), len, static_cast<int32_t>(flags), &addr.addr(), addr.len());
     if (res == -1)
     {
-#if defined(__WINDOWS__)
+#if defined(UTILS_OS_WINDOWS)
         int32_t error = WSAGetLastError();
-#elif defined(__LINUX__) || defined(__APPLE__)
+#elif defined(UTILS_OS_LINUX) || defined(UTILS_OS_APPLE)
         int32_t error = errno;
 #endif
         switch (error)
         {
-#if defined(__WINDOWS__)
+#if defined(UTILS_OS_WINDOWS)
             case WSANOTINITIALISED: throw wsa_not_initialised();
             case WSAENETDOWN: throw wsa_net_down();
             case WSAENETUNREACH: throw network_unreachable();
-#elif defined(__LINUX__) || defined(__APPLE__)
+#elif defined(UTILS_OS_LINUX) || defined(UTILS_OS_APPLE)
             case ENETUNREACH: throw network_unreachable();
 #endif
             default: throw socket_exception("sendto exception: " + std::to_string(error));
@@ -318,17 +318,17 @@ Socket::socket_t Socket::socket(Socket::address_family af, Socket::types type, S
     Socket::socket_t s = ::socket(static_cast<int>(af), static_cast<int>(type), static_cast<int>(proto));
     if (s == Socket::invalid_socket)
     {
-#if defined(__WINDOWS__)
+#if defined(UTILS_OS_WINDOWS)
         int32_t error = WSAGetLastError();
-#elif defined(__LINUX__) || defined(__APPLE__)
+#elif defined(UTILS_OS_LINUX) || defined(UTILS_OS_APPLE)
         int32_t error = errno;
 #endif
         switch (error)
         {
-#if defined(__WINDOWS__)
+#if defined(UTILS_OS_WINDOWS)
             case WSANOTINITIALISED: throw wsa_not_initialised();
             case WSAENETDOWN: throw wsa_net_down();
-#elif defined(__LINUX__) || defined(__APPLE__)
+#elif defined(UTILS_OS_LINUX) || defined(UTILS_OS_APPLE)
 #endif
             default: throw socket_exception("listen exception: " + std::to_string(error));
         }
@@ -374,7 +374,7 @@ int Socket::poll(pollfd* fds, size_t nfds, int timeout)
 {
     return WSAPoll(fds, nfds, timeout);
 }
-#elif defined(__LINUX__) || defined(__APPLE__)
+#elif defined(UTILS_OS_LINUX) || defined(UTILS_OS_APPLE)
 int Socket::poll(pollfd* fds, size_t nfds, int timeout)
 {
     return ::poll(fds, nfds, timeout);
@@ -383,7 +383,7 @@ int Socket::poll(pollfd* fds, size_t nfds, int timeout)
 
 void Socket::InitSocket(uint32_t version)
 {
-#if defined(__WINDOWS__)
+#if defined(UTILS_OS_WINDOWS)
     static Socket s;
     int err = WSAStartup(version, &const_cast<WSAData&>(Socket::GetWSAData()));
     switch (err)
@@ -403,7 +403,7 @@ void Socket::InitSocket(uint32_t version)
 
 void Socket::SetLastError(int error)
 {
-#if defined(__WINDOWS__)
+#if defined(UTILS_OS_WINDOWS)
     WSASetLastError(error);
 #else
     (void)error;
@@ -413,7 +413,7 @@ void Socket::SetLastError(int error)
 /*
 void Socket::FreeSocket()
 {
-#if defined(__WINDOWS__)
+#if defined(UTILS_OS_WINDOWS)
     WSACleanup();
 #endif
 }
@@ -431,7 +431,7 @@ Socket::Socket()
 
 Socket::~Socket() 
 {
-#if defined(__WINDOWS__)
+#if defined(UTILS_OS_WINDOWS)
     WSACleanup();
 #endif
 }

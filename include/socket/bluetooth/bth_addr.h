@@ -36,9 +36,9 @@ namespace PortableAPI
         public:
             inline bth_addr() : _sockaddr(new my_sockaddr())
             {
-            #if defined(__WINDOWS__)
+            #if defined(UTILS_OS_WINDOWS)
                 _sockaddr->addressFamily = static_cast<uint16_t>(BluetoothSocket::address_family::bth);
-            #elif defined(__LINUX__)
+            #elif defined(UTILS_OS_LINUX)
                 _sockaddr->rc_family = static_cast<uint8_t>(BluetoothSocket::address_family::bth);
             #endif
             }
@@ -57,18 +57,18 @@ namespace PortableAPI
             {
                 std::string res;
 
-            #if defined(__WINDOWS__)
+            #if defined(UTILS_OS_WINDOWS)
                 BluetoothSocket::inet_ntop(BluetoothSocket::address_family::bth, &_sockaddr->btAddr, res);
-            #elif defined(__LINUX__)
+            #elif defined(UTILS_OS_LINUX)
                 BluetoothSocket::inet_ntop(BluetoothSocket::address_family::bth, &_sockaddr->rc_bdaddr, res);
             #endif
 
                 if (with_port)
                 {
                     res.push_back('@');
-            #if defined(__WINDOWS__)
+            #if defined(UTILS_OS_WINDOWS)
                     res += std::to_string(_sockaddr->port);
-            #elif defined(__LINUX__)
+            #elif defined(UTILS_OS_LINUX)
                     res += std::to_string(_sockaddr->rc_channel);
             #endif
                 }
@@ -88,10 +88,10 @@ namespace PortableAPI
                 {
                     std::string ip = str.substr(0, pos);
                     std::string channel = str.substr(pos + 1);
-                #if defined(__WINDOWS__)
+                #if defined(UTILS_OS_WINDOWS)
                     if (BluetoothSocket::inet_pton(BluetoothSocket::address_family::bth, ip, &_sockaddr->btAddr) != 1)
                         return false;
-                #elif defined(__LINUX__)
+                #elif defined(UTILS_OS_LINUX)
                     if (BluetoothSocket::inet_pton(BluetoothSocket::address_family::bth, ip, &_sockaddr->rc_bdaddr) != 1)
                         return false;
                 #endif
@@ -99,10 +99,10 @@ namespace PortableAPI
                 }
                 else
                 {
-                #if defined(__WINDOWS__)
+                #if defined(UTILS_OS_WINDOWS)
                     if (BluetoothSocket::inet_pton(BluetoothSocket::address_family::bth, str, &_sockaddr->btAddr) != 1)
                         return false;
-                #elif defined(__LINUX__)
+                #elif defined(UTILS_OS_LINUX)
                     if (BluetoothSocket::inet_pton(BluetoothSocket::address_family::bth, str, &_sockaddr->rc_bdaddr) != 1)
                         return false;
                 #endif
@@ -132,9 +132,9 @@ namespace PortableAPI
             ////////////
             inline void set_addr(bdaddr_t const& addr)
             {
-            #if defined(__WINDOWS__)
+            #if defined(UTILS_OS_WINDOWS)
                 _sockaddr->btAddr = addr;
-            #elif defined(__LINUX__)
+            #elif defined(UTILS_OS_LINUX)
                 _sockaddr->rc_bdaddr = addr;
             #endif
             }
@@ -145,9 +145,9 @@ namespace PortableAPI
             ////////////
             inline void set_channel(uint8_t channel)
             {
-            #if defined(__WINDOWS__)
+            #if defined(UTILS_OS_WINDOWS)
                 _sockaddr->port = channel;
-            #elif defined(__LINUX__)
+            #elif defined(UTILS_OS_LINUX)
                 _sockaddr->rc_channel = channel;
             #endif
             }
@@ -157,9 +157,9 @@ namespace PortableAPI
             ////////////
             inline bdaddr_t get_addr() const
             {
-            #if defined(__WINDOWS__)
+            #if defined(UTILS_OS_WINDOWS)
                 return _sockaddr->btAddr;
-            #elif defined(__LINUX__)
+            #elif defined(UTILS_OS_LINUX)
                 return _sockaddr->rc_bdaddr;
             #endif
             }
@@ -169,9 +169,9 @@ namespace PortableAPI
             ////////////
             inline uint8_t get_channel() const
             {
-            #if defined(__WINDOWS__)
+            #if defined(UTILS_OS_WINDOWS)
                 return static_cast<uint8_t>(_sockaddr->port);
-            #elif defined(__LINUX__)
+            #elif defined(UTILS_OS_LINUX)
                 return _sockaddr->rc_channel;
             #endif
             }
@@ -186,9 +186,9 @@ namespace PortableAPI
             ////////////
             inline void set_any_addr()
             {
-#if defined(__WINDOWS__)
+#if defined(UTILS_OS_WINDOWS)
                 _sockaddr->btAddr = { 0 };
-#elif defined(__LINUX__)
+#elif defined(UTILS_OS_LINUX)
                 _sockaddr->rc_bdaddr = { 0 };
 #endif
             }

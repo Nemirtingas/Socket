@@ -20,19 +20,17 @@
 
 #include <utils.h>
 
-#if defined(__WINDOWS__)
+#if defined(UTILS_OS_WINDOWS)
 
     #define VC_EXTRALEAN
     #define WIN32_LEAN_AND_MEAN
+    #define NOMINMAX
     #include <WinSock2.h>
     #include <Ws2tcpip.h>
-    #ifdef max
-        #undef max
-    #endif
 
-    #pragma comment(lib, "ws2_32.lib")
+    //#pragma comment(lib, "ws2_32.lib")
 
-#elif defined(__LINUX__)
+#elif defined(UTILS_OS_LINUX)
     #include <unistd.h>
     #include <signal.h>
     #include <netdb.h>
@@ -49,7 +47,7 @@
     #include <netinet/in.h>
 
     struct WSAData {};
-#elif defined(__APPLE__)
+#elif defined(UTILS_OS_APPLE)
     #include <unistd.h>
     #include <netdb.h>
     #include <errno.h>
@@ -197,9 +195,9 @@ public:\
     class EXPORT_SOCKET_API Socket
     {
     public:
-#if defined(__WINDOWS__)
+#if defined(UTILS_OS_WINDOWS)
         using socket_t = SOCKET;
-#elif defined(__LINUX__) || defined(__APPLE__)
+#elif defined(UTILS_OS_LINUX) || defined(UTILS_OS_APPLE)
         using socket_t = int32_t;
 #endif
         ////////////
@@ -212,7 +210,7 @@ public:\
         ////////////
         enum class address_family
         {
-#if defined(__WINDOWS__)
+#if defined(UTILS_OS_WINDOWS)
             implink = AF_IMPLINK,
             pip = AF_PUP,
             chaos = AF_CHAOS,
@@ -235,7 +233,7 @@ public:\
             IEEE1284_4 = AF_12844,
             netdes = AF_NETDES,
             irda = AF_IRDA,
-#elif defined(__LINUX__)
+#elif defined(UTILS_OS_LINUX)
             irda = AF_IRDA,
 #endif
             unix = AF_UNIX,
@@ -287,7 +285,7 @@ public:\
             idp = IPPROTO_IDP,
             raw = IPPROTO_RAW,
             max = IPPROTO_MAX,
-#if defined(__LINUX__)
+#if defined(UTILS_OS_LINUX)
             hopopts = IPPROTO_HOPOPTS,
             routing = IPPROTO_ROUTING,
             fragment = IPPROTO_FRAGMENT,
@@ -312,7 +310,7 @@ public:\
             comp = IPPROTO_COMP,
             sctp = IPPROTO_SCTP,
             udplite = IPPROTO_UDPLITE,
-#elif defined(__WINDOWS__)
+#elif defined(UTILS_OS_WINDOWS)
             ggp = IPPROTO_GGP,
             nd = IPPROTO_ND,
 #if(_WIN32_WINNT >= 0x0501)
@@ -355,7 +353,7 @@ public:\
         ////////////
         enum class option_name : uint32_t
         {
-#if defined(__WINDOWS__)
+#if defined(UTILS_OS_WINDOWS)
             so_debug = SO_DEBUG,
             so_acceptconn = SO_ACCEPTCONN,
             so_reuseaddr = SO_REUSEADDR,
@@ -381,7 +379,7 @@ public:\
             #else
                 so_protocol_info = SO_PROTOCOL_INFOA,
             #endif /* UNICODE */
-#elif defined(__LINUX__)
+#elif defined(UTILS_OS_LINUX)
             so_debug = SO_DEBUG,
             so_reuseaddr = SO_REUSEADDR,
             so_keepalive = SO_KEEPALIVE,
@@ -405,7 +403,7 @@ public:\
             so_reuseport = SO_REUSEPORT,
             so_passcred = SO_PASSCRED,
             so_peercred = SO_PEERCRED,
-#elif defined(__APPLE__)
+#elif defined(UTILS_OS_APPLE)
             so_debug = SO_DEBUG,
             so_reuseaddr = SO_REUSEADDR,
             so_keepalive = SO_KEEPALIVE,
@@ -440,18 +438,18 @@ public:\
         ////////////
         enum class shutdown_flags
         {
-#if defined(__WINDOWS__)
+#if defined(UTILS_OS_WINDOWS)
             reveive = SD_RECEIVE,
             send = SD_SEND,
             both = SD_BOTH,
-#elif defined(__LINUX__) || defined(__APPLE__)
+#elif defined(UTILS_OS_LINUX) || defined(UTILS_OS_APPLE)
             reveive = SHUT_RD,
             send = SHUT_WR,
             both = SHUT_RDWR,
 #endif
         };
 
-#if _WIN32_WINNT >= 0x0600 || defined(__LINUX__) || defined(__APPLE__)
+#if _WIN32_WINNT >= 0x0600 || defined(UTILS_OS_LINUX) || defined(UTILS_OS_APPLE)
         ////////////
         /// @brief poll function enum 
         ////////////
@@ -654,7 +652,7 @@ public:\
         /// @return The number of file descriptors contained in the three returned descriptor sets
         ////////////
         static int select(int nfds, fd_set *readfd, fd_set *writefd, fd_set *exceptfd, timeval *timeout);
-#if(_WIN32_WINNT >= 0x0600) || defined(__LINUX__) || defined(__APPLE__)
+#if(_WIN32_WINNT >= 0x0600) || defined(UTILS_OS_LINUX) || defined(UTILS_OS_APPLE)
         ////////////
         /// @brief Wrapper for 'C' poll function. Gets infos on output and/or input socket buffers
         ///        Is more efficient than select and should be used if available

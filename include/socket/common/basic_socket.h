@@ -59,9 +59,9 @@ namespace PortableAPI
                 auto res = Socket::ioctlsocket(*_sock, cmd, arg);
                 if (res)
                 {
-                #if defined(__WINDOWS__)
+                #if defined(UTILS_OS_WINDOWS)
                     int error = WSAGetLastError();
-                #elif defined(__LINUX__) || defined(__APPLE__)
+                #elif defined(UTILS_OS_LINUX) || defined(UTILS_OS_APPLE)
                     int error = errno;
                 #endif
                     throw socket_exception("ioctlsocket exception " + std::to_string(error));
@@ -80,9 +80,9 @@ namespace PortableAPI
                 auto res = Socket::setsockopt(*_sock, level, optname, optval, optlen);
                 if (res)
                 {
-                #if defined(__WINDOWS__)
+                #if defined(UTILS_OS_WINDOWS)
                     int error = WSAGetLastError();
-                #elif defined(__LINUX__) || defined(__APPLE__)
+                #elif defined(UTILS_OS_LINUX) || defined(UTILS_OS_APPLE)
                     int error = errno;
                 #endif
                     throw socket_exception("setsockopt exception " + std::to_string(error));
@@ -101,9 +101,9 @@ namespace PortableAPI
                 auto res = Socket::getsockopt(*_sock, level, optname, optval, optlen);
                 if (res)
                 {
-                #if defined(__WINDOWS__)
+                #if defined(UTILS_OS_WINDOWS)
                     int error = WSAGetLastError();
-                #elif defined(__LINUX__) || defined(__APPLE__)
+                #elif defined(UTILS_OS_LINUX) || defined(UTILS_OS_APPLE)
                     int error = errno;
                 #endif
                     throw socket_exception("getsockopt exception " + std::to_string(error));

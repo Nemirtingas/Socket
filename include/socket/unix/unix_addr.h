@@ -20,7 +20,7 @@
 
 #include "../common/basic_socket.h"
 
-#if defined(__WINDOWS__)
+#if defined(UTILS_OS_WINDOWS)
     #include <afunix.h>
 #endif
 
