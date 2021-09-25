@@ -18,7 +18,7 @@
 #ifndef __SOCKET_INCLUDED__
 #define __SOCKET_INCLUDED__
 
-#include <utils.h>
+#include <utils/utils.h>
 
 #if defined(UTILS_OS_WINDOWS)
 
@@ -136,17 +136,18 @@ public:\
     SOCKET_EXCEPTION_CLASS(wsa_fault, "The lpWSAData parameter is not a valid pointer.");                                    // WSAEFAULT
 
     // Generic exceptions
-    SOCKET_EXCEPTION_CLASS(address_in_use, "Another socket is already listening on the same port.");      // EADDRINUSE   - WSAEADDRINUSE
-    SOCKET_EXCEPTION_CLASS(connection_refused, "No-one listening on the remote address.");                // ECONNREFUSED - WSAECONNREFUSED
-    SOCKET_EXCEPTION_CLASS(connection_reset, "Connection reset by peer.");                                // ECONNRESET   - WSAECONNRESET
-    SOCKET_EXCEPTION_CLASS(connection_abort, "Software caused connection abort.");                        // ECONNABORT   - WSAECONNABORT
+    SOCKET_EXCEPTION_CLASS(address_in_use, "Another socket is already listening on the same port.");                                   // EADDRINUSE   - WSAEADDRINUSE
+    SOCKET_EXCEPTION_CLASS(connection_refused, "No-one listening on the remote address.");                                             // ECONNREFUSED - WSAECONNREFUSED
+    SOCKET_EXCEPTION_CLASS(connection_reset, "Connection reset by peer.");                                                             // ECONNRESET   - WSAECONNRESET
+    SOCKET_EXCEPTION_CLASS(connection_abort, "Software caused connection abort.");                                                     // ECONNABORT   - WSAECONNABORT
     SOCKET_EXCEPTION_CLASS(connection_timeout, "A connection attempt failed because the connected party did not properly respond after a period of time.");  //              - WSAETIMEDOUT
-    SOCKET_EXCEPTION_CLASS(error_in_value, "Error in value");                                             // EINVAL       - WSAEINVAL
-    SOCKET_EXCEPTION_CLASS(is_connected, "A connect request was made on an already-connected socket.");   // EISCONN      - WSAEISCONN
-    SOCKET_EXCEPTION_CLASS(network_unreachable, "Network is unreachable.");                               // ENETUNREACH  - WSAENETUNREACH
-    SOCKET_EXCEPTION_CLASS(not_connected, "The socket is not connected.");                                // ENOTCONN     - WSAENOTCONN
-    SOCKET_EXCEPTION_CLASS(would_block, "The operation would block");                                     // EWOULDBLOCK  - WSAEWOULDBLOCK
-    SOCKET_EXCEPTION_CLASS(in_progress, "A blocking operation is in progress.");                          // EINPROGRESS  - WSAEINPROGRESS
+    SOCKET_EXCEPTION_CLASS(error_in_value, "Error in value");                                                                          // EINVAL       - WSAEINVAL
+    SOCKET_EXCEPTION_CLASS(is_connected, "A connect request was made on an already-connected socket.");                                // EISCONN      - WSAEISCONN
+    SOCKET_EXCEPTION_CLASS(network_unreachable, "Network is unreachable.");                                                            // ENETUNREACH  - WSAENETUNREACH
+    SOCKET_EXCEPTION_CLASS(not_connected, "The socket is not connected.");                                                             // ENOTCONN     - WSAENOTCONN
+    SOCKET_EXCEPTION_CLASS(would_block, "The operation would block");                                                                  // EWOULDBLOCK  - WSAEWOULDBLOCK
+    SOCKET_EXCEPTION_CLASS(in_progress, "A blocking operation is in progress.");                                                       // EINPROGRESS  - WSAEINPROGRESS
+    SOCKET_EXCEPTION_CLASS(no_acces, "Authorization refused, you don't have the rights to do this. (Firewall blocked?)");              // EACCES  - WSAEACCES
 
 #undef SOCKET_EXCEPTION_CLASS
 

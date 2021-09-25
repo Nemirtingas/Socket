@@ -77,9 +77,11 @@ void Socket::bind(Socket::socket_t s, basic_addr const&addr)
             case WSAENETDOWN: throw wsa_net_down();
             case WSAEADDRINUSE: throw address_in_use("The given address is already in use.");
             case WSAEINVAL: throw error_in_value("The socket is already bound to an address.");
+            case WSAEACCES: throw no_acces();
 #elif defined(UTILS_OS_LINUX) || defined(UTILS_OS_APPLE)
             case EADDRINUSE: throw address_in_use("The given address is already in use.");
             case EINVAL: throw error_in_value("The socket is already bound to an address.");
+            case EACCES: throw no_acces();
 #endif
             default: throw socket_exception("bind exception: " + std::to_string(error));
         }
@@ -176,8 +178,10 @@ void Socket::listen(Socket::socket_t s, int waiting_connection)
             case WSANOTINITIALISED: throw wsa_not_initialised();
             case WSAENETDOWN: throw wsa_net_down();
             case WSAEADDRINUSE: throw address_in_use();
+            case WSAEACCES: throw no_acces();
 #elif defined(UTILS_OS_LINUX) || defined(UTILS_OS_APPLE)
             case EADDRINUSE: throw address_in_use();
+            case EACCES: throw no_acces();
 #endif
             default: throw socket_exception("listen exception: " + std::to_string(error));
         }
@@ -328,9 +332,11 @@ Socket::socket_t Socket::socket(Socket::address_family af, Socket::types type, S
 #if defined(UTILS_OS_WINDOWS)
             case WSANOTINITIALISED: throw wsa_not_initialised();
             case WSAENETDOWN: throw wsa_net_down();
+            case WSAEACCES: throw no_acces();
 #elif defined(UTILS_OS_LINUX) || defined(UTILS_OS_APPLE)
+            case EACCES: throw no_acces();
 #endif
-            default: throw socket_exception("listen exception: " + std::to_string(error));
+            default: throw socket_exception("socket exception: " + std::to_string(error));
         }
     }
     return s;
