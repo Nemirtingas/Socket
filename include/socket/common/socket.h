@@ -15,10 +15,11 @@
  * along with Socket.  If not, see <https://www.gnu.org/licenses/>
  */
 
-#ifndef __SOCKET_INCLUDED__
-#define __SOCKET_INCLUDED__
+#pragma once
 
-#include <utils/utils.h>
+#include <utils/utils_exports.h>
+#include <utils/class_enum.hpp>
+#include <utils/endianness.hpp>
 
 #if defined(UTILS_OS_WINDOWS)
 
@@ -70,15 +71,15 @@
 
 #ifdef SOCKET_SHARED_LIBRARY
     #ifdef SOCKET_EXPORT
-        #define EXPORT_SOCKET_API EXPORT_API(export)
+        #define EXPORT_SOCKET_API UTILS_EXPORT_API(export)
     #else
-        #define EXPORT_SOCKET_API EXPORT_API(import)
+        #define EXPORT_SOCKET_API UTILS_EXPORT_API(import)
     #endif
 #else
     #ifdef SOCKET_EXPORT
-        #define EXPORT_SOCKET_API EXPORT_STATIC_API
+        #define EXPORT_SOCKET_API UTILS_LOCAL_API
     #else
-        #define EXPORT_SOCKET_API LOCAL_API
+        #define EXPORT_SOCKET_API UTILS_LOCAL_API
     #endif
 #endif
 
@@ -709,7 +710,3 @@ inline std::ostream& operator<<(std::ostream &os, PortableAPI::basic_addr const&
 
 UTILS_ENABLE_BITMASK_OPERATORS(PortableAPI::Socket::socket_flags);
 UTILS_ENABLE_BITMASK_OPERATORS(PortableAPI::Socket::poll_flags);
-
-
-
-#endif

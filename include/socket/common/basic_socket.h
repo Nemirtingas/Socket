@@ -28,7 +28,7 @@ namespace PortableAPI
     ////////////
     class EXPORT_SOCKET_API basic_socket
     {
-        class LOCAL_API SocketDeleter
+        class UTILS_LOCAL_API SocketDeleter
         {
         public:
             void operator()(Socket::socket_t* s)
