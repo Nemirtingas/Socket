@@ -31,7 +31,7 @@ namespace PortableAPI
     ////////////
     /// @brief An IPV4 sock_addr object
     ////////////
-    class EXPORT_SOCKET_API ipv4_addr : public basic_addr
+    class ipv4_addr : public basic_addr
     {
         public:
             using my_sockaddr = sockaddr_in;

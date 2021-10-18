@@ -26,9 +26,9 @@ namespace PortableAPI
     ////////////
     /// @brief Basic socket type that could be used in a future poll class
     ////////////
-    class EXPORT_SOCKET_API basic_socket
+    class basic_socket
     {
-        class UTILS_LOCAL_API SocketDeleter
+        class SocketDeleter
         {
         public:
             void operator()(Socket::socket_t* s)
@@ -193,7 +193,7 @@ namespace PortableAPI
     /// @brief Templated connected_socket class, this uses recv & send.
     ////////////
     template<typename Addr, Socket::address_family family, Socket::types type, Socket::protocols proto>
-    class EXPORT_SOCKET_API connected_socket : public basic_socket
+    class connected_socket : public basic_socket
     {
         public:
             ////////////
@@ -293,7 +293,7 @@ namespace PortableAPI
     /// @brief Templated unconnected_socket class, this uses recvfrom & sendto.
     ////////////
     template<typename Addr, Socket::address_family family, Socket::types type, Socket::protocols proto>
-    class EXPORT_SOCKET_API unconnected_socket : public basic_socket
+    class unconnected_socket : public basic_socket
     {
         public:
             ////////////

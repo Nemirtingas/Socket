@@ -21,7 +21,7 @@
 
 namespace PortableAPI
 {
-    class EXPORT_SOCKET_API basic_socket;
+    class basic_socket;
     ////////////
     /// @brief A class to manage a socket poll. Can handle a poll with index or with socket address
     ////////////

@@ -30,10 +30,10 @@
 
 namespace PortableAPI
 {
-	////////////
+    ////////////
     /// @brief An UNIX sock_addr object
     ////////////
-    class EXPORT_SOCKET_API unix_addr : public basic_addr
+    class unix_addr : public basic_addr
     {
         public:
             using my_sockaddr = sockaddr_un;

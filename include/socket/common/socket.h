@@ -69,20 +69,6 @@
     struct WSAData {};
 #endif
 
-#ifdef SOCKET_SHARED_LIBRARY
-    #ifdef SOCKET_EXPORT
-        #define EXPORT_SOCKET_API UTILS_EXPORT_API(export)
-    #else
-        #define EXPORT_SOCKET_API UTILS_EXPORT_API(import)
-    #endif
-#else
-    #ifdef SOCKET_EXPORT
-        #define EXPORT_SOCKET_API UTILS_LOCAL_API
-    #else
-        #define EXPORT_SOCKET_API UTILS_LOCAL_API
-    #endif
-#endif
-
 #include <cstdint>
 #include <string>
 #include <vector>
@@ -95,7 +81,7 @@ namespace PortableAPI
     ////////////
     /// @brief Base socket exception class
     ////////////
-    class EXPORT_SOCKET_API socket_exception : public std::exception
+    class socket_exception : public std::exception
     {
         std::string mywhat;
     public:
@@ -121,7 +107,7 @@ namespace PortableAPI
     };
 
 #define SOCKET_EXCEPTION_CLASS(x, def_msg) \
-class EXPORT_SOCKET_API x : public socket_exception \
+class x : public socket_exception \
 {\
 public:\
     x(const char* mywhat = def_msg):socket_exception(mywhat){}\
@@ -155,7 +141,7 @@ public:\
     ////////////
     /// @brief An abstract class to represent a Network Address, like a sock_addr*
     ////////////
-    class EXPORT_SOCKET_API basic_addr
+    class basic_addr
     {
     public:
         ////////////
@@ -194,7 +180,7 @@ public:\
     ////////////
     /// @brief A wrapper class for 'C' network & socket functions
     ////////////
-    class EXPORT_SOCKET_API Socket
+    class Socket
     {
     public:
 #if defined(UTILS_OS_WINDOWS)
