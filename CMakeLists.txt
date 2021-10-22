@@ -77,7 +77,7 @@ option(BUILD_SHARED_LIBS "Build static or shared library" OFF)
 option(BUILD_TESTS "Build tests app" OFF)
 
 if(APPLE)
-  set(BLUETOOTH_SUPPORT "Support Bluetooth socket" OFF)
+  set(BLUETOOTH_SUPPORT OFF)
 elseif(UNIX)
   option(BLUETOOTH_BLUEZ_DEPRECATED "Use BlueZ deprecated functions." OFF)
   option(BLUETOOTH_SUPPORT "Support Bluetooth socket" OFF)
