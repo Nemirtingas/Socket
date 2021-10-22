@@ -259,14 +259,25 @@ namespace IPv6 {
                     return Internals::MakeErrorFromSocketCode(Error::InVal);
                 }
             }
-            else if (std::count(str.begin(), str.end(), ':') == 8)
+            else
             {
-                pos = str.rfind(':');
-                str[pos] = '\0';
-                port = static_cast<uint32_t>(strtoul(&str[pos + 1], nullptr, 10));
-                if (port == 0 || port > 65535u)
+                int count = 0;
+                for (int i = 0; i < str.length(); ++i)
                 {
-                    return Internals::MakeErrorFromSocketCode(Error::InVal);
+                    if (str[i] == ':')
+                    {
+                        pos = i;
+                        ++count;
+                    }
+                }
+                if (count == 8)
+                {
+                    str[pos] = '\0';
+                    port = static_cast<uint32_t>(strtoul(&str[pos + 1], nullptr, 10));
+                    if (port == 0 || port > 65535u)
+                    {
+                        return Internals::MakeErrorFromSocketCode(Error::InVal);
+                    }
                 }
             }
 
