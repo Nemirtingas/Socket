@@ -246,10 +246,23 @@ namespace IPv6 {
             uint32_t port;
             char* ip = &str[0];
 
-            if (str[0] == '[' && (pos = str.rfind(':')) && str[pos - 1] == ']')
+            if (str[0] == '[')
             {
+                if ((pos = str.rfind(':')) == std::string::npos || str[pos - 1] != ']')
+                    return Internals::MakeErrorFromSocketCode(Error::InVal);
+
                 ++ip;
-                str[pos - 1] = 0;
+                str[pos - 1] = '\0';
+                port = static_cast<uint32_t>(strtoul(&str[pos + 1], nullptr, 10));
+                if (port == 0 || port > 65535u)
+                {
+                    return Internals::MakeErrorFromSocketCode(Error::InVal);
+                }
+            }
+            else if (std::count(str.begin(), str.end(), ':') == 8)
+            {
+                pos = str.rfind(':');
+                str[pos] = '\0';
                 port = static_cast<uint32_t>(strtoul(&str[pos + 1], nullptr, 10));
                 if (port == 0 || port > 65535u)
                 {
