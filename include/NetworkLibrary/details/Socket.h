@@ -29,7 +29,7 @@ namespace NetworkLibrary
     }
 
     ////////////
-    /// @brief recv, recvfrom, send, sendto flags enum 
+    /// @brief recv, recvfrom, send, sendto flags 
     ////////////
     namespace SocketFlags {
         extern int32_t normal;
@@ -39,7 +39,7 @@ namespace NetworkLibrary
     }
 
     ////////////
-    /// @brief Poll flags enum 
+    /// @brief Poll flags 
     ////////////
     namespace PollFlags {
         extern int16_t none  ;
@@ -54,6 +54,28 @@ namespace NetworkLibrary
         extern int16_t wrnorm;
         extern int16_t wrband;
     }
+
+    ////////////
+    /// @brief Socket option names.
+    ////////////
+    namespace OptionName
+    {
+        extern int32_t so_debug;
+        extern int32_t so_reuseaddr;
+        extern int32_t so_keepalive;
+        extern int32_t so_dontroute;
+        extern int32_t so_broadcast;
+        extern int32_t so_linger;
+        extern int32_t so_oobinline;
+        extern int32_t so_sndbuf;
+        extern int32_t so_rcvbuf;
+        extern int32_t so_sndlowat;
+        extern int32_t so_rcvlowat;
+        extern int32_t so_sndtimeo;
+        extern int32_t so_rcvtimeo;
+        extern int32_t so_error;
+        extern int32_t so_type;
+    };
 
 	////////////
     /// @brief NetworkLibrary error codes, use Error::NativeCode to get the OS native error code.
@@ -204,6 +226,14 @@ namespace NetworkLibrary
         /// @return Error
         ////////////
         NetworkLibrary::Error SetNonBlocking(bool non_blocking);
+        ////////////
+        /// @brief Sets the socket option.
+        /// @param[in] option_name Option name.
+        /// @param[in] value       Option value.
+        /// @param[in] optlen      Option size.
+        /// @return Error
+        ////////////
+        NetworkLibrary::Error SetSockOption(int32_t option_name, const void* value, int optlen);
         ////////////
         /// @brief Gets the bytes count ready to be read on the socket.
         /// @return Waiting size.

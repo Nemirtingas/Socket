@@ -64,6 +64,11 @@ namespace Internals {
         return socket(af, type, proto, *this);
     }
 
+    NetworkLibrary::Error NativeSocket::SetSockOption(int32_t option_name, const void* value, socklen_t optlen)
+    {
+        return Internals::setsockopt(*this, option_name, value, optlen);
+    }
+
     NetworkLibrary::Error NativeSocket::SetNonBlocking(bool non_blocking)
     {
         unsigned long arg = non_blocking ? 1 : 0;
@@ -276,27 +281,27 @@ namespace Internals {
         return error;
     }
 
-    SOCKET_HIDE_SYMBOLS(::NetworkLibrary::Error) setsockopt(Internals::NativeSocket const& s, Internals::OptionName optname, const void* optval, socklen_t optlen)
+    SOCKET_HIDE_SYMBOLS(::NetworkLibrary::Error) setsockopt(Internals::NativeSocket const& s, int optname, const void* optval, socklen_t optlen)
     {
         ::NetworkLibrary::Error error;
 
 #if defined(UTILS_OS_WINDOWS)
-        error.NativeCode = ::setsockopt(s.Socket, static_cast<int>(SocketLevel::sol_socket), static_cast<int>(optname), reinterpret_cast<const char*>(optval), optlen);
+        error.NativeCode = ::setsockopt(s.Socket, SOL_SOCKET, static_cast<int>(optname), reinterpret_cast<const char*>(optval), optlen);
 #elif defined(UTILS_OS_LINUX) || defined(UTILS_OS_APPLE)
-        error.NativeCode = ::setsockopt(s.Socket, static_cast<int>(SocketLevel::sol_socket), static_cast<int>(optname), optval, static_cast<socklen_t>(optlen));
+        error.NativeCode = ::setsockopt(s.Socket, SOL_SOCKET, static_cast<int>(optname), optval, static_cast<socklen_t>(optlen));
 #endif
         error.ErrorCode = error.NativeCode == 0 ? ::NetworkLibrary::Error::NoError : ::NetworkLibrary::Error::UnknownError;
         return error;
     }
 
-    SOCKET_HIDE_SYMBOLS(::NetworkLibrary::Error) getsockopt(Internals::NativeSocket const& s, Internals::OptionName optname, void* optval, socklen_t* optlen)
+    SOCKET_HIDE_SYMBOLS(::NetworkLibrary::Error) getsockopt(Internals::NativeSocket const& s, int optname, void* optval, socklen_t* optlen)
     {
         ::NetworkLibrary::Error error;
 
 #if defined(UTILS_OS_WINDOWS)
-        error.NativeCode = ::getsockopt(s.Socket, static_cast<int>(SocketLevel::sol_socket), static_cast<int>(optname), reinterpret_cast<char*>(optval), optlen);
+        error.NativeCode = ::getsockopt(s.Socket, SOL_SOCKET, optname, reinterpret_cast<char*>(optval), optlen);
 #elif defined(UTILS_OS_LINUX) || defined(UTILS_OS_APPLE)
-        error.NativeCode = ::getsockopt(s.Socket, static_cast<int>(SocketLevel::sol_socket), static_cast<int>(optname), optval, optlen);
+        error.NativeCode = ::getsockopt(s.Socket, SOL_SOCKET, optname, optval, optlen);
 #endif
         error.ErrorCode = error.NativeCode == 0 ? ::NetworkLibrary::Error::NoError : ::NetworkLibrary::Error::UnknownError;
         return error;

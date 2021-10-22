@@ -92,31 +92,6 @@ namespace Internals {
         unknown = 0xffff,
     };
 
-    enum class SocketLevel
-    {
-        sol_socket = SOL_SOCKET,
-    };
-
-    enum class OptionName : uint32_t
-    {
-        so_debug = SO_DEBUG,
-        so_reuseaddr = SO_REUSEADDR,
-        so_keepalive = SO_KEEPALIVE,
-        so_dontroute = SO_DONTROUTE,
-        so_broadcast = SO_BROADCAST,
-        so_linger = SO_LINGER,
-        so_oobinline = SO_OOBINLINE,
-        so_sndbuf = SO_SNDBUF,
-        so_rcvbuf = SO_RCVBUF,
-        so_sndlowat = SO_SNDLOWAT,
-        so_rcvlowat = SO_RCVLOWAT,
-        so_sndtimeo = SO_SNDTIMEO,
-        so_rcvtimeo = SO_RCVTIMEO,
-        so_error = SO_ERROR,
-        so_type = SO_TYPE,
-        unknown = 0xffff,
-    };
-
     enum class CmdName : uint32_t
     {
         fionread = FIONREAD,
@@ -199,6 +174,7 @@ namespace Internals {
         ~NativeSocket();
 
         NetworkLibrary::Error CreateSocket(Internals::AddressFamily af, Internals::SocketTypes type, Internals::SocketProtocols proto);
+        NetworkLibrary::Error SetSockOption(int32_t option_name, const void* value, socklen_t optlen);
         NetworkLibrary::Error SetNonBlocking(bool non_blocking);
         int32_t GetWaitingSize() const;
         void Close();
@@ -214,8 +190,8 @@ namespace Internals {
     SOCKET_HIDE_SYMBOLS(void) closeSocket(Internals::NativeSocket& s);
     SOCKET_HIDE_SYMBOLS(::NetworkLibrary::Error) connect(Internals::NativeSocket const& s, NetworkLibrary::BasicAddr const& addr);
     SOCKET_HIDE_SYMBOLS(::NetworkLibrary::Error) ioctlsocket(Internals::NativeSocket const& s, Internals::CmdName cmd, unsigned long* arg);
-    SOCKET_HIDE_SYMBOLS(::NetworkLibrary::Error) setsockopt(Internals::NativeSocket const& s, Internals::OptionName optname, const void* optval, socklen_t optlen);
-    SOCKET_HIDE_SYMBOLS(::NetworkLibrary::Error) getsockopt(Internals::NativeSocket const& s, Internals::OptionName optname, void* optval, socklen_t* optlen);
+    SOCKET_HIDE_SYMBOLS(::NetworkLibrary::Error) setsockopt(Internals::NativeSocket const& s, int optname, const void* optval, socklen_t optlen);
+    SOCKET_HIDE_SYMBOLS(::NetworkLibrary::Error) getsockopt(Internals::NativeSocket const& s, int optname, void* optval, socklen_t* optlen);
     SOCKET_HIDE_SYMBOLS(::NetworkLibrary::Error) getsockname(Internals::NativeSocket const& s, NetworkLibrary::BasicAddr& addr);
     SOCKET_HIDE_SYMBOLS(::NetworkLibrary::Error) listen(Internals::NativeSocket const& s, int waiting_connection = 5);
     SOCKET_HIDE_SYMBOLS(::NetworkLibrary::Error) recv(Internals::NativeSocket const& s, void* buffer, size_t& len, int32_t flags);
