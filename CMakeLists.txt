@@ -109,7 +109,7 @@ endif()
 ########################################
 ## Build library
 add_library(
-    NetworkLibrary
+    networklibrary
     src/internals/internal_socket.cpp
     src/Poll.cpp
     src/Socket.cpp
@@ -120,8 +120,10 @@ add_library(
     $<$<BOOL:${BLUETOOTH_SUPPORT}>:src/Bluetooth.cpp>
 )
 
+set_property(TARGET networklibrary PROPERTY POSITION_INDEPENDENT_CODE ON)
+
 target_link_libraries(
-  NetworkLibrary
+  networklibrary
   PUBLIC
   # Winsocks
   $<$<BOOL:${WIN32}>:ws2_32>
@@ -135,9 +137,10 @@ target_link_libraries(
 )
 
 target_include_directories(
-  NetworkLibrary
+  networklibrary
   PUBLIC
-  ${CMAKE_CURRENT_SOURCE_DIR}/include
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+  $<INSTALL_INTERFACE:include>
   
   PRIVATE
   ${CMAKE_CURRENT_SOURCE_DIR}/utils/include
@@ -147,14 +150,14 @@ target_include_directories(
 )
 
 target_compile_definitions(
-  NetworkLibrary
+  networklibrary
   PRIVATE
   EXPORT_NETWORKLIBRARY_SYMBOLS
   $<$<BOOL:${BLUETOOTH_BLUEZ_DEPRECATED}>:USE_BLUEZ_COMPAT>
 )
 
 target_compile_options(
-  NetworkLibrary
+  networklibrary
   PRIVATE
   
   $<$<BOOL:${UNIX}>:-fPIC -fpermissive -fvisibility=hidden -Wl,--exclude-libs,ALL>
@@ -183,7 +186,7 @@ if(${BUILD_TESTS})
     library_test
 	PRIVATE
 	
-    NetworkLibrary
+    networklibrary
   
     # Winsocks
     $<$<BOOL:${WIN32}>:ws2_32>
@@ -218,33 +221,31 @@ endif()
 
 ##################
 ## Install rules
-set(CMAKE_INSTALL_PREFIX ${CMAKE_SOURCE_DIR})
 
-if(WIN32)
-  if(X64)
-    set(OUT_DIR win64)
-  else()
-    set(OUT_DIR win32)
-  endif()
-elseif(APPLE)
-  if(X64)
-    set(OUT_DIR macosx64)
-  else()
-    set(OUT_DIR macosx32)
-  endif()
-elseif(UNIX)
-  if(X64)
-    set(OUT_DIR linux64)
-  else()
-    set(OUT_DIR linux32)
-  endif()
-endif()
+set_target_properties(networklibrary PROPERTIES EXPORT_NAME NetworkLibrary)
+add_library(NetworkLibrary::NetworkLibrary ALIAS networklibrary)
 
-install(
-  TARGETS NetworkLibrary
-  ARCHIVE DESTINATION release/${OUT_DIR}
-  LIBRARY DESTINATION release/${OUT_DIR}
-  RUNTIME DESTINATION release/${OUT_DIR}
+##################
+## Install rules
+install(TARGETS networklibrary EXPORT NetworkLibraryTargets
+	RUNTIME DESTINATION bin
+	LIBRARY DESTINATION lib
+	ARCHIVE DESTINATION lib
 )
+
 install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/include/NetworkLibrary/details/Socket.h DESTINATION release/${OUT_DIR}/include/NetworkLibrary/details)
 install(FILES ${Socket_headers} DESTINATION release/${OUT_DIR}/include/NetworkLibrary)
+
+# Export targets
+install(
+	EXPORT NetworkLibraryTargets
+	FILE NetworkLibraryTargets.cmake
+	NAMESPACE NetworkLibrary::
+	DESTINATION lib/cmake/NetworkLibrary
+)
+
+# Export config
+install(
+	FILES ${CMAKE_CURRENT_SOURCE_DIR}/cmake/NetworkLibraryConfig.cmake
+	DESTINATION lib/cmake/NetworkLibrary
+)
