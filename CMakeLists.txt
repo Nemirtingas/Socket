@@ -20,6 +20,11 @@ set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
+set(SYSTEM_CODE OFF CACHE BOOL "")
+set(FILESYSTEM_CODE OFF CACHE BOOL "")
+set(LIBRARY_CODE OFF CACHE BOOL "")
+add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/System EXCLUDE_FROM_ALL)
+
 option(UNIX_SUPPORT "Support Unix socket" OFF)
 option(BUILD_SHARED_LIBS "Build static or shared library" OFF)
 option(BUILD_TESTS "Build tests app" OFF)
@@ -77,6 +82,9 @@ set_property(TARGET networklibrary PROPERTY POSITION_INDEPENDENT_CODE ON)
 
 target_link_libraries(
   networklibrary
+  PRIVATE
+  System::System
+
   PUBLIC
   # Winsocks
   $<$<BOOL:${WIN32}>:ws2_32>
@@ -102,7 +110,6 @@ target_include_directories(
   $<INSTALL_INTERFACE:include>
   
   PRIVATE
-  ${CMAKE_CURRENT_SOURCE_DIR}/utils/include
   $<$<AND:$<BOOL:${UNIX}>,$<NOT:$<BOOL:${APPLE}>>,$<BOOL:${BLUETOOTH_SUPPORT}>>:/usr/include/dbus-1.0>
   $<$<AND:$<BOOL:${BUILD_32BITS}>,$<BOOL:${UNIX}>,$<NOT:$<BOOL:${APPLE}>>,$<BOOL:${BLUETOOTH_SUPPORT}>>:/usr/lib/i386-linux-gnu/dbus-1.0/include>
   $<$<AND:$<NOT:$<BOOL:${BUILD_32BITS}>>,$<BOOL:${UNIX}>,$<NOT:$<BOOL:${APPLE}>>,$<BOOL:${BLUETOOTH_SUPPORT}>>:/usr/lib/x86_64-linux-gnu/dbus-1.0/include>
@@ -138,6 +145,7 @@ endif()
 ##################
 ## Install rules
 
+add_library(NetworkLibrary::NetworkLibrary ALIAS networklibrary)
 set_target_properties(networklibrary PROPERTIES EXPORT_NAME NetworkLibrary)
 
 ##################

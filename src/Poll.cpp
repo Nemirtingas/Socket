@@ -20,7 +20,7 @@
 
 namespace NetworkLibrary {
 
-    UTILS_HIDE_CLASS(class) PollImpl
+    SYSTEM_HIDE_CLASS(class) PollImpl
     {
         std::vector<pollfd> _PollFds;
 

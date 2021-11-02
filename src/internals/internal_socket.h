@@ -17,12 +17,12 @@
 
 #pragma once
 
-#include <utils/utils_exports.h>
-#include <utils/endianness.hpp>
+#include <System/SystemExports.h>
+#include <System/Endianness.hpp>
 
 #include <NetworkLibrary/details/Socket.h>
 
-#if defined(UTILS_OS_WINDOWS)
+#if defined(SYSTEM_OS_WINDOWS)
     #define VC_EXTRALEAN
     #define WIN32_LEAN_AND_MEAN
     #define NOMINMAX
@@ -30,7 +30,7 @@
     #include <Ws2tcpip.h>
     #include <iphlpapi.h> // (iphlpapi.lib) Infos about ethernet interfaces
 
-#elif defined(UTILS_OS_LINUX)
+#elif defined(SYSTEM_OS_LINUX)
     #include <unistd.h>
     #include <signal.h>
     #include <netdb.h>
@@ -48,7 +48,7 @@
     #include <net/if.h>
 
     #include <ifaddrs.h>// getifaddrs
-#elif defined(UTILS_OS_APPLE)
+#elif defined(SYSTEM_OS_APPLE)
     #include <unistd.h>
     #include <netdb.h>
     #include <errno.h>
@@ -70,7 +70,7 @@
     #include <ifaddrs.h>// getifaddrs
 #endif
 
-#define SOCKET_HIDE_SYMBOLS(return_type) UTILS_HIDE_API(return_type, UTILS_CALL_DEFAULT)
+#define SOCKET_HIDE_SYMBOLS(return_type) SYSTEM_HIDE_API(return_type, SYSTEM_CALL_DEFAULT)
 
 #include <cassert>
 #include <limits>
@@ -102,18 +102,18 @@ namespace Internals {
 
     enum class ShutdownFlags
     {
-#if defined(UTILS_OS_WINDOWS)
+#if defined(SYSTEM_OS_WINDOWS)
         receive = SD_RECEIVE,
         send = SD_SEND,
         both = SD_BOTH,
-#elif defined(UTILS_OS_LINUX) || defined(UTILS_OS_APPLE)
+#elif defined(SYSTEM_OS_LINUX) || defined(SYSTEM_OS_APPLE)
         receive = SHUT_RD,
         send = SHUT_WR,
         both = SHUT_RDWR,
 #endif
     };
 
-#if defined(UTILS_OS_WINDOWS)
+#if defined(SYSTEM_OS_WINDOWS)
     static std::string WCharToString(PWCHAR wstr)
     {
         int length = (int)wcslen(wstr);
@@ -138,8 +138,8 @@ namespace Internals {
     }
 #endif
 
-#if defined(UTILS_OS_WINDOWS)
-    UTILS_HIDE_CLASS(class) WinSockInitializer
+#if defined(SYSTEM_OS_WINDOWS)
+    SYSTEM_HIDE_CLASS(class) WinSockInitializer
     {
         WSAData _Datas;
         
@@ -152,12 +152,12 @@ namespace Internals {
     };
 #endif
 
-    UTILS_HIDE_CLASS(class) NativeSocket
+    SYSTEM_HIDE_CLASS(class) NativeSocket
     {
     public:
-#if defined(UTILS_OS_WINDOWS)
+#if defined(SYSTEM_OS_WINDOWS)
         using socket_t = SOCKET;
-#elif defined(UTILS_OS_LINUX) || defined(UTILS_OS_APPLE)
+#elif defined(SYSTEM_OS_LINUX) || defined(SYSTEM_OS_APPLE)
         using socket_t = int32_t;
 #endif
         static constexpr socket_t invalid_socket = ((socket_t)(-1));

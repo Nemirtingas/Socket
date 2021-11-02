@@ -1,3 +1,6 @@
 [submodule "utils"]
 	path = utils
 	url = https://github.com/Nemirtingas/utils.git
+[submodule "System"]
+	path = System
+	url = https://github.com/Nemirtingas/System.git
