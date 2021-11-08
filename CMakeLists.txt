@@ -2,7 +2,7 @@
 
 cmake_policy(SET CMP0091 NEW)
 project(Socket)
-cmake_minimum_required(VERSION 3.0)
+cmake_minimum_required(VERSION 3.15)
 
 if(WIN32) # Setup some variables for Windows build
 
@@ -64,8 +64,7 @@ endif()
 
 ########################################
 ## Build library
-add_library(
-  networklibrary
+add_library(networklibrary
   src/internals/internal_socket.cpp
   src/Poll.cpp
   src/Socket.cpp
@@ -76,12 +75,15 @@ add_library(
   $<$<BOOL:${BLUETOOTH_SUPPORT}>:src/Bluetooth.cpp>
 )
 
-set_property(TARGET networklibrary PROPERTY
-  MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
-set_property(TARGET networklibrary PROPERTY POSITION_INDEPENDENT_CODE ON)
+set_target_properties(networklibrary PROPERTIES
+  MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>"
+  POSITION_INDEPENDENT_CODE ON
+  C_VISIBILITY_PRESET hidden
+  CXX_VISIBILITY_PRESET hidden
+  VISIBILITY_INLINES_HIDDEN ON
+)
 
-target_link_libraries(
-  networklibrary
+target_link_libraries(networklibrary
   PRIVATE
   System::System
 
@@ -97,14 +99,12 @@ target_link_libraries(
   $<$<AND:$<BOOL:${UNIX}>,$<NOT:$<BOOL:${APPLE}>>,$<BOOL:${BLUETOOTH_SUPPORT}>,$<NOT:$<BOOL:${BLUETOOTH_BLUEZ_DEPRECATED}>>>:dbus-1>
 )
 
-target_compile_options(
-  networklibrary
+target_compile_options(networklibrary
   PRIVATE
   $<$<BOOL:${MSVC}>:/MP>
 )
 
-target_include_directories(
-  networklibrary
+target_include_directories(networklibrary
   PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
   $<INSTALL_INTERFACE:include>
@@ -115,27 +115,23 @@ target_include_directories(
   $<$<AND:$<NOT:$<BOOL:${BUILD_32BITS}>>,$<BOOL:${UNIX}>,$<NOT:$<BOOL:${APPLE}>>,$<BOOL:${BLUETOOTH_SUPPORT}>>:/usr/lib/x86_64-linux-gnu/dbus-1.0/include>
 )
 
-target_compile_definitions(
-  networklibrary
+target_compile_definitions(networklibrary
   PRIVATE
   EXPORT_NETWORKLIBRARY_SYMBOLS
   $<$<BOOL:${BLUETOOTH_BLUEZ_DEPRECATED}>:USE_BLUEZ_COMPAT>
 )
 
 if(${BUILD_TESTS})
-  add_executable(
-    library_test
+  add_executable(library_test
     tests/main.cpp
   )
 
-  target_link_libraries(
-    library_test
+  target_link_libraries(library_test
     PRIVATE
     networklibrary
   )
 
-  target_compile_definitions(
-    library_test
+  target_compile_definitions(library_test
     PRIVATE
     $<$<BOOL:${UNIX_SUPPORT}>:UNIX_TESTS>
     $<$<BOOL:${BLUETOOTH_SUPPORT}>:BLUETOOTH_TESTS>
