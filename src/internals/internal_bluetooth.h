@@ -20,7 +20,7 @@
 #include "internal_socket.h"
 #include <NetworkLibrary/Bluetooth.h>
 
-#if defined(UTILS_OS_WINDOWS)
+#if defined(SOCKET_OS_WINDOWS)
 
 #define INITGUID
 #include <ws2bth.h>
@@ -45,7 +45,7 @@ static GUID UUIDToNative(NetworkLibrary::Bluetooth::UUID const& uuid)
     return res;
 }
 
-#elif defined(UTILS_OS_LINUX)
+#elif defined(SOCKET_OS_LINUX)
 #include <bluetooth/bluetooth.h>
 #include <bluetooth/hci.h>
 #include <bluetooth/hci_lib.h>

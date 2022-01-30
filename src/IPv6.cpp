@@ -39,7 +39,7 @@ namespace IPv6 {
         std::pair<NetworkLibrary::Error, std::vector<IfaceInfos>> result;
         constexpr in6_addr empty_addr{};
 
-#if defined(SYSTEM_OS_WINDOWS)
+#if defined(SOCKET_OS_WINDOWS)
         IP_ADAPTER_ADDRESSES* pAdaptersAddresses = nullptr;
         ULONG err;
         ULONG ulOutBufLen = 0;
@@ -177,7 +177,7 @@ namespace IPv6 {
      * 
      ****************************************/
 
-    SYSTEM_HIDE_CLASS(class) IPv6AddrImpl
+    SOCKET_HIDE_CLASS(class) IPv6AddrImpl
     {
         using my_sockaddr_t = sockaddr_in6;
         my_sockaddr_t _SockAddr;
@@ -211,7 +211,7 @@ namespace IPv6 {
             if (with_port)
             {
                 res.insert(res.begin(), '[');
-                res += "]:" + std::to_string(System::Endian::net_swap(_SockAddr.sin6_port));
+                res += "]:" + std::to_string(Internals::Endian::NetSwap(_SockAddr.sin6_port));
             }
 
             return res;
@@ -300,7 +300,7 @@ namespace IPv6 {
 
         void SetPort(uint16_t port)
         {
-            _SockAddr.sin6_port = System::Endian::net_swap(port);
+            _SockAddr.sin6_port = Internals::Endian::NetSwap(port);
         }
 
         InAddr6 GetIPv6() const
@@ -312,7 +312,7 @@ namespace IPv6 {
 
         uint16_t GetPort() const
         {
-            return System::Endian::net_swap(_SockAddr.sin6_port);
+            return Internals::Endian::NetSwap(_SockAddr.sin6_port);
         }
 
         void SetAnyAddr()

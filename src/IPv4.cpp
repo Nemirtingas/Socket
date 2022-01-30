@@ -38,7 +38,7 @@ namespace IPv4 {
     {
         std::pair<NetworkLibrary::Error, std::vector<IfaceInfos>> result;
 
-#if defined(SYSTEM_OS_WINDOWS)
+#if defined(SOCKET_OS_WINDOWS)
         IP_ADAPTER_ADDRESSES* pAdaptersAddresses = nullptr;
         ULONG err;
         ULONG ulOutBufLen = 0;
@@ -146,7 +146,7 @@ namespace IPv4 {
                     std::string addr;
                     Internals::inet_ntop(reinterpret_cast<const sockaddr*>(sock_addr), addr);
 
-                    uint32_t mask = System::Endian::net_swap(mask_addr->sin_addr.s_addr);
+                    uint32_t mask = Internals::Endian::NetSwap(mask_addr->sin_addr.s_addr);
                     uint32_t mask_cidr = 0;
                     for (int i = 0; i < 32;)
                     {
@@ -175,7 +175,7 @@ namespace IPv4 {
      * 
      ****************************************/
 
-    SYSTEM_HIDE_CLASS(class) IPv4AddrImpl
+    SOCKET_HIDE_CLASS(class) IPv4AddrImpl
     {
         using my_sockaddr_t = sockaddr_in;
         my_sockaddr_t _SockAddr;
@@ -209,7 +209,7 @@ namespace IPv4 {
             if (with_port)
             {
                 res.push_back(':');
-                res += std::to_string(System::Endian::net_swap(_SockAddr.sin_port));
+                res += std::to_string(Internals::Endian::NetSwap(_SockAddr.sin_port));
             }
 
             return res;
@@ -267,22 +267,22 @@ namespace IPv4 {
 
         void SetIPv4(uint32_t ip)
         {
-            _SockAddr.sin_addr.s_addr = System::Endian::net_swap(ip);
+            _SockAddr.sin_addr.s_addr = Internals::Endian::NetSwap(ip);
         }
 
         void SetPort(uint16_t port)
         {
-            _SockAddr.sin_port = System::Endian::net_swap(port);
+            _SockAddr.sin_port = Internals::Endian::NetSwap(port);
         }
 
         uint32_t GetIPv4() const
         {
-            return System::Endian::net_swap(_SockAddr.sin_addr.s_addr);
+            return Internals::Endian::NetSwap(_SockAddr.sin_addr.s_addr);
         }
 
         uint16_t GetPort() const
         {
-            return System::Endian::net_swap(_SockAddr.sin_port);
+            return Internals::Endian::NetSwap(_SockAddr.sin_port);
         }
 
         void SetAnyAddr()
@@ -292,7 +292,7 @@ namespace IPv4 {
 
         void SetLoopbackAddr()
         {
-            _SockAddr.sin_addr.s_addr = System::Endian::net_swap(INADDR_LOOPBACK);
+            _SockAddr.sin_addr.s_addr = Internals::Endian::NetSwap(INADDR_LOOPBACK);
         }
 
         void SetBroadcastAddr()

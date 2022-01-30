@@ -17,7 +17,7 @@
 
 #include "internal_bluetooth.h"
 
-#if defined(UTILS_OS_LINUX) && !defined(USE_BLUEZ_COMPAT)
+#if defined(SOCKET_OS_LINUX) && !defined(USE_BLUEZ_COMPAT)
 #include <thread>
 #include <iostream>
 #include <iomanip>      // for setfill and setw
@@ -85,10 +85,10 @@ public:
 namespace NetworkLibrary {
 namespace BluetoothInternals {
 
-#if defined(UTILS_OS_WINDOWS)
+#if defined(SOCKET_OS_WINDOWS)
     static constexpr int _AddressFamily = (int)AF_BTH;
 
-#elif defined(UTILS_OS_LINUX)
+#elif defined(SOCKET_OS_LINUX)
     static constexpr int _AddressFamily = (int)AF_BLUETOOTH;
 
 #endif
@@ -105,7 +105,7 @@ static std::string bluetoothmac_to_string(NetworkLibrary::Bluetooth::BluetoothMa
     std::string str_addr(17, '\0');
     char* s = &str_addr[0];
 
-    addr = utils::Endian::net_swap(addr);
+    addr = Internals::Endian::NetSwap(addr);
 
     for (int i = 0; i < 6; ++i)
     {
@@ -160,7 +160,7 @@ SOCKET_HIDE_SYMBOLS(::NetworkLibrary::Error) bth_pton(std::string const& str_add
     }
 
     // Net Swap 6 bytes.
-    *bluetooth_addr = utils::Endian::net_swap(*bluetooth_addr);
+    *bluetooth_addr = Internals::Endian::NetSwap(*bluetooth_addr);
 
     return NetworkLibrary::Internals::MakeErrorFromSocketCode(::NetworkLibrary::Error::NoError);
 }
@@ -175,7 +175,7 @@ SOCKET_HIDE_SYMBOLS(::NetworkLibrary::Error) bth_ntop(bluetooth_sockaddr const* 
     return NetworkLibrary::Internals::MakeErrorFromSocketCode(::NetworkLibrary::Error::NoError);
 }
 
-#if defined(UTILS_OS_WINDOWS)
+#if defined(SOCKET_OS_WINDOWS)
 
 static uint8_t sdp_get_proto_port(SDP_ELEMENT_DATA& protocol_container, WORD proto_uuid)
 {
@@ -587,7 +587,7 @@ EXIT_NOERROR:
     return Internals::MakeErrorFromSocketCode(NetworkLibrary::Error::NoError);
 }
 
-#elif defined(UTILS_OS_LINUX)
+#elif defined(SOCKET_OS_LINUX)
 SOCKET_HIDE_SYMBOLS(NetworkLibrary::Error) GetChannelFromServiceUUID(NetworkLibrary::Bluetooth::UUID const& uuid, BasicAddr const& remote_addr, uint8_t& out_channel)
 {
     bdaddr_t any_bth_addr{};

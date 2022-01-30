@@ -21,7 +21,7 @@
 namespace NetworkLibrary {
 namespace Bluetooth {
 
-#if defined(UTILS_OS_WINDOWS)
+#if defined(SOCKET_OS_WINDOWS)
     static constexpr int _AddressFamily = (int)AF_BTH;
 
     static constexpr int _TypeRFCOMM = (int)SOCK_STREAM;
@@ -32,7 +32,7 @@ namespace Bluetooth {
 
     #define SSCANF(...) sscanf_s(__VA_ARGS__)
 
-#elif defined(UTILS_OS_LINUX)
+#elif defined(SOCKET_OS_LINUX)
     static constexpr int _AddressFamily = (int)AF_BLUETOOTH;
 
     static constexpr int _TypeRFCOMM = (int)SOCK_STREAM;
@@ -93,18 +93,18 @@ namespace Bluetooth {
     {
         *this = GetBluetoothBaseUUID();
 
-#if defined(UTILS_OS_LINUX) // Linux UUID is net ordered.
-        uuid = utils::Endian::net_swap(uuid);
+#if defined(SOCKET_OS_LINUX) // Linux UUID is net ordered.
+        uuid = Internals::Endian::NetSwap(uuid);
 #endif
         *reinterpret_cast<uint32_t*>(&_UUID.uuid[0]) = uuid;
 
-        return Internals::MakeErrorFromSocketCode(NetworkLibrary::Error::InVal);
+        return Internals::MakeErrorFromSocketCode(NetworkLibrary::Error::NoError);
     }
 
     NetworkLibrary::Error UUID::SetUUID128(BluetoothUUID_t const& uuid)
     {
         memcpy(&_UUID, &uuid, sizeof(uuid));
-        return Internals::MakeErrorFromSocketCode(NetworkLibrary::Error::InVal);
+        return Internals::MakeErrorFromSocketCode(NetworkLibrary::Error::NoError);
     }
 
     bool UUID::operator ==(UUID const& other) const
@@ -129,12 +129,12 @@ namespace Bluetooth {
             (uint16_t*)&_UUID.uuid[8],
             &_UUID.uuid[10], &_UUID.uuid[11], &_UUID.uuid[12], &_UUID.uuid[13], &_UUID.uuid[14], &_UUID.uuid[15]);
 
-#if defined(UTILS_OS_LINUX) // Linux UUID is net ordered.
-        *(uint32_t*)&_UUID.uuid[0] = utils::Endian::net_swap(*(uint32_t*)&_UUID.uuid[0]);
-        *(uint16_t*)&_UUID.uuid[4] = utils::Endian::net_swap(*(uint16_t*)&_UUID.uuid[4]);
-        *(uint16_t*)&_UUID.uuid[6] = utils::Endian::net_swap(*(uint16_t*)&_UUID.uuid[6]);
+#if defined(SOCKET_OS_LINUX) // Linux UUID is net ordered.
+        *(uint32_t*)&_UUID.uuid[0] = Internals::Endian::NetSwap(*(uint32_t*)&_UUID.uuid[0]);
+        *(uint16_t*)&_UUID.uuid[4] = Internals::Endian::NetSwap(*(uint16_t*)&_UUID.uuid[4]);
+        *(uint16_t*)&_UUID.uuid[6] = Internals::Endian::NetSwap(*(uint16_t*)&_UUID.uuid[6]);
 #endif
-        *(uint16_t*)&_UUID.uuid[8] = utils::Endian::net_swap(*(uint16_t*)&_UUID.uuid[8]);
+        *(uint16_t*)&_UUID.uuid[8] = Internals::Endian::NetSwap(*(uint16_t*)&_UUID.uuid[8]);
 
         return Internals::MakeErrorFromSocketCode(NetworkLibrary::Error::NoError);
     }
@@ -143,19 +143,19 @@ namespace Bluetooth {
     {
         std::string res(36, '\0');
         
-#if defined(UTILS_OS_WINDOWS)
+#if defined(SOCKET_OS_WINDOWS)
         snprintf(&res[0], 37, __UUID128_PRINTF_FORMAT__,
             *(uint32_t*)&_UUID.uuid[0],
             *(uint16_t*)&_UUID.uuid[4],
             *(uint16_t*)&_UUID.uuid[6],
-            utils::Endian::net_swap(*(uint16_t*)&_UUID.uuid[8]),
+            Internals::Endian::NetSwap(*(uint16_t*)&_UUID.uuid[8]),
             _UUID.uuid[10], _UUID.uuid[11], _UUID.uuid[12], _UUID.uuid[13], _UUID.uuid[14], _UUID.uuid[15]);
-#elif defined(UTILS_OS_LINUX)
+#elif defined(SOCKET_OS_LINUX)
         snprintf(&res[0], 37, __UUID128_PRINTF_FORMAT__,
-            utils::Endian::net_swap(*(uint32_t*)&_UUID.uuid[0]),
-            utils::Endian::net_swap(*(uint16_t*)&_UUID.uuid[4]),
-            utils::Endian::net_swap(*(uint16_t*)&_UUID.uuid[6]),
-            utils::Endian::net_swap(*(uint16_t*)&_UUID.uuid[8]),
+            Internals::Endian::NetSwap(*(uint32_t*)&_UUID.uuid[0]),
+            Internals::Endian::NetSwap(*(uint16_t*)&_UUID.uuid[4]),
+            Internals::Endian::NetSwap(*(uint16_t*)&_UUID.uuid[6]),
+            Internals::Endian::NetSwap(*(uint16_t*)&_UUID.uuid[8]),
             _UUID.uuid[10], _UUID.uuid[11], _UUID.uuid[12], _UUID.uuid[13], _UUID.uuid[14], _UUID.uuid[15]);
 #endif
 
@@ -190,7 +190,7 @@ namespace Bluetooth {
 
     UUID UUID::GetBluetoothBaseUUID()
     {
-#if defined(UTILS_OS_WINDOWS)
+#if defined(SOCKET_OS_WINDOWS)
         static constexpr BluetoothUUID_t bluetooth_base = { 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x10, 0x80, 0x00, 0x00, 0x80, 0x5F, 0x9B, 0x34, 0xFB };
 #else
         static constexpr BluetoothUUID_t bluetooth_base = { 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x10, 0x00, 0x80, 0x00, 0x00, 0x80, 0x5F, 0x9B, 0x34, 0xFB };
@@ -249,7 +249,7 @@ namespace Bluetooth {
     {
         std::pair<NetworkLibrary::Error, std::vector<IfaceInfos>> result;
 
-#if defined(UTILS_OS_WINDOWS)
+#if defined(SOCKET_OS_WINDOWS)
         HANDLE radio_handle = nullptr;
         BLUETOOTH_FIND_RADIO_PARAMS find_params{};
         BLUETOOTH_RADIO_INFO radio_infos{};
@@ -370,7 +370,7 @@ namespace Bluetooth {
      * 
      ****************************************/
 
-    UTILS_HIDE_CLASS(class) BluetoothAddrImpl
+    SOCKET_HIDE_CLASS(class) BluetoothAddrImpl
     {
         using my_sockaddr_t = bluetooth_sockaddr;
         my_sockaddr_t _SockAddr;

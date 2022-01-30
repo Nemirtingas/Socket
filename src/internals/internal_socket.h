@@ -17,12 +17,10 @@
 
 #pragma once
 
-#include <System/SystemExports.h>
-#include <System/Endianness.hpp>
-
+#include "internal_os_stuff.h"
 #include <NetworkLibrary/details/Socket.h>
 
-#if defined(SYSTEM_OS_WINDOWS)
+#if defined(SOCKET_OS_WINDOWS)
     #define VC_EXTRALEAN
     #define WIN32_LEAN_AND_MEAN
     #define NOMINMAX
@@ -30,7 +28,7 @@
     #include <Ws2tcpip.h>
     #include <iphlpapi.h> // (iphlpapi.lib) Infos about ethernet interfaces
 
-#elif defined(SYSTEM_OS_LINUX)
+#elif defined(SOCKET_OS_LINUX)
     #include <unistd.h>
     #include <signal.h>
     #include <netdb.h>
@@ -48,7 +46,7 @@
     #include <net/if.h>
 
     #include <ifaddrs.h>// getifaddrs
-#elif defined(SYSTEM_OS_APPLE)
+#elif defined(SOCKET_OS_APPLE)
     #include <unistd.h>
     #include <netdb.h>
     #include <errno.h>
@@ -70,7 +68,7 @@
     #include <ifaddrs.h>// getifaddrs
 #endif
 
-#define SOCKET_HIDE_SYMBOLS(return_type) SYSTEM_HIDE_API(return_type, SYSTEM_CALL_DEFAULT)
+#define SOCKET_HIDE_SYMBOLS(return_type) SOCKET_HIDE_API(return_type, SOCKET_CALL_DEFAULT)
 
 #include <cassert>
 #include <limits>
@@ -102,18 +100,18 @@ namespace Internals {
 
     enum class ShutdownFlags
     {
-#if defined(SYSTEM_OS_WINDOWS)
+#if defined(SOCKET_OS_WINDOWS)
         receive = SD_RECEIVE,
         send = SD_SEND,
         both = SD_BOTH,
-#elif defined(SYSTEM_OS_LINUX) || defined(SYSTEM_OS_APPLE)
+#elif defined(SOCKET_OS_LINUX) || defined(SOCKET_OS_APPLE)
         receive = SHUT_RD,
         send = SHUT_WR,
         both = SHUT_RDWR,
 #endif
     };
 
-#if defined(SYSTEM_OS_WINDOWS)
+#if defined(SOCKET_OS_WINDOWS)
     static std::string WCharToString(PWCHAR wstr)
     {
         int length = (int)wcslen(wstr);
@@ -138,8 +136,8 @@ namespace Internals {
     }
 #endif
 
-#if defined(SYSTEM_OS_WINDOWS)
-    SYSTEM_HIDE_CLASS(class) WinSockInitializer
+#if defined(SOCKET_OS_WINDOWS)
+    SOCKET_HIDE_CLASS(class) WinSockInitializer
     {
         WSAData _Datas;
         
@@ -152,12 +150,12 @@ namespace Internals {
     };
 #endif
 
-    SYSTEM_HIDE_CLASS(class) NativeSocket
+    SOCKET_HIDE_CLASS(class) NativeSocket
     {
     public:
-#if defined(SYSTEM_OS_WINDOWS)
+#if defined(SOCKET_OS_WINDOWS)
         using socket_t = SOCKET;
-#elif defined(SYSTEM_OS_LINUX) || defined(SYSTEM_OS_APPLE)
+#elif defined(SOCKET_OS_LINUX) || defined(SOCKET_OS_APPLE)
         using socket_t = int32_t;
 #endif
         static constexpr socket_t invalid_socket = ((socket_t)(-1));
@@ -179,6 +177,93 @@ namespace Internals {
         int32_t GetWaitingSize() const;
         void Close();
     };
+
+    namespace Endian
+    {
+        static constexpr uint32_t _EndianMagic = 0x01020304;
+
+        template<typename T, size_t byte_count>
+        SOCKET_HIDE_CLASS(struct) ByteSwapImpl
+        {
+            static inline T Swap(T v)
+            {
+                for (int i = 0; i < (byte_count / 2); ++i)
+                {
+                    uint8_t tmp = reinterpret_cast<uint8_t*>(&v)[i];
+                    reinterpret_cast<uint8_t*>(&v)[i] = reinterpret_cast<uint8_t*>(&v)[byte_count - i - 1];
+                    reinterpret_cast<uint8_t*>(&v)[byte_count - i - 1] = tmp;
+                }
+
+                return v;
+            }
+        };
+
+        template<typename T>
+        SOCKET_HIDE_CLASS(struct) ByteSwapImpl<T, 1>
+        {
+            static inline T Swap(T v) { return v; }
+        };
+
+        template<typename T>
+        SOCKET_HIDE_CLASS(struct) ByteSwapImpl<T, 2>
+        {
+            static inline T Swap(T v)
+            {
+                uint16_t& tmp = *reinterpret_cast<uint16_t*>(&v);
+                tmp = ((tmp & 0x00ffu) << 8)
+                    | ((tmp & 0xff00u) >> 8);
+                return v;
+            }
+        };
+
+        template<typename T>
+        SOCKET_HIDE_CLASS(struct) ByteSwapImpl<T, 4>
+        {
+            static inline T Swap(T v)
+            {
+                uint32_t& tmp = *reinterpret_cast<uint32_t*>(&v);
+                tmp = ((tmp & 0x000000fful) << 24)
+                    | ((tmp & 0x0000ff00ul) << 8)
+                    | ((tmp & 0x00ff0000ul) >> 8)
+                    | ((tmp & 0xff000000ul) >> 24);
+                return v;
+            }
+        };
+
+        template<typename T>
+        SOCKET_HIDE_CLASS(struct) ByteSwapImpl<T, 8>
+        {
+            static inline T Swap(T v)
+            {
+                uint64_t& tmp = *reinterpret_cast<uint64_t*>(&v);
+                tmp = ((tmp & 0x00000000000000ffull) << 56)
+                    | ((tmp & 0x000000000000ff00ull) << 40)
+                    | ((tmp & 0x0000000000ff0000ull) << 24)
+                    | ((tmp & 0x00000000ff000000ull) << 8)
+                    | ((tmp & 0x000000ff00000000ull) >> 8)
+                    | ((tmp & 0x0000ff0000000000ull) >> 24)
+                    | ((tmp & 0x00ff000000000000ull) >> 40)
+                    | ((tmp & 0xff00000000000000ull) >> 56);
+                return v;
+            }
+        };
+
+        inline bool Big()
+        {
+            return reinterpret_cast<const uint8_t*>(&_EndianMagic)[0] == 0x01;
+        }
+
+        template<typename T, size_t Size = sizeof(T)>
+        static T NetSwap(T v)
+        {
+            if (!Endian::Big())
+            {
+                return ByteSwapImpl<T, Size>::Swap(v);
+            }
+
+            return v;
+        }
+    }
 
     SOCKET_HIDE_SYMBOLS(::NetworkLibrary::Error) MakeUnknownError(int native_error);
     SOCKET_HIDE_SYMBOLS(::NetworkLibrary::Error) MakeErrorFromSocketCode(int socket_error);

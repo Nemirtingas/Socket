@@ -20,7 +20,7 @@
 namespace NetworkLibrary {
 namespace Internals {
 
-#if defined(SYSTEM_OS_WINDOWS)
+#if defined(SOCKET_OS_WINDOWS)
     WinSockInitializer& WinSockInitializer::Inst() noexcept
     {
         static WinSockInitializer inst;
@@ -109,7 +109,7 @@ namespace Internals {
             default                                             : error.NativeCode = -1                ; break;
             case ::NetworkLibrary::Error::NoError               : error.NativeCode =  0                ; break;
 
-#if defined(SYSTEM_OS_WINDOWS)
+#if defined(SOCKET_OS_WINDOWS)
             case ::NetworkLibrary::Error::OutOfMemory           : error.NativeCode = ERROR_OUTOFMEMORY ; break;
             case ::NetworkLibrary::Error::Access                : error.NativeCode = WSAEACCES         ; break;
             case ::NetworkLibrary::Error::AddrInUse             : error.NativeCode = WSAEADDRINUSE     ; break;
@@ -137,7 +137,7 @@ namespace Internals {
             case ::NetworkLibrary::Error::WsaSystemNotReady     : error.NativeCode = WSASYSNOTREADY    ; break;
             case ::NetworkLibrary::Error::WsaVersionNotSupported: error.NativeCode = WSAVERNOTSUPPORTED; break;
             case ::NetworkLibrary::Error::WsaProClim            : error.NativeCode = WSAEPROCLIM       ; break;
-#elif defined(SYSTEM_OS_LINUX) || defined(SYSTEM_OS_APPLE)
+#elif defined(SOCKET_OS_LINUX) || defined(SOCKET_OS_APPLE)
             case ::NetworkLibrary::Error::OutOfMemory           : error.NativeCode = ENOMEM         ; break;
             case ::NetworkLibrary::Error::Access                : error.NativeCode = EACCES         ; break;
             case ::NetworkLibrary::Error::AddrInUse             : error.NativeCode = EADDRINUSE     ; break;
@@ -170,7 +170,7 @@ namespace Internals {
         error.NativeCode = native_error;
         switch (native_error)
         {
-#if defined(SYSTEM_OS_WINDOWS)
+#if defined(SOCKET_OS_WINDOWS)
             case WSAEACCES         : error.ErrorCode = ::NetworkLibrary::Error::Access               ; break;
             case WSAEADDRINUSE     : error.ErrorCode = ::NetworkLibrary::Error::AddrInUse            ; break;
             case WSAEADDRNOTAVAIL  : error.ErrorCode = ::NetworkLibrary::Error::AddrNotAvailable     ; break;
@@ -198,7 +198,7 @@ namespace Internals {
             case WSASYSNOTREADY    : error.ErrorCode = ::NetworkLibrary::Error::WsaSystemNotReady     ; break;
             case WSAVERNOTSUPPORTED: error.ErrorCode = ::NetworkLibrary::Error::WsaVersionNotSupported; break;
             case WSAEPROCLIM       : error.ErrorCode = ::NetworkLibrary::Error::WsaProClim            ; break;
-#elif defined(SYSTEM_OS_LINUX) || defined(SYSTEM_OS_APPLE)
+#elif defined(SOCKET_OS_LINUX) || defined(SOCKET_OS_APPLE)
             case ENOMEM         : error.ErrorCode = ::NetworkLibrary::Error::OutOfMemory         ; break;
             case EACCES         : error.ErrorCode = ::NetworkLibrary::Error::Access              ; break;
             case EADDRINUSE     : error.ErrorCode = ::NetworkLibrary::Error::AddrInUse           ; break;
@@ -229,9 +229,9 @@ namespace Internals {
 
     SOCKET_HIDE_SYMBOLS(::NetworkLibrary::Error) LastError()
     {
-#if defined(SYSTEM_OS_WINDOWS)
+#if defined(SOCKET_OS_WINDOWS)
         return MakeErrorFromNative(WSAGetLastError());
-#elif defined(SYSTEM_OS_LINUX) || defined(SYSTEM_OS_APPLE)
+#elif defined(SOCKET_OS_LINUX) || defined(SOCKET_OS_APPLE)
         return MakeErrorFromNative(errno);
 #endif
     }
@@ -253,9 +253,9 @@ namespace Internals {
 
     SOCKET_HIDE_SYMBOLS(void) closeSocket(Internals::NativeSocket& s)
     {
-#if defined(SYSTEM_OS_WINDOWS)
+#if defined(SOCKET_OS_WINDOWS)
         ::closesocket(s.Socket);
-#elif defined(SYSTEM_OS_LINUX) || defined(SYSTEM_OS_APPLE)
+#elif defined(SOCKET_OS_LINUX) || defined(SOCKET_OS_APPLE)
         ::close(s.Socket);
 #endif
     }
@@ -271,9 +271,9 @@ namespace Internals {
     {
         ::NetworkLibrary::Error error;
 
-#if defined(SYSTEM_OS_WINDOWS)
+#if defined(SOCKET_OS_WINDOWS)
         error.NativeCode = ::ioctlsocket(s.Socket, static_cast<long>(cmd), arg);
-#elif defined(SYSTEM_OS_LINUX) || defined(SYSTEM_OS_APPLE)
+#elif defined(SOCKET_OS_LINUX) || defined(SOCKET_OS_APPLE)
         error.NativeCode = ::ioctl(s.Socket, static_cast<long>(cmd), arg);
 #endif
 
@@ -285,9 +285,9 @@ namespace Internals {
     {
         ::NetworkLibrary::Error error;
 
-#if defined(SYSTEM_OS_WINDOWS)
+#if defined(SOCKET_OS_WINDOWS)
         error.NativeCode = ::setsockopt(s.Socket, SOL_SOCKET, static_cast<int>(optname), reinterpret_cast<const char*>(optval), optlen);
-#elif defined(SYSTEM_OS_LINUX) || defined(SYSTEM_OS_APPLE)
+#elif defined(SOCKET_OS_LINUX) || defined(SOCKET_OS_APPLE)
         error.NativeCode = ::setsockopt(s.Socket, SOL_SOCKET, static_cast<int>(optname), optval, static_cast<socklen_t>(optlen));
 #endif
         error.ErrorCode = error.NativeCode == 0 ? ::NetworkLibrary::Error::NoError : ::NetworkLibrary::Error::UnknownError;
@@ -298,9 +298,9 @@ namespace Internals {
     {
         ::NetworkLibrary::Error error;
 
-#if defined(SYSTEM_OS_WINDOWS)
+#if defined(SOCKET_OS_WINDOWS)
         error.NativeCode = ::getsockopt(s.Socket, SOL_SOCKET, optname, reinterpret_cast<char*>(optval), optlen);
-#elif defined(SYSTEM_OS_LINUX) || defined(SYSTEM_OS_APPLE)
+#elif defined(SOCKET_OS_LINUX) || defined(SOCKET_OS_APPLE)
         error.NativeCode = ::getsockopt(s.Socket, SOL_SOCKET, optname, optval, optlen);
 #endif
         error.ErrorCode = error.NativeCode == 0 ? ::NetworkLibrary::Error::NoError : ::NetworkLibrary::Error::UnknownError;
@@ -386,7 +386,7 @@ namespace Internals {
     {
         s.Socket = ::socket(static_cast<int>(af), static_cast<int>(type), static_cast<int>(proto));
         ::NetworkLibrary::Error error = s.IsValid() ? MakeErrorFromSocketCode(::NetworkLibrary::Error::NoError) : LastError();
-#if defined(SYSTEM_OS_WINDOWS)
+#if defined(SOCKET_OS_WINDOWS)
         if (error.NativeCode == WSANOTINITIALISED)
         {
             error = WinSockInitializer::Initialize();
@@ -480,7 +480,7 @@ namespace Internals {
 
     SOCKET_HIDE_SYMBOLS(int) poll(pollfd* fds, size_t nfds, int timeout)
     {
-#if defined(SYSTEM_OS_WINDOWS)
+#if defined(SOCKET_OS_WINDOWS)
         return ::WSAPoll(fds, nfds, timeout);
 #else
         return ::poll(fds, nfds, timeout);

@@ -18,7 +18,7 @@
 #include <NetworkLibrary/Unix.h>
 #include "internals/internal_socket.h"
 
-#if defined(UTILS_OS_WINDOWS)
+#if defined(SOCKET_OS_WINDOWS)
     #include <afunix.h>
 #endif
 
@@ -42,7 +42,7 @@ namespace Unix {
      * 
      ****************************************/
 
-    UTILS_HIDE_CLASS(class) UnixAddrImpl
+    SOCKET_HIDE_CLASS(class) UnixAddrImpl
     {
         using my_sockaddr_t = sockaddr_un;
         my_sockaddr_t _SockAddr;
@@ -219,7 +219,7 @@ namespace Unix {
     {
         if (_BoundAddress != nullptr && !_BoundAddress->empty())
         {// Best effort, might not always work.
-#if defined(UTILS_OS_WINDOWS)
+#if defined(SOCKET_OS_WINDOWS)
             int utf16_size = MultiByteToWideChar(CP_UTF8, 0, &(*_BoundAddress)[0], (int)_BoundAddress->size(), nullptr, 0);
             std::wstring wstr(utf16_size, L'\0');
             MultiByteToWideChar(CP_UTF8, 0, &(*_BoundAddress)[0], (int)_BoundAddress->size(), &wstr[0], utf16_size);
@@ -311,7 +311,7 @@ namespace Unix {
     {
         if (_BoundAddress != nullptr && !_BoundAddress->empty())
         {// Best effort, might not always work.
-#if defined(UTILS_OS_WINDOWS)
+#if defined(SOCKET_OS_WINDOWS)
             int utf16_size = MultiByteToWideChar(CP_UTF8, 0, &(*_BoundAddress)[0], (int)_BoundAddress->size(), nullptr, 0);
             std::wstring wstr(utf16_size, L'\0');
             MultiByteToWideChar(CP_UTF8, 0, &(*_BoundAddress)[0], (int)_BoundAddress->size(), &wstr[0], utf16_size);

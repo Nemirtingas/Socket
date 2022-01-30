@@ -20,11 +20,6 @@ set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
-set(SYSTEM_CODE OFF CACHE BOOL "")
-set(FILESYSTEM_CODE OFF CACHE BOOL "")
-set(LIBRARY_CODE OFF CACHE BOOL "")
-add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/System EXCLUDE_FROM_ALL)
-
 option(UNIX_SUPPORT "Support Unix socket" OFF)
 option(BUILD_SHARED_LIBS "Build static or shared library" OFF)
 option(BUILD_TESTS "Build tests app" OFF)
@@ -62,6 +57,13 @@ if(${BLUETOOTH_SUPPORT})
   )
 endif()
 
+set(All_Headers
+  ${Socket_headers}
+  ${CMAKE_CURRENT_SOURCE_DIR}/src/internals/internal_bluetooth.h
+  ${CMAKE_CURRENT_SOURCE_DIR}/src/internals/internal_socket.h
+  ${CMAKE_CURRENT_SOURCE_DIR}/src/internals/internal_os_stuff.h
+)
+
 ########################################
 ## Build library
 add_library(networklibrary
@@ -73,6 +75,8 @@ add_library(networklibrary
   $<$<BOOL:${UNIX_SUPPORT}>:src/Unix.cpp>
   $<$<BOOL:${BLUETOOTH_SUPPORT}>:src/internals/internal_bluetooth.cpp>
   $<$<BOOL:${BLUETOOTH_SUPPORT}>:src/Bluetooth.cpp>
+  
+  ${All_Headers}
 )
 
 set_target_properties(networklibrary PROPERTIES
@@ -84,9 +88,6 @@ set_target_properties(networklibrary PROPERTIES
 )
 
 target_link_libraries(networklibrary
-  PRIVATE
-  System::System
-
   PUBLIC
   # Winsocks
   $<$<BOOL:${WIN32}>:ws2_32>
