@@ -590,11 +590,6 @@ namespace Bluetooth {
         return _Impl->SetLocalAddr();
     }
 
-    int AddressFamily()
-    {
-        return _AddressFamily;
-    }
-
     /****************************************
      *
      * RFCOMM implementation

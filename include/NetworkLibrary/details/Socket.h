@@ -32,27 +32,27 @@ namespace NetworkLibrary
     /// @brief recv, recvfrom, send, sendto flags 
     ////////////
     namespace SocketFlags {
-        extern int32_t normal;
-        extern int32_t oob;       // process out-of-band data
-        extern int32_t peek;      // peek at incoming message
-        extern int32_t dontroute; //send without using routing tables
+        static constexpr int32_t normal    = 1;
+        static constexpr int32_t oob       = 2; // process out-of-band data
+        static constexpr int32_t peek      = 4; // peek at incoming message
+        static constexpr int32_t dontroute = 8; // send without using routing tables
     }
 
     ////////////
     /// @brief Poll flags 
     ////////////
     namespace PollFlags {
-        extern int16_t none  ;
-        extern int16_t in    ;
-        extern int16_t pri   ;
-        extern int16_t out   ;
-        extern int16_t err   ;
-        extern int16_t hup   ;
-        extern int16_t nval  ;
-        extern int16_t rdnorm;
-        extern int16_t rdband;
-        extern int16_t wrnorm;
-        extern int16_t wrband;
+        static constexpr int16_t none   = 0x0000;
+        static constexpr int16_t in     = 0x0001;
+        static constexpr int16_t pri    = 0x0002;
+        static constexpr int16_t out    = 0x0004;
+        static constexpr int16_t err    = 0x0008;
+        static constexpr int16_t hup    = 0x0010;
+        static constexpr int16_t nval   = 0x0020;
+        static constexpr int16_t rdnorm = 0x0040;
+        static constexpr int16_t rdband = 0x0080;
+        static constexpr int16_t wrnorm = 0x0100;
+        static constexpr int16_t wrband = 0x0200;
     }
 
     ////////////
@@ -60,21 +60,21 @@ namespace NetworkLibrary
     ////////////
     namespace OptionName
     {
-        extern int32_t so_debug;
-        extern int32_t so_reuseaddr;
-        extern int32_t so_keepalive;
-        extern int32_t so_dontroute;
-        extern int32_t so_broadcast;
-        extern int32_t so_linger;
-        extern int32_t so_oobinline;
-        extern int32_t so_sndbuf;
-        extern int32_t so_rcvbuf;
-        extern int32_t so_sndlowat;
-        extern int32_t so_rcvlowat;
-        extern int32_t so_sndtimeo;
-        extern int32_t so_rcvtimeo;
-        extern int32_t so_error;
-        extern int32_t so_type;
+        static constexpr int32_t so_debug     = 1;
+        static constexpr int32_t so_reuseaddr = 2;
+        static constexpr int32_t so_keepalive = 3;
+        static constexpr int32_t so_dontroute = 4;
+        static constexpr int32_t so_broadcast = 5;
+        static constexpr int32_t so_linger    = 6;
+        static constexpr int32_t so_oobinline = 7;
+        static constexpr int32_t so_sndbuf    = 8;
+        static constexpr int32_t so_rcvbuf    = 9;
+        static constexpr int32_t so_sndlowat  = 10;
+        static constexpr int32_t so_rcvlowat  = 11;
+        static constexpr int32_t so_sndtimeo  = 12;
+        static constexpr int32_t so_rcvtimeo  = 13;
+        static constexpr int32_t so_error     = 14;
+        static constexpr int32_t so_type      = 15;
     };
 
 	////////////

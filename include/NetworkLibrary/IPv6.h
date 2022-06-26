@@ -40,12 +40,6 @@ class IPv6Addr :
 
 public:
     ////////////
-    /// @brief Gets the IPv6 integer type.
-    /// @return The ipv6 type as int. Can be used to detect BasicAddr type with BasicAddr::GetFamily.
-    ////////////
-    static int AddressFamily();
-
-    ////////////
     /// @brief 
     ////////////
     IPv6Addr();

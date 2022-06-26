@@ -172,11 +172,6 @@ namespace Unix {
         return _Impl->FromString(str);
     }
 
-    int AddressFamily()
-    {
-        return _AddressFamily;
-    }
-
     /****************************************
      *
      * UnixDgram implementation

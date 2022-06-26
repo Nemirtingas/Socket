@@ -18,47 +18,6 @@
 #include "internals/internal_socket.h"
 
 namespace NetworkLibrary {
-
-    namespace SocketFlags {
-        int32_t normal    = 0;
-        int32_t oob       = MSG_OOB;
-        int32_t peek      = MSG_PEEK;
-        int32_t dontroute = MSG_DONTROUTE;
-    }
-
-    namespace PollFlags {
-        int16_t none   = 0;
-        int16_t in     = POLLIN;
-        int16_t pri    = POLLPRI;
-        int16_t out    = POLLOUT;
-        int16_t err    = POLLERR;
-        int16_t hup    = POLLHUP;
-        int16_t nval   = POLLNVAL;
-        int16_t rdnorm = POLLRDNORM;
-        int16_t rdband = POLLRDBAND;
-        int16_t wrnorm = POLLWRNORM;
-        int16_t wrband = POLLWRBAND;
-    }
-
-    namespace OptionName
-    {
-        int32_t so_debug = SO_DEBUG;
-        int32_t so_reuseaddr = SO_REUSEADDR;
-        int32_t so_keepalive = SO_KEEPALIVE;
-        int32_t so_dontroute = SO_DONTROUTE;
-        int32_t so_broadcast = SO_BROADCAST;
-        int32_t so_linger = SO_LINGER;
-        int32_t so_oobinline = SO_OOBINLINE;
-        int32_t so_sndbuf = SO_SNDBUF;
-        int32_t so_rcvbuf = SO_RCVBUF;
-        int32_t so_sndlowat = SO_SNDLOWAT;
-        int32_t so_rcvlowat = SO_RCVLOWAT;
-        int32_t so_sndtimeo = SO_SNDTIMEO;
-        int32_t so_rcvtimeo = SO_RCVTIMEO;
-        int32_t so_error = SO_ERROR;
-        int32_t so_type = SO_TYPE;
-    };
-
     std::string Error::ToString()
     {
         std::string message;
@@ -140,7 +99,7 @@ namespace NetworkLibrary {
 
     NetworkLibrary::Error BasicSocket::SetSockOption(int32_t option_name, const void* value, int optlen)
     {
-        return _Impl->SetSockOption(option_name, value, optlen);
+        return _Impl->SetSockOption(NetworkLibrary::Internals::OptionNameToNative(option_name), value, optlen);
     }
 
     NetworkLibrary::Error BasicSocket::SetNonBlocking(bool non_blocking)
@@ -181,12 +140,12 @@ namespace NetworkLibrary {
 
     NetworkLibrary::Error ConnectedSocket::Send(NetBuffer& buffer, int32_t flags)
     {
-        return Internals::send(*_Impl, buffer.Buffer, buffer.BufferSize, flags);
+        return Internals::send(*_Impl, buffer.Buffer, buffer.BufferSize, NetworkLibrary::Internals::SocketFlagsToNative(flags));
     }
 
     NetworkLibrary::Error ConnectedSocket::Receive(NetBuffer& buffer, int32_t flags)
     {
-        return Internals::recv(*_Impl, buffer.Buffer, buffer.BufferSize, flags);
+        return Internals::recv(*_Impl, buffer.Buffer, buffer.BufferSize, NetworkLibrary::Internals::SocketFlagsToNative(flags));
     }
 
     // Unconnected Socket
@@ -197,11 +156,11 @@ namespace NetworkLibrary {
 
     NetworkLibrary::Error UnconnectedSocket::SendTo(BasicAddr const& addr, NetBuffer& buffer, int32_t flags)
     {
-        return Internals::sendto(*_Impl, addr, buffer.Buffer, buffer.BufferSize, flags);
+        return Internals::sendto(*_Impl, addr, buffer.Buffer, buffer.BufferSize, NetworkLibrary::Internals::SocketFlagsToNative(flags));
     }
 
     NetworkLibrary::Error UnconnectedSocket::ReceiveFrom(BasicAddr& addr, NetBuffer& buffer, int32_t flags)
     {
-        return Internals::recvfrom(*_Impl, addr, buffer.Buffer, buffer.BufferSize, flags);
+        return Internals::recvfrom(*_Impl, addr, buffer.Buffer, buffer.BufferSize, NetworkLibrary::Internals::SocketFlagsToNative(flags));
     }
 }

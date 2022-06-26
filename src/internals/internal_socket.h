@@ -75,6 +75,120 @@
 
 namespace NetworkLibrary {
 namespace Internals {
+    static int32_t SocketFlagsToNative(int32_t flags)
+    {
+        int32_t native = 0;
+
+        if (flags & SocketFlags::oob)
+            native |= MSG_OOB;
+
+        if (flags & SocketFlags::peek)
+            native |= MSG_PEEK;
+
+        if (flags & SocketFlags::dontroute)
+            native |= MSG_DONTROUTE;
+
+        return native;
+    }
+
+    static int16_t PollFlagsToNative(int16_t flags)
+    {
+        int16_t native = 0;
+
+        if(flags & PollFlags::in)
+            native |= POLLIN;
+
+        if (flags & PollFlags::pri)
+            native |= POLLPRI;
+
+        if (flags & PollFlags::out)
+            native |= POLLOUT;
+
+        if (flags & PollFlags::err)
+            native |= POLLERR;
+
+        if (flags & PollFlags::hup)
+            native |= POLLHUP;
+
+        if (flags & PollFlags::nval)
+            native |= POLLNVAL;
+
+        if (flags & PollFlags::rdnorm)
+            native |= POLLRDNORM;
+
+        if (flags & PollFlags::rdband)
+            native |= POLLRDBAND;
+
+        if (flags & PollFlags::wrnorm)
+            native |= POLLWRNORM;
+
+        if (flags & PollFlags::wrband)
+            native |= POLLWRBAND;
+
+        return native;
+    }
+
+    static int16_t NativeToPollFlags(int16_t native)
+    {
+        int16_t flags = 0;
+
+        if (native & POLLIN)
+            flags |= PollFlags::in;
+
+        if (native & POLLPRI)
+            flags |= PollFlags::pri;
+
+        if (native & POLLOUT)
+            flags |= PollFlags::out;
+
+        if (native & POLLERR)
+            flags |= PollFlags::err;
+
+        if (native & POLLHUP)
+            flags |= PollFlags::hup;
+
+        if (native & POLLNVAL)
+            flags |= PollFlags::nval;
+
+        if (native & POLLRDNORM)
+            flags |= PollFlags::rdnorm;
+
+        if (native & POLLRDBAND)
+            flags |= PollFlags::rdband;
+
+        if (native & POLLWRNORM)
+            flags |= PollFlags::wrnorm;
+
+        if (native & POLLWRBAND)
+            flags |= PollFlags::wrband;
+
+        return flags;
+    }
+
+    static int32_t OptionNameToNative(int32_t option)
+    {
+        switch (option)
+        {
+            case OptionName::so_debug    : return SO_DEBUG;
+            case OptionName::so_reuseaddr: return SO_REUSEADDR;
+            case OptionName::so_keepalive: return SO_KEEPALIVE;
+            case OptionName::so_dontroute: return SO_DONTROUTE;
+            case OptionName::so_broadcast: return SO_BROADCAST;
+            case OptionName::so_linger   : return SO_LINGER;
+            case OptionName::so_oobinline: return SO_OOBINLINE;
+            case OptionName::so_sndbuf   : return SO_SNDBUF;
+            case OptionName::so_rcvbuf   : return SO_RCVBUF;
+            case OptionName::so_sndlowat : return SO_SNDLOWAT;
+            case OptionName::so_rcvlowat : return SO_RCVLOWAT;
+            case OptionName::so_sndtimeo : return SO_SNDTIMEO;
+            case OptionName::so_rcvtimeo : return SO_RCVTIMEO;
+            case OptionName::so_error    : return SO_ERROR;
+            case OptionName::so_type     : return SO_TYPE;
+        }
+
+        return 0;
+    }
+
     enum class AddressFamily : int
     {
         unknown = 0xffff,

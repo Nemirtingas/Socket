@@ -279,6 +279,10 @@ namespace IPv6 {
                         return Internals::MakeErrorFromSocketCode(Error::InVal);
                     }
                 }
+                else
+                {
+                    pos = std::string::npos;
+                }
             }
 
             NetworkLibrary::Error error = NetworkLibrary::Internals::inet_pton(ip, reinterpret_cast<sockaddr*>(&_SockAddr));
@@ -425,11 +429,6 @@ namespace IPv6 {
     void IPv6Addr::SetLoopbackAddr()
     {
         _Impl->SetLoopbackAddr();
-    }
-
-    int AddressFamily()
-    {
-        return _AddressFamily;
     }
 
     /****************************************

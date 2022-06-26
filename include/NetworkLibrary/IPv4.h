@@ -35,12 +35,6 @@ class IPv4Addr :
 
     public:
     ////////////
-    /// @brief Gets the IPv4 integer type.
-    /// @return The ipv4 type as int. Can be used to detect BasicAddr type with BasicAddr::GetFamily.
-    ////////////
-    static int AddressFamily();
-
-    ////////////
     /// @brief 
     ////////////
     IPv4Addr();

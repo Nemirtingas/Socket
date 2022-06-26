@@ -400,11 +400,6 @@ namespace IPv4 {
         _Impl->SetBroadcastAddr();
     }
 
-    int AddressFamily()
-    {
-        return _AddressFamily;
-    }
-
     /****************************************
      *
      * TCP implementation

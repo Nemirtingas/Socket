@@ -29,12 +29,6 @@ class UnixAddr :
 
 public:
     ////////////
-    /// @brief Gets the Unix integer type.
-    /// @return The unix type as int. Can be used to detect BasicAddr type with BasicAddr::GetFamily.
-    ////////////
-    static int AddressFamily();
-
-    ////////////
     /// @brief 
     ////////////
     UnixAddr();

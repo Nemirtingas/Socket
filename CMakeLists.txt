@@ -137,6 +137,14 @@ if(${BUILD_TESTS})
     $<$<BOOL:${UNIX_SUPPORT}>:UNIX_TESTS>
     $<$<BOOL:${BLUETOOTH_SUPPORT}>:BLUETOOTH_TESTS>
   )
+  
+  set_target_properties(library_test PROPERTIES
+    MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>"
+    POSITION_INDEPENDENT_CODE ON
+    C_VISIBILITY_PRESET hidden
+    CXX_VISIBILITY_PRESET hidden
+    VISIBILITY_INLINES_HIDDEN ON
+  )
 endif()
 
 ##################

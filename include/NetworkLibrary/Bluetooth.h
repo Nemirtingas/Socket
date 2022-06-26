@@ -204,12 +204,6 @@ class BluetoothAddr :
 
 public:
     ////////////
-    /// @brief Gets the Bluetooth integer type.
-    /// @return The bluetooth type as int. Can be used to detect BasicAddr type with BasicAddr::GetFamily.
-    ////////////
-    static int AddressFamily();
-
-    ////////////
     /// @brief 
     ////////////
     BluetoothAddr();

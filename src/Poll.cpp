@@ -159,7 +159,7 @@ namespace NetworkLibrary {
 
     NetworkLibrary::Error Poll::AddSocket(BasicSocket const& sock, int16_t flags)
     {
-        return _Impl->AddSocket(sock, flags);
+        return _Impl->AddSocket(sock, NetworkLibrary::Internals::PollFlagsToNative(flags));
     }
 
     NetworkLibrary::Error Poll::RemoveSocket(BasicSocket const& sock)
@@ -174,22 +174,22 @@ namespace NetworkLibrary {
 
     NetworkLibrary::Error Poll::SetEvents(BasicSocket const& sock, /* PollFlags */ int16_t flags)
     {
-        return _Impl->SetEvents(sock, flags);
+        return _Impl->SetEvents(sock, NetworkLibrary::Internals::PollFlagsToNative(flags));
     }
 
     NetworkLibrary::Error Poll::SetEvents(size_t index, /* PollFlags */ int16_t flags)
     {
-        return _Impl->SetEvents(index, flags);
+        return _Impl->SetEvents(index, NetworkLibrary::Internals::PollFlagsToNative(flags));
     }
 
     /* PollFlags */ int16_t Poll::GetRevents(BasicSocket const& sock)
     {
-        return _Impl->GetRevents(sock);
+        return NetworkLibrary::Internals::NativeToPollFlags(_Impl->GetRevents(sock));
     }
 
     /* PollFlags */ int16_t Poll::GetRevents(size_t index)
     {
-        return _Impl->GetRevents(index);
+        return NetworkLibrary::Internals::NativeToPollFlags(_Impl->GetRevents(index));
     }
 
     int32_t Poll::DoPoll(std::chrono::milliseconds timeout)
