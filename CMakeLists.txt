@@ -150,7 +150,7 @@ endif()
 ##################
 ## Install rules
 
-add_library(NetworkLibrary::NetworkLibrary ALIAS networklibrary)
+add_library(Nemirtingas::NetworkLibrary ALIAS networklibrary)
 set_target_properties(networklibrary PROPERTIES EXPORT_NAME NetworkLibrary)
 
 ##################
@@ -168,7 +168,7 @@ install(FILES ${Socket_headers} DESTINATION include/NetworkLibrary)
 install(
   EXPORT NetworkLibraryTargets
   FILE NetworkLibraryConfig.cmake
-  NAMESPACE NetworkLibrary::
+  NAMESPACE Nemirtingas::
   DESTINATION lib/cmake/NetworkLibrary
 )
 
