@@ -79,7 +79,7 @@ add_library(networklibrary
 )
 
 set_target_properties(networklibrary PROPERTIES
-  MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>$<$<BOOL:SOCKET_DYNAMIC_RUNTIME>:DLL>"
+  MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>$<$<BOOL:${SOCKET_DYNAMIC_RUNTIME}>:DLL>"
   POSITION_INDEPENDENT_CODE ON
   C_VISIBILITY_PRESET hidden
   CXX_VISIBILITY_PRESET hidden
@@ -138,7 +138,7 @@ if(${SOCKET_BUILD_TESTS})
   )
   
   set_target_properties(library_test PROPERTIES
-    MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>$<$<BOOL:SOCKET_DYNAMIC_RUNTIME>:DLL>"
+    MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>$<$<BOOL:${SOCKET_DYNAMIC_RUNTIME}>:DLL>"
     POSITION_INDEPENDENT_CODE ON
     C_VISIBILITY_PRESET hidden
     CXX_VISIBILITY_PRESET hidden
